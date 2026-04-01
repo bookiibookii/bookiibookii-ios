@@ -4,12 +4,9 @@ import SwiftUI
 struct SplashView: View {
     let onFinish: () -> Void
 
-    // MARK: - 배경색: @color/pre_main = #FF7618
-    private let backgroundColor = Color(red: 0xFF/255, green: 0x76/255, blue: 0x18/255)
-
     var body: some View {
         ZStack {
-            backgroundColor.ignoresSafeArea()
+            Color("main200").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Spacer()
@@ -42,7 +39,7 @@ struct SplashView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 82, height: 82)
-                .foregroundColor(.white)
+                .foregroundColor(Color("white"))
 
             // 타이틀 이미지: ic_home_logo, 204dp x 21.79dp, tint=white
             Image("ic_splash_title")
@@ -50,7 +47,7 @@ struct SplashView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 204, height: 22)
-                .foregroundColor(.white)
+                .foregroundColor(Color("white"))
         }
     }
 
@@ -61,13 +58,13 @@ struct SplashView: View {
             ProgressView()
                 .progressViewStyle(.circular)
                 .scaleEffect(1.8)
-                .tint(.white)
+                .tint(Color("white"))
                 .frame(width: 69, height: 69)
 
             // splash_loading = "로그인 중입니다..."
             Text("로그인 중입니다...")
                 .font(.system(size: 14))
-                .foregroundColor(.white)
+                .foregroundColor(Color("white"))
         }
     }
 }

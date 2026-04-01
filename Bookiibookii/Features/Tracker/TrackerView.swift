@@ -18,7 +18,7 @@ struct TrackerView: View {
             }
             .padding(.horizontal, 24)
         }
-        .background(Color.uiBg)
+        .background(Color("grey100"))
     }
 
     // MARK: - 헤더 (top_background + tracker_title_tv)
@@ -26,12 +26,12 @@ struct TrackerView: View {
         HStack {
             Text("북 트래커")
                 .font(.system(size: 24, weight: .medium))
-                .foregroundColor(.grey900)
+                .foregroundColor(Color("grey900"))
             Spacer()
         }
         .padding(.horizontal, 24)
         .frame(height: 68)
-        .background(Color.white)
+        .background(Color("white"))
     }
 
     // MARK: - 토글 버튼 (layout_toggle_container: myGroup_bt + joinedGroup_bt)
@@ -51,15 +51,15 @@ struct TrackerView: View {
         } label: {
             Text(title)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(isSelected ? .toggleTextSelected : .toggleTextUnselected)
+                .foregroundColor(isSelected ? Color("white") : Color("grey900"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
-                .background(isSelected ? Color.toggleBgSelected : Color.toggleBgUnselected)
+                .background(isSelected ? Color("grey900") : Color("white"))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
                         .stroke(
-                            isSelected ? Color.toggleStrokeSelected : Color.toggleStrokeUnselected,
+                            isSelected ? Color("grey900") : Color("grey200"),
                             lineWidth: 1
                         )
                 )
@@ -70,7 +70,7 @@ struct TrackerView: View {
     private var emptyPlaceholder: some View {
         Text("그룹 목록을 불러오는 중입니다")
             .font(.system(size: 14))
-            .foregroundColor(.grey500)
+            .foregroundColor(Color("grey500"))
     }
 }
 
