@@ -14,7 +14,7 @@ struct HomeView: View {
                 .padding(.bottom, 24)
             }
         }
-        .background(Color.uiBg)
+        .background(Color("grey100"))
     }
 
     // MARK: - 헤더 (section_home_header.xml 대응)
@@ -27,7 +27,7 @@ struct HomeView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(height: 20)
-                .foregroundColor(.preMain)
+                .foregroundColor(Color("main200"))
 
             Spacer()
 
@@ -35,16 +35,16 @@ struct HomeView: View {
             Button(action: {}) {
                 Image(systemName: "bell")
                     .font(.system(size: 20))
-                    .foregroundColor(.grey900)
+                    .foregroundColor(Color("grey900"))
             }
         }
         .padding(.horizontal, 20)
         .frame(height: 68)
-        .background(Color.white)
+        .background(Color("white"))
         .overlay(alignment: .bottom) {
             Rectangle()
                 .frame(height: 1)
-                .foregroundColor(.grey200)
+                .foregroundColor(Color("grey200"))
         }
     }
 
@@ -74,7 +74,7 @@ struct HomeView: View {
             Spacer()
             Text(message)
                 .font(.system(size: 14))
-                .foregroundColor(.grey500)
+                .foregroundColor(Color("grey500"))
             Spacer()
         }
         .frame(height: 100)
@@ -90,7 +90,7 @@ private struct HomeSectionView<Content: View>: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
                 .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.grey900)
+                .foregroundColor(Color("grey900"))
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
                 .padding(.bottom, 12)

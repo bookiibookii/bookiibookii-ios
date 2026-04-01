@@ -16,7 +16,7 @@ struct GroupView: View {
                 sortBar
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                Divider().foregroundColor(.grey200)
+                Divider().foregroundColor(Color("grey200"))
 
                 // RecyclerView 영역 (빈 상태)
                 ScrollView {
@@ -24,7 +24,7 @@ struct GroupView: View {
                         .padding(.top, 60)
                 }
             }
-            .background(Color.uiBg)
+            .background(Color("grey100"))
 
             // FAB 영역
             fabArea
@@ -41,20 +41,20 @@ struct GroupView: View {
                 // grp_main_title_Tv
                 Text("그룹")
                     .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.grey700)
+                    .foregroundColor(Color("grey700"))
 
                 Spacer()
 
                 // grp_search_Iv (ic_search: clip-path → SF Symbol 대체)
                 Circle()
-                    .fill(Color.white)
+                    .fill(Color("white"))
                     .frame(width: 40, height: 40)
                     .overlay(
                         Image(systemName: "magnifyingglass")
-                            .foregroundColor(.grey500)
+                            .foregroundColor(Color("grey500"))
                             .font(.system(size: 16, weight: .regular))
                     )
-                    .overlay(Circle().stroke(Color.grey200, lineWidth: 1))
+                    .overlay(Circle().stroke(Color("grey200"), lineWidth: 1))
             }
             .padding(.top, 20)
 
@@ -69,9 +69,9 @@ struct GroupView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
-        .background(Color.white)
+        .background(Color("white"))
         .overlay(alignment: .bottom) {
-            Rectangle().frame(height: 1).foregroundColor(.grey200)
+            Rectangle().frame(height: 1).foregroundColor(Color("grey200"))
         }
     }
 
@@ -83,12 +83,12 @@ struct GroupView: View {
         } label: {
             Text(title)
                 .font(.system(size: 14))
-                .foregroundColor(isSelected ? .white : .grey900)
+                .foregroundColor(isSelected ? Color("white") : Color("grey900"))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
-                .background(isSelected ? Color.preMain : Color.white)
+                .background(isSelected ? Color("main200") : Color("white"))
                 .clipShape(Capsule())
-                .overlay(Capsule().stroke(isSelected ? Color.preMain : Color.grey200, lineWidth: 1))
+                .overlay(Capsule().stroke(isSelected ? Color("main200") : Color("grey200"), lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
@@ -101,14 +101,14 @@ struct GroupView: View {
                 if index > 0 {
                     Text("|")
                         .font(.system(size: 14))
-                        .foregroundColor(.grey200)
+                        .foregroundColor(Color("grey200"))
                 }
                 Button {
                     selectedSort = index
                 } label: {
                     Text(option)
                         .font(.system(size: 14))
-                        .foregroundColor(selectedSort == index ? .grey700 : .grey500)
+                        .foregroundColor(selectedSort == index ? Color("grey700") : Color("grey500"))
                 }
                 .buttonStyle(.plain)
             }
@@ -118,7 +118,7 @@ struct GroupView: View {
     private var emptyPlaceholder: some View {
         Text("그룹 목록을 불러오는 중입니다")
             .font(.system(size: 14))
-            .foregroundColor(.grey500)
+            .foregroundColor(Color("grey500"))
     }
 
     // MARK: - FAB 영역 (grp_group_fab_main_btn + grp_group_fab_menu_layout)
@@ -138,12 +138,12 @@ struct GroupView: View {
                 }
             } label: {
                 Circle()
-                    .fill(Color.grey900)
+                    .fill(Color("grey900"))
                     .frame(width: 70, height: 70)
                     .overlay(
                         Image(systemName: showFabMenu ? "xmark" : "plus")
                             .font(.system(size: 24, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(Color("white"))
                     )
             }
         }
@@ -157,10 +157,10 @@ struct GroupView: View {
                 Text(title)
                     .font(.system(size: 14, weight: .medium))
             }
-            .foregroundColor(.white)
+            .foregroundColor(Color("white"))
             .padding(.horizontal, 18)
             .padding(.vertical, 13)
-            .background(Color.grey900)
+            .background(Color("grey900"))
             .clipShape(Capsule())
         }
     }

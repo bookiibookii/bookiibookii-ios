@@ -9,9 +9,20 @@ import SwiftUI
 
 @main
 struct BookiibookiiApp: App {
+    @StateObject private var container = DIContainer()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationStack(path: $container.navigationRouter.destinations) {
+                SplashView {
+                    container.navigationRouter.hardReset(to: .mainTab)
+                }
+                .environmentObject(container)
+                .navigationDestination(for: NavigationDestination.self) { destination in
+                    NavigationRoutingView(destination: destination)
+                        .environmentObject(container)
+                }
+            }
         }
     }
 }
