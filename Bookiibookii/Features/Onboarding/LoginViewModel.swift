@@ -74,8 +74,9 @@ final class LoginViewModel: ObservableObject {
             return
         }
 
+        let clientID = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String ?? ""
         let serverClientID = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_SERVER_CLIENT_ID") as? String
-        let config = GIDConfiguration(clientID: GIDSignIn.sharedInstance.configuration?.clientID ?? "", serverClientID: serverClientID)
+        let config = GIDConfiguration(clientID: clientID, serverClientID: serverClientID)
         GIDSignIn.sharedInstance.configuration = config
 
         GIDSignIn.sharedInstance.signIn(withPresenting: rootVC) { [weak self] result, error in
