@@ -66,20 +66,22 @@ actor AuthInterceptor {
                 throw AuthError.refreshFailed
             }
 
-            let newToken = try await authService.refresh(
+            let result = try await authService.refresh(
                 accessToken: expiredToken,
                 refreshToken: refreshToken
             )
 
-            TokenManager.shared.accessToken = newToken
+            TokenManager.shared.accessToken = result.accessToken
+            TokenManager.shared.refreshToken = result.refreshToken
+            TokenManager.shared.userId = result.userId
 
             // 대기 중인 요청들에 새 토큰 전달
             let waiting = pendingContinuations
             pendingContinuations = []
             isRefreshing = false
-            waiting.forEach { $0.resume(returning: newToken) }
+            waiting.forEach { $0.resume(returning: result.accessToken) }
 
-            return newToken
+            return result.accessToken
         } catch {
             let waiting = pendingContinuations
             pendingContinuations = []

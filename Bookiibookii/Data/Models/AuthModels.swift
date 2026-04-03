@@ -20,6 +20,8 @@ struct RefreshResponse: Decodable {
 
 struct RefreshResult: Decodable {
     let accessToken: String
+    let refreshToken: String
+    let userId: Int
 }
 
 // 안드로이드 LoginResponse 대응
