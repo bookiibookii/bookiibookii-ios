@@ -8,7 +8,14 @@
       "Bash(rmdir /Users/qhrtj07/Documents/bookiibookii-ios/HelloWorld)",
       "Bash(mkdir Bookiibookii)",
       "Bash(mv Assets.xcassets Common ContentView.swift Features MainTabView.swift Bookiibookii/)",
-      "Bash(mv HelloWorldApp.swift Bookiibookii/BookiibookiiApp.swift)"
+      "Bash(mv HelloWorldApp.swift Bookiibookii/BookiibookiiApp.swift)",
+      "Bash(xargs -I{} basename {} .colorset)",
+      "Bash(cp \"/Users/qhrtj07/Downloads/icon_kakako.pdf\" \"/Users/qhrtj07/Documents/bookiibookii-ios/Bookiibookii/Assets.xcassets/LoginAssets/ic_kakao.imageset/ic_kakao.pdf\")",
+      "Bash(cp \"/Users/qhrtj07/Downloads/Icon_google.pdf\" \"/Users/qhrtj07/Documents/bookiibookii-ios/Bookiibookii/Assets.xcassets/LoginAssets/ic_google.imageset/ic_google.pdf\")",
+      "Bash(xargs cat:*)",
+      "Bash(mkdir -p /Users/qhrtj07/Documents/bookiibookii-ios/Bookiibookii/Data/Models)",
+      "Bash(mkdir -p /Users/qhrtj07/Documents/bookiibookii-ios/Bookiibookii/Data/API)",
+      "Skill(gsd:progress)"
     ]
   }
 }

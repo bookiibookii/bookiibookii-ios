@@ -1,0 +1,83 @@
+import Foundation
+import Security
+
+// 안드로이드 TokenManager (SharedPreferences) → iOS Keychain 대응
+final class TokenManager {
+    static let shared = TokenManager()
+    private init() {}
+
+    enum Key: String {
+        case accessToken  = "bookii.access_token"
+        case refreshToken = "bookii.refresh_token"
+        case userId       = "bookii.user_id"
+        case onboardingDone = "bookii.onboarding_done"
+    }
+
+    var hasAccessToken: Bool { !(accessToken?.isEmpty ?? true) }
+
+    var accessToken: String? {
+        get { read(.accessToken) }
+        set { write(newValue, key: .accessToken) }
+    }
+
+    var refreshToken: String? {
+        get { read(.refreshToken) }
+        set { write(newValue, key: .refreshToken) }
+    }
+
+    var userId: Int? {
+        get { read(.userId).flatMap(Int.init) }
+        set { write(newValue.map(String.init), key: .userId) }
+    }
+
+    var isOnboardingDone: Bool {
+        get { read(.onboardingDone) == "true" }
+        set { write(newValue ? "true" : "false", key: .onboardingDone) }
+    }
+
+    func saveLoginResult(_ result: LoginResult) {
+        accessToken = result.accessToken
+        refreshToken = result.refreshToken
+        userId = result.userId
+        isOnboardingDone = result.onboardingDone
+    }
+
+    func clear() {
+        Key.allCases.forEach { delete($0) }
+    }
+
+    // MARK: - Keychain helpers
+    private func read(_ key: Key) -> String? {
+        let query: [CFString: Any] = [
+            kSecClass:       kSecClassGenericPassword,
+            kSecAttrAccount: key.rawValue,
+            kSecReturnData:  true,
+            kSecMatchLimit:  kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private func write(_ value: String?, key: Key) {
+        guard let value else { delete(key); return }
+        let data = Data(value.utf8)
+        let query: [CFString: Any] = [
+            kSecClass:       kSecClassGenericPassword,
+            kSecAttrAccount: key.rawValue
+        ]
+        if SecItemUpdate(query as CFDictionary, [kSecValueData: data] as CFDictionary) == errSecItemNotFound {
+            SecItemAdd(query.merging([kSecValueData: data]) { $1 } as CFDictionary, nil)
+        }
+    }
+
+    private func delete(_ key: Key) {
+        SecItemDelete([
+            kSecClass:       kSecClassGenericPassword,
+            kSecAttrAccount: key.rawValue
+        ] as CFDictionary)
+    }
+}
+
+extension TokenManager.Key: CaseIterable {}

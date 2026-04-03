@@ -8,9 +8,14 @@ struct NavigationRoutingView: View {
 
     var body: some View {
         switch destination {
+        case .login:
+            LoginView(authService: container.api.auth)
+                .environmentObject(container)
         case .mainTab:
             MainTabView(container: container)
                 .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         }
     }
 }
