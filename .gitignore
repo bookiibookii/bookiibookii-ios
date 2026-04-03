@@ -76,3 +76,7 @@ DerivedData/
 *.env
 Secrets.swift
 GoogleService-Info.plist
+Bookiibookii/Config.xcconfig
+
+# Claude Code
+.claude/settings.local.json

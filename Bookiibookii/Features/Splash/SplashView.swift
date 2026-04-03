@@ -3,6 +3,7 @@ import SwiftUI
 // 안드로이드 SplashActivity 대응
 struct SplashView: View {
     let onFinish: () -> Void
+    @State private var hasFinished = false
 
     var body: some View {
         ZStack {
@@ -24,6 +25,8 @@ struct SplashView: View {
             }
         }
         .onAppear {
+            guard !hasFinished else { return }
+            hasFinished = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 onFinish()
             }

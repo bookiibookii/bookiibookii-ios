@@ -64,6 +64,14 @@ struct MainTabView: View {
     }
 }
 
+extension MainTabView {
+    // NavigationStack 내에서 back 제스처/버튼 노출 방지
+    func withHiddenNavigation() -> some View {
+        self.toolbar(.hidden, for: .navigationBar)
+            .navigationBarBackButtonHidden(true)
+    }
+}
+
 #Preview {
     let container = DIContainer()
     MainTabView(container: container)
