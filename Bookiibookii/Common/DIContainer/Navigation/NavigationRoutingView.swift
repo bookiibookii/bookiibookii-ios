@@ -8,6 +8,9 @@ struct NavigationRoutingView: View {
 
     var body: some View {
         switch destination {
+        case .loginIntro:
+            LoginIntroView()
+                .environmentObject(container)
         case .login:
             LoginView(authService: container.api.auth)
                 .environmentObject(container)
