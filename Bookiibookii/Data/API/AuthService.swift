@@ -29,6 +29,14 @@ final class AuthService {
         return result
     }
 
+    func logout(accessToken: String) async {
+        let url = baseURL.appendingPathComponent("api/auth/logout")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        _ = try? await URLSession.shared.data(for: request)
+    }
+
     func login(socialType: String, token: String) async throws -> LoginResult {
         let url = baseURL.appendingPathComponent("api/auth/login")
         var request = URLRequest(url: url)
