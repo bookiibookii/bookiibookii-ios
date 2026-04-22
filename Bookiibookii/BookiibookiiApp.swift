@@ -18,9 +18,9 @@ struct BookiibookiiApp: App {
         WindowGroup {
             NavigationStack(path: $container.navigationRouter.destinations) {
                 SplashView {
-                    // 저장된 토큰이 있으면 메인 탭으로, 없으면 로그인으로
                     if TokenManager.shared.hasAccessToken {
-                        container.navigationRouter.hardReset(to: .mainTab)
+                        let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboardingProfile
+                        container.navigationRouter.hardReset(to: destination)
                     } else {
                         container.navigationRouter.hardReset(to: .loginIntro)
                     }

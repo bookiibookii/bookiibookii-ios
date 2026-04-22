@@ -5,5 +5,7 @@ import Foundation
 enum NavigationDestination: Hashable {
     case loginIntro
     case login
+    case onboardingProfile
+    case onboardingSteps(name: String, s3Key: String?)
     case mainTab
 }

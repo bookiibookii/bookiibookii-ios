@@ -2,9 +2,17 @@ import Foundation
 import Security
 
 // 안드로이드 TokenManager (SharedPreferences) → iOS Keychain 대응
-final class TokenManager {
+final class TokenManager: @unchecked Sendable {
     static let shared = TokenManager()
-    private init() {}
+
+    private init() {
+        // 앱 삭제 후 재설치 시 Keychain은 남아있으므로, UserDefaults로 최초 실행을 감지해 초기화
+        let isFirstLaunch = !UserDefaults.standard.bool(forKey: "bookii.launched")
+        if isFirstLaunch {
+            Key.allCases.forEach { delete($0) }
+            UserDefaults.standard.set(true, forKey: "bookii.launched")
+        }
+    }
 
     enum Key: String {
         case accessToken  = "bookii.access_token"

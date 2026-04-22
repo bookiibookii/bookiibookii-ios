@@ -8,16 +8,12 @@ struct MainTabView: View {
     @State private var selectedTab: BookiiTabCase = .home
 
     var body: some View {
-        ZStack {
-            selectedTab.contentView(container: container)
-                .environmentObject(container)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            VStack {
-                Spacer()
+        selectedTab.contentView(container: container)
+            .environmentObject(container)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
                 tabBar
             }
-        }
     }
 
     private var tabBar: some View {

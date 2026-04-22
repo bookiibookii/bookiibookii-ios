@@ -14,6 +14,12 @@ struct NavigationRoutingView: View {
         case .login:
             LoginView(authService: container.api.auth)
                 .environmentObject(container)
+        case .onboardingProfile:
+            OnboardingProfileView(userService: container.api.user)
+                .environmentObject(container)
+        case .onboardingSteps(let name, let s3Key):
+            OnboardingStepsView(name: name, s3Key: s3Key, userService: container.api.user)
+                .environmentObject(container)
         case .mainTab:
             MainTabView(container: container)
                 .environmentObject(container)

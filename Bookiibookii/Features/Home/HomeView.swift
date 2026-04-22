@@ -22,7 +22,7 @@ struct HomeView: View {
     private var homeHeader: some View {
         HStack {
             // ic_home_logo: bookiibookii 텍스트 로고 (주황색)
-            Image("ic_splash_title")
+            Image("ic_title")
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
