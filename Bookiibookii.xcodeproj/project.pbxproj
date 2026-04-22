@@ -13,6 +13,7 @@
 		9E3D67BD2F7E640600EDF220 /* KakaoSDKUser in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3D67BC2F7E640600EDF220 /* KakaoSDKUser */; };
 		9E3D67C02F7EC42E00EDF220 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3D67BF2F7EC42E00EDF220 /* GoogleSignIn */; };
 		9E3D67C22F7EC42E00EDF220 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3D67C12F7EC42E00EDF220 /* GoogleSignInSwift */; };
+		9EE1D3A72F9937A1006B0005 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 9EE1D3A62F9937A1006B0005 /* Kingfisher */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +48,7 @@
 			files = (
 				9E3D67C02F7EC42E00EDF220 /* GoogleSignIn in Frameworks */,
 				9E3D67BD2F7E640600EDF220 /* KakaoSDKUser in Frameworks */,
+				9EE1D3A72F9937A1006B0005 /* Kingfisher in Frameworks */,
 				9E3D67B72F7E640600EDF220 /* KakaoSDK in Frameworks */,
 				9E3D67C22F7EC42E00EDF220 /* GoogleSignInSwift in Frameworks */,
 				9E3D67BB2F7E640600EDF220 /* KakaoSDKCommon in Frameworks */,
@@ -107,6 +109,7 @@
 				9E3D67BC2F7E640600EDF220 /* KakaoSDKUser */,
 				9E3D67BF2F7EC42E00EDF220 /* GoogleSignIn */,
 				9E3D67C12F7EC42E00EDF220 /* GoogleSignInSwift */,
+				9EE1D3A62F9937A1006B0005 /* Kingfisher */,
 			);
 			productName = Bookiibookii;
 			productReference = 9E0C1A172F7A7A4800AB15F3 /* Bookiibookii.app */;
@@ -139,6 +142,7 @@
 			packageReferences = (
 				9E3D67652F7E578300EDF220 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
 				9E3D67BE2F7EC42E00EDF220 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				9EE1D3A52F9937A1006B0005 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9E0C1A182F7A7A4800AB15F3 /* Products */;
@@ -406,6 +410,14 @@
 				minimumVersion = 9.1.0;
 			};
 		};
+		9EE1D3A52F9937A1006B0005 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -438,6 +450,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9E3D67BE2F7EC42E00EDF220 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignInSwift;
+		};
+		9EE1D3A62F9937A1006B0005 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9EE1D3A52F9937A1006B0005 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
