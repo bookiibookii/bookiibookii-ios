@@ -21,6 +21,7 @@ struct ToastView: ViewModifier {
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                     .task(id: message) {
                         try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        guard !Task.isCancelled else { return }
                         withAnimation(.easeOut(duration: 0.3)) { self.message = nil }
                     }
             }

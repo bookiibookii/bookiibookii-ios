@@ -56,7 +56,7 @@ final class GroupViewModel: ObservableObject {
             hasNext = result.hasNext
             phase = .idle
         } catch {
-            phase = .failed
+            phase = .idle   // 복구 가능하도록 idle로 복귀
             toast = "추가 로드 실패"
         }
     }
@@ -106,6 +106,9 @@ final class GroupViewModel: ObservableObject {
         } catch let urlError as URLError where urlError.code == .notConnectedToInternet {
             phase = .failed
             toast = "네트워크 연결을 확인해주세요"
+        } catch let serviceError as GroupServiceError {
+            phase = .failed
+            toast = serviceError.errorDescription ?? "불러오기 실패"
         } catch {
             phase = .failed
             toast = "불러오기 실패"

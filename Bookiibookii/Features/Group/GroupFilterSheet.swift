@@ -205,6 +205,7 @@ struct GroupFilterFlowLayout: Layout {
         var y: CGFloat = 0
         var rowHeight: CGFloat = 0
         var totalHeight: CGFloat = 0
+        var actualMaxX: CGFloat = 0
 
         for subview in subviews {
             let size = subview.sizeThatFits(.unspecified)
@@ -214,10 +215,12 @@ struct GroupFilterFlowLayout: Layout {
                 rowHeight = 0
             }
             x += size.width + spacing
+            actualMaxX = max(actualMaxX, x - spacing)
             rowHeight = max(rowHeight, size.height)
             totalHeight = y + rowHeight
         }
-        return CGSize(width: maxWidth, height: totalHeight)
+        let resolvedWidth = maxWidth.isFinite ? maxWidth : actualMaxX
+        return CGSize(width: resolvedWidth, height: totalHeight)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
