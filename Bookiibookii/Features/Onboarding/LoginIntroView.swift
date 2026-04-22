@@ -43,7 +43,7 @@ struct LoginIntroView: View {
                     let W = geo.size.width
 
                     // 1. 타이틀 로고 (중앙 → 상단으로 이동)
-                    Image("ic_splash_title")
+                    Image("ic_title")
                         .renderingMode(.template)
                         .resizable()
                         .scaledToFit()
@@ -63,7 +63,7 @@ struct LoginIntroView: View {
 
                     // 3. 카드 캐러셀 (아래에서 등장)
                     carouselView(width: W)
-                        .frame(height: 280)
+                        .frame(height: 270)
                         .opacity(pagerOpacity)
                         .position(x: W / 2, y: pagerY)
                         .allowsHitTesting(false)
@@ -114,9 +114,11 @@ struct LoginIntroView: View {
     }
 
     // MARK: - 캐러셀 (scale/alpha 트랜스폼 포함)
+    // Android sidePadding=40dp 대응: 모든 슬롯 340pt 통일 → 양 옆 25pt peek
+    // portrait 카드(img_anim_02)가 현재일 때 양 옆 landscape 카드가 흐리게 보임
     private func carouselView(width: CGFloat) -> some View {
-        let cardWidth: CGFloat = 300
-        let gap: CGFloat = 20
+        let slotWidth: CGFloat = 340
+        let maxH: CGFloat = 270
 
         return ZStack {
             ForEach(0..<cardImages.count, id: \.self) { i in
@@ -125,17 +127,15 @@ struct LoginIntroView: View {
 
                 Image(cardImages[i])
                     .resizable()
-                    .scaledToFill()
-                    .frame(width: cardWidth, height: 280)
-                    .cornerRadius(16)
+                    .scaledToFit()
+                    .frame(width: slotWidth, height: maxH)
                     .scaleEffect(0.94 + (1.0 - absPos) * 0.06)
                     .opacity(0.4 + (1.0 - absPos) * 0.6)
-                    .offset(x: dist * (cardWidth + gap))
+                    .offset(x: dist * slotWidth)
                     .animation(.easeInOut(duration: 0.4), value: currentPage)
             }
         }
-        .frame(width: width)
-        .clipShape(Rectangle())
+        .frame(width: width, height: maxH)
     }
 
     // MARK: - 애니메이션 시퀀스

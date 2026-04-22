@@ -41,7 +41,8 @@ struct LoginView: View {
         .onChange(of: viewModel.loginSucceeded) { _, succeeded in
             guard succeeded else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                container.navigationRouter.hardReset(to: .mainTab)
+                let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboardingProfile
+                container.navigationRouter.hardReset(to: destination)
             }
         }
     }
@@ -56,7 +57,7 @@ struct LoginView: View {
                 .frame(width: 82, height: 82)
                 .foregroundColor(Color("white"))
 
-            Image("ic_splash_title")
+            Image("ic_title")
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()

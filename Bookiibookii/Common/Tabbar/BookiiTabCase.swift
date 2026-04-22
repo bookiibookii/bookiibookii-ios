@@ -29,13 +29,13 @@ enum BookiiTabCase: Int, CaseIterable {
     }
 
     @ViewBuilder
-    func contentView(container _: DIContainer) -> some View {
+    func contentView(container: DIContainer) -> some View {
         switch self {
         case .home: HomeView()
         case .group: GroupView()
         case .tracker: TrackerView()
         case .library: LibraryView()
-        case .myPage: MyPageView()
+        case .myPage: MyPageView(userService: container.api.user)
         }
     }
 }

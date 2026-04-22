@@ -80,3 +80,4 @@ Bookiibookii/Config.xcconfig
 
 # Claude Code
 .claude/settings.local.json
+CLAUDE.md

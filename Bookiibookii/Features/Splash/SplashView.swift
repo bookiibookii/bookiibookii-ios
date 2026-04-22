@@ -45,7 +45,7 @@ struct SplashView: View {
                 .foregroundColor(Color("white"))
 
             // 타이틀 이미지: ic_home_logo, 204dp x 21.79dp, tint=white
-            Image("ic_splash_title")
+            Image("ic_title")
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
