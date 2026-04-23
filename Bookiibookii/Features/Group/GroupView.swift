@@ -70,6 +70,9 @@ struct GroupView: View {
                 GroupTogetherCreateView(groupService: container.api.group)
             }
         }
+        .onChange(of: activeCreate) { newValue in
+            if newValue == nil { Task { await viewModel.refresh() } }
+        }
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)
     }
