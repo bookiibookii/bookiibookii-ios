@@ -161,6 +161,8 @@ where Item.AllCases == [Item] {
             Text(text)
                 .font(.pretendard(size: 14, weight: .medium))
                 .foregroundColor(isSelected ? Color("main200") : Color("grey700"))
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(

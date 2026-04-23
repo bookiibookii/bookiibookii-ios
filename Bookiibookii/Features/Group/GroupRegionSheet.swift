@@ -89,7 +89,7 @@ struct GroupRegionSheet: View {
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)
-        .frame(height: 260)
+        .frame(height: 230)
     }
 
     private var cityList: some View {
@@ -142,6 +142,8 @@ struct GroupRegionSheet: View {
             Text(district)
                 .font(.pretendard(size: 14, weight: .medium))
                 .foregroundColor(isSelected ? Color("main200") : Color("grey700"))
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(
