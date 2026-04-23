@@ -103,6 +103,10 @@ final class GroupViewModel: ObservableObject {
             page = result.currentPage
             hasNext = result.hasNext
             phase = .idle
+        } catch is CancellationError {
+            phase = .idle
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            phase = .idle
         } catch let urlError as URLError where urlError.code == .notConnectedToInternet {
             phase = .failed
             toast = "네트워크 연결을 확인해주세요"
@@ -111,7 +115,7 @@ final class GroupViewModel: ObservableObject {
             toast = serviceError.errorDescription ?? "불러오기 실패"
         } catch {
             phase = .failed
-            toast = "불러오기 실패"
+            toast = error.localizedDescription
         }
     }
 

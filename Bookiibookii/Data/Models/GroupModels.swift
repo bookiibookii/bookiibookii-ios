@@ -214,3 +214,51 @@ struct GroupSearchResult: Codable {
     let currentPage: Int
     let hasNext: Bool
 }
+
+// MARK: - 도서 검색
+
+struct BookSearchAPIResponse: Codable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+    let result: BookSearchResultData?
+}
+
+struct BookSearchResultData: Codable {
+    let books: [BookItem]
+    let totalPage: Int
+    let totalResults: Int
+}
+
+struct BookItem: Codable, Identifiable {
+    let title: String
+    let author: String
+    let image: String
+    let publisher: String
+    let isbn13: String
+    let category: String
+    let categoryLabel: String
+    let link: String
+    var id: String { isbn13 }
+}
+
+// MARK: - 그룹 생성 요청
+
+struct GroupCreateRequest: Encodable {
+    let isbn13: String
+    let maxCapacity: Int
+    let startDate: String          // "yyyy-MM-dd"
+    let readingPeriod: Int
+    let groupComment: String
+    let customTag: String          // 없으면 ""
+    let groupType: String          // "RELAY" | "TOGETHER"
+    let tradeType: String          // "DELIVERY" | "DIRECT" | "NONE"
+    let preferRegion: String       // 없으면 ""
+    let meetPlace: String          // 없으면 ""
+    let tags: [GroupTagRequest]
+}
+
+struct GroupTagRequest: Encodable {
+    let type: String               // "METHOD" | "VIBE"
+    let value: [String]
+}

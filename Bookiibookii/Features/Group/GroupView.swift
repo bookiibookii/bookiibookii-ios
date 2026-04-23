@@ -6,9 +6,15 @@ struct GroupView: View {
     @State private var activeSheet: ActiveSheet? = nil
     @State private var isFabOpen: Bool = false
     @State private var isSearchPresented: Bool = false
+    @State private var activeCreate: CreateType? = nil
 
     enum ActiveSheet: String, Identifiable {
         case groupType, region, category
+        var id: String { rawValue }
+    }
+
+    enum CreateType: String, Identifiable {
+        case relay, together
         var id: String { rawValue }
     }
 
@@ -34,21 +40,22 @@ struct GroupView: View {
 
                 listSection
                     .padding(.top, 12)
-            }
-
-            if isFabOpen {
-                Color("black").opacity(0.5)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(.easeOut(duration: 0.25)) { isFabOpen = false }
-                    }
-                    .transition(.opacity)
+                    .refreshable {
+                    let task = Task { await viewModel.refresh() }
+                    await task.value
+                }
             }
 
             GroupFabMenu(
                 isOpen: $isFabOpen,
-                onTapTogether: { viewModel.showComingSoon("그룹 만들기는 준비 중입니다") },
-                onTapRelay:    { viewModel.showComingSoon("그룹 만들기는 준비 중입니다") }
+                onTapTogether: {
+                    withAnimation(.easeOut(duration: 0.25)) { isFabOpen = false }
+                    activeCreate = .together
+                },
+                onTapRelay: {
+                    withAnimation(.easeOut(duration: 0.25)) { isFabOpen = false }
+                    activeCreate = .relay
+                }
             )
             .padding(.trailing, 24)
             .padding(.bottom, 16)
@@ -58,6 +65,17 @@ struct GroupView: View {
         }
         .fullScreenCover(isPresented: $isSearchPresented) {
             GroupSearchView(groupService: container.api.group)
+        }
+        .fullScreenCover(item: $activeCreate) { type in
+            switch type {
+            case .relay:
+                GroupRelayCreateView(groupService: container.api.group)
+            case .together:
+                GroupTogetherCreateView(groupService: container.api.group)
+            }
+        }
+        .onChange(of: activeCreate) { newValue in
+            if newValue == nil { Task { await viewModel.refresh() } }
         }
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)
@@ -211,7 +229,6 @@ struct GroupView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 80)
         }
-        .refreshable { await viewModel.refresh() }
     }
 
     @ViewBuilder

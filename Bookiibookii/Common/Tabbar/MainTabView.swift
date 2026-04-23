@@ -34,6 +34,9 @@ struct MainTabView: View {
                         .stroke(Color("grey200"), lineWidth: 1)
                 )
         )
+        .background(
+            Color("grey100").ignoresSafeArea(edges: .bottom)
+        )
     }
 
     private func tabBarItem(tab: BookiiTabCase) -> some View {

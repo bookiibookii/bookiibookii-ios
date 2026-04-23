@@ -89,6 +89,48 @@ final class GroupService {
         }
         return result
     }
+
+    /// GET /api/books/search?keyword=&page=&size=
+    func searchBooks(keyword: String, page: Int = 1, size: Int = 10) async throws -> [BookItem] {
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("api/books/search"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [
+            URLQueryItem(name: "keyword", value: keyword),
+            URLQueryItem(name: "page",    value: String(page)),
+            URLQueryItem(name: "size",    value: String(size))
+        ]
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(BookSearchAPIResponse.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw GroupServiceError.server(response.message)
+        }
+        return result.books
+    }
+
+    /// POST /api/groups
+    func createGroup(_ body: GroupCreateRequest) async throws {
+        let url = baseURL.appendingPathComponent("api/groups")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(body)
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+    }
+
+    private struct APIErrorMessage: Decodable { let message: String }
 }
 
 enum GroupServiceError: LocalizedError {
