@@ -26,7 +26,6 @@ struct GroupRegionSheet: View {
                 .padding(.top, 20)
 
             twoColumnBody
-                .padding(.top, 20)
 
             actionRow
                 .padding(.horizontal, 24)
@@ -41,7 +40,7 @@ struct GroupRegionSheet: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text("지역")
-                .font(.pretendard(size: 20, weight: .medium))
+                .font(.pretendard(size: 18, weight: .bold))
                 .foregroundColor(Color("grey900"))
             summaryText
             Spacer()
@@ -64,14 +63,18 @@ struct GroupRegionSheet: View {
     // MARK: - 본문 (좌: 시·도 / 우: 구·군)
 
     private var twoColumnBody: some View {
-        HStack(alignment: .top, spacing: 0) {
-            cityList
-                .frame(width: 72)
-            districtGrid
-                .padding(.leading, 16)
-                .padding(.trailing, 24)
+        GeometryReader { proxy in
+            HStack(alignment: .top, spacing: 0) {
+                cityList
+                    .frame(width: proxy.size.width * 0.5 / 3.0)
+                districtGrid
+                    .frame(width: proxy.size.width * 2.5 / 3.0)
+                    .padding(.leading, 12)
+            }
         }
-        .frame(height: 220)
+        .padding(.horizontal, 24)
+        .padding(.top, 20)
+        .frame(height: 260)
     }
 
     private var cityList: some View {
@@ -96,7 +99,7 @@ struct GroupRegionSheet: View {
                     .fill(isSelected ? Color("main200") : Color.clear)
                     .frame(width: 3, height: 24)
                 Text(city.name)
-                    .font(.pretendard(size: 14, weight: isSelected ? .bold : .regular))
+                    .font(.pretendard(size: 16, weight: isSelected ? .bold : .regular))
                     .foregroundColor(isSelected ? Color("grey900") : Color("grey500"))
                 Spacer()
             }
@@ -122,10 +125,10 @@ struct GroupRegionSheet: View {
             handleTap(district)
         } label: {
             Text(district)
-                .font(.pretendard(size: 13, weight: .medium))
+                .font(.pretendard(size: 14, weight: .medium))
                 .foregroundColor(isSelected ? Color("main200") : Color("grey700"))
                 .padding(.horizontal, 16)
-                .frame(height: 36)
+                .padding(.vertical, 12)
                 .background(
                     Capsule().fill(isSelected ? Color("main100") : Color("white"))
                 )
@@ -164,7 +167,7 @@ struct GroupRegionSheet: View {
             } label: {
                 Text("취소")
                     .font(.pretendard(size: 16, weight: .medium))
-                    .foregroundColor(Color("grey700"))
+                    .foregroundColor(Color("grey900"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
                     .background(

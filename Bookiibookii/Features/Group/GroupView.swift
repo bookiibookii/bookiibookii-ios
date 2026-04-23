@@ -249,7 +249,7 @@ struct GroupView: View {
                     Task { await viewModel.applyGroupTypes(next) }
                 }
             )
-            .presentationDetents([.height(260)])
+            .presentationDetents([.fraction(0.33)])
             .presentationDragIndicator(.visible)
 
         case .category:
@@ -263,7 +263,7 @@ struct GroupView: View {
                     Task { await viewModel.applyCategories(next) }
                 }
             )
-            .presentationDetents([.height(360)])
+            .presentationDetents([.fraction(0.5)])
             .presentationDragIndicator(.visible)
 
         case .region:
@@ -273,7 +273,7 @@ struct GroupView: View {
                     Task { await viewModel.applyRegion(next) }
                 }
             )
-            .presentationDetents([.height(380)])
+            .presentationDetents([.fraction(0.55)])
             .presentationDragIndicator(.visible)
         }
     }

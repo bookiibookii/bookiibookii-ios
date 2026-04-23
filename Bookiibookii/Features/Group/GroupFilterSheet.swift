@@ -60,7 +60,7 @@ where Item.AllCases == [Item] {
     private var header: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
-                .font(.pretendard(size: 20, weight: .medium))
+                .font(.pretendard(size: 18, weight: .bold))
                 .foregroundColor(Color("grey900"))
             summaryText
             Spacer()
@@ -105,7 +105,7 @@ where Item.AllCases == [Item] {
             }
             Rectangle()
                 .fill(Color("grey300"))
-                .frame(width: 1, height: 28)
+                .frame(width: 1, height: 38)
             ForEach(items) { item in
                 chip(text: itemDisplay(item), isSelected: selection.contains(item)) {
                     toggle(item)
@@ -142,10 +142,10 @@ where Item.AllCases == [Item] {
     private func chip(text: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(text)
-                .font(.pretendard(size: 13, weight: .medium))
+                .font(.pretendard(size: 14, weight: .medium))
                 .foregroundColor(isSelected ? Color("main200") : Color("grey700"))
                 .padding(.horizontal, 16)
-                .frame(height: 36)
+                .padding(.vertical, 12)
                 .background(
                     Capsule().fill(isSelected ? Color("main100") : Color("white"))
                 )
@@ -168,7 +168,7 @@ where Item.AllCases == [Item] {
             } label: {
                 Text("취소")
                     .font(.pretendard(size: 16, weight: .medium))
-                    .foregroundColor(Color("grey700"))
+                    .foregroundColor(Color("grey900"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
                     .background(
