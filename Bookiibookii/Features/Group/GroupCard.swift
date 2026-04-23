@@ -8,8 +8,6 @@ struct GroupCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             topRow
-            profileRow
-                .padding(.top, 12)
             if !displayTags.isEmpty {
                 tagRow
                     .padding(.top, 12)
@@ -23,6 +21,8 @@ struct GroupCard: View {
     }
 
     // MARK: - 상단 (표지 + 정보)
+    // 안드로이드 item_grp_card.xml 기준: 프로필·닉네임·날짜는 표지 오른쪽 텍스트 컬럼 내부,
+    // 메타 row 아래에 위치 (카드 왼쪽이 아님).
 
     private var topRow: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -35,6 +35,8 @@ struct GroupCard: View {
                 }
                 metaRow
                     .padding(.top, 12)
+                profileRow
+                    .padding(.top, 4)
             }
         }
     }
