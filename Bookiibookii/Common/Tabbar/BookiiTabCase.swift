@@ -32,7 +32,7 @@ enum BookiiTabCase: Int, CaseIterable {
     func contentView(container: DIContainer) -> some View {
         switch self {
         case .home: HomeView()
-        case .group: GroupView()
+        case .group: GroupView(groupService: container.api.group)
         case .tracker: TrackerView()
         case .library: LibraryView()
         case .myPage: MyPageView(userService: container.api.user)
