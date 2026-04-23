@@ -193,3 +193,24 @@ enum GroupTagMapper {
         }
     }
 }
+
+// MARK: - 검색 API 응답
+
+struct PopularKeywordsResponse: Codable {
+    let isSuccess: Bool
+    let result: [String]
+}
+
+struct GroupSearchResponse: Codable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+    let result: GroupSearchResult?
+}
+
+struct GroupSearchResult: Codable {
+    let groupList: [GroupItemDto]
+    let totalCount: Int
+    let currentPage: Int
+    let hasNext: Bool
+}

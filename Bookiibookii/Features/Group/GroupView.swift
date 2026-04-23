@@ -5,6 +5,7 @@ struct GroupView: View {
     @StateObject private var viewModel: GroupViewModel
     @State private var activeSheet: ActiveSheet? = nil
     @State private var isFabOpen: Bool = false
+    @State private var isSearchPresented: Bool = false
 
     enum ActiveSheet: String, Identifiable {
         case groupType, region, category
@@ -55,6 +56,9 @@ struct GroupView: View {
         .sheet(item: $activeSheet) { sheet in
             sheetContent(for: sheet)
         }
+        .fullScreenCover(isPresented: $isSearchPresented) {
+            GroupSearchView(groupService: container.api.group)
+        }
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)
     }
@@ -68,7 +72,7 @@ struct GroupView: View {
                 .foregroundColor(Color("grey700"))
             Spacer()
             Button {
-                viewModel.showComingSoon("검색은 준비 중입니다")
+                isSearchPresented = true
             } label: {
                 Image("ic_search")
                     .renderingMode(.template)
