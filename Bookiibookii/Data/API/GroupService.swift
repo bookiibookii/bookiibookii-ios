@@ -47,6 +47,48 @@ final class GroupService {
         }
         return result
     }
+
+    /// GET /api/groups/popular-keywords
+    func fetchPopularKeywords() async throws -> [String] {
+        let url = baseURL.appendingPathComponent("api/groups/popular-keywords")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(PopularKeywordsResponse.self, from: data)
+        guard response.isSuccess else {
+            throw GroupServiceError.server("인기 검색어를 불러오지 못했습니다")
+        }
+        return response.result
+    }
+
+    /// GET /api/groups/search?keyword=&sort=&page=&size=
+    /// sort: .latest("LATEST") 또는 .popular("POPULAR") 만 사용
+    func searchGroups(keyword: String, sort: GroupSort, page: Int, size: Int = 20) async throws -> GroupSearchResult {
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("api/groups/search"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [
+            URLQueryItem(name: "keyword", value: keyword),
+            URLQueryItem(name: "sort",    value: sort.rawValue),
+            URLQueryItem(name: "page",    value: String(page)),
+            URLQueryItem(name: "size",    value: String(size))
+        ]
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(GroupSearchResponse.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw GroupServiceError.server(response.message)
+        }
+        return result
+    }
 }
 
 enum GroupServiceError: LocalizedError {
