@@ -19,9 +19,9 @@ struct GroupTogetherCreateView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 24) {
                         bookSearchSection
-                        maxCapacitySection
                         startDateSection
                         readingPeriodSection
+                        maxCapacitySection
                         tagSection
                         commentSection
                     }
