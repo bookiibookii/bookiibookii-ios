@@ -74,9 +74,6 @@ struct GroupView: View {
         .onChange(of: activeCreate) { newValue in
             if newValue == nil { Task { await viewModel.refresh() } }
         }
-        .safeAreaInset(edge: .bottom) {
-            Color("white").ignoresSafeArea()
-        }
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)
     }
