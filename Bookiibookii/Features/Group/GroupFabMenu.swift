@@ -28,16 +28,15 @@ struct GroupFabMenu: View {
                     .renderingMode(.template)
                     .resizable()
                     .frame(width: 16, height: 16)
-                    .foregroundColor(Color("grey900"))
+                    .foregroundColor(Color("white"))
                 Text(title)
                     .font(.pretendard(size: 14, weight: .medium))
-                    .foregroundColor(Color("grey900"))
+                    .foregroundColor(Color("white"))
             }
             .frame(width: 108, height: 48)
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(Color("white"))
-                    .shadow(color: Color("black").opacity(0.08), radius: 6, x: 0, y: 2)
+                    .fill(Color("grey900"))
             )
         }
         .buttonStyle(.plain)
@@ -51,7 +50,7 @@ struct GroupFabMenu: View {
         Button {
             withAnimation(.easeOut(duration: 0.25)) { isOpen.toggle() }
         } label: {
-            Image(isOpen ? "ic_fab_close" : "ic_fab_plus")
+            Image("ic_fab_plus")
                 .renderingMode(.template)
                 .resizable()
                 .frame(width: 24, height: 24)
