@@ -6,9 +6,15 @@ struct GroupView: View {
     @State private var activeSheet: ActiveSheet? = nil
     @State private var isFabOpen: Bool = false
     @State private var isSearchPresented: Bool = false
+    @State private var activeCreate: CreateType? = nil
 
     enum ActiveSheet: String, Identifiable {
         case groupType, region, category
+        var id: String { rawValue }
+    }
+
+    enum CreateType: String, Identifiable {
+        case relay, together
         var id: String { rawValue }
     }
 
@@ -47,8 +53,14 @@ struct GroupView: View {
 
             GroupFabMenu(
                 isOpen: $isFabOpen,
-                onTapTogether: { viewModel.showComingSoon("그룹 만들기는 준비 중입니다") },
-                onTapRelay:    { viewModel.showComingSoon("그룹 만들기는 준비 중입니다") }
+                onTapTogether: {
+                    withAnimation(.easeOut(duration: 0.25)) { isFabOpen = false }
+                    activeCreate = .together
+                },
+                onTapRelay: {
+                    withAnimation(.easeOut(duration: 0.25)) { isFabOpen = false }
+                    activeCreate = .relay
+                }
             )
             .padding(.trailing, 24)
             .padding(.bottom, 16)
@@ -58,6 +70,14 @@ struct GroupView: View {
         }
         .fullScreenCover(isPresented: $isSearchPresented) {
             GroupSearchView(groupService: container.api.group)
+        }
+        .fullScreenCover(item: $activeCreate) { type in
+            switch type {
+            case .relay:
+                GroupRelayCreateView(groupService: container.api.group)
+            case .together:
+                GroupTogetherCreateView(groupService: container.api.group)
+            }
         }
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)
