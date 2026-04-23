@@ -40,6 +40,7 @@ struct GroupView: View {
 
                 listSection
                     .padding(.top, 12)
+                    .refreshable { await viewModel.refresh() }
             }
 
             GroupFabMenu(
@@ -225,7 +226,6 @@ struct GroupView: View {
             .padding(.horizontal, 24)
             .padding(.bottom, 80)
         }
-        .refreshable { await viewModel.refresh() }
     }
 
     @ViewBuilder
