@@ -97,7 +97,14 @@ struct GroupTogetherCreateView: View {
                 VStack(spacing: 0) {
                     ForEach(viewModel.searchResults) { book in
                         Button { viewModel.selectBook(book) } label: {
-                            HStack {
+                            HStack(spacing: 10) {
+                                AsyncImage(url: URL(string: book.image)) { image in
+                                    image.resizable().scaledToFill()
+                                } placeholder: {
+                                    Color("grey200")
+                                }
+                                .frame(width: 40, height: 56)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(book.title)
                                         .font(.pretendard(size: 14))
