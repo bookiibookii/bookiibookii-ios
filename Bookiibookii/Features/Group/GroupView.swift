@@ -40,7 +40,10 @@ struct GroupView: View {
 
                 listSection
                     .padding(.top, 12)
-                    .refreshable { await viewModel.refresh() }
+                    .refreshable {
+                    let task = Task { await viewModel.refresh() }
+                    await task.value
+                }
             }
 
             GroupFabMenu(
