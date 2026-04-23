@@ -42,15 +42,6 @@ struct GroupView: View {
                     .padding(.top, 12)
             }
 
-            if isFabOpen {
-                Color("black").opacity(0.5)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation(.easeOut(duration: 0.25)) { isFabOpen = false }
-                    }
-                    .transition(.opacity)
-            }
-
             GroupFabMenu(
                 isOpen: $isFabOpen,
                 onTapTogether: {
