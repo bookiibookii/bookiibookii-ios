@@ -40,12 +40,7 @@ struct GroupTogetherCreateView: View {
         .sheet(isPresented: $showDatePicker) { datePickerSheet }
         .toast($viewModel.toast)
         .onChange(of: viewModel.phase) { phase in
-            if phase == .done {
-                Task {
-                    try? await Task.sleep(nanoseconds: 1_500_000_000)
-                    dismiss()
-                }
-            }
+            if phase == .done { dismiss() }
         }
     }
 
