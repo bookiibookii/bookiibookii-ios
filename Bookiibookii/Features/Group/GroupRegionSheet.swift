@@ -21,6 +21,9 @@ struct GroupRegionSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            handleBar
+                .padding(.top, 12)
+
             header
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
@@ -29,10 +32,22 @@ struct GroupRegionSheet: View {
 
             actionRow
                 .padding(.horizontal, 24)
+                .padding(.top, 20)
                 .padding(.bottom, 24)
         }
         .background(Color("white"))
         .toast($toast)
+    }
+
+    // 안드로이드 grp_bottom_sheet_region_handle 대응 (40×4 grey200)
+    private var handleBar: some View {
+        HStack {
+            Spacer()
+            Rectangle()
+                .fill(Color("grey200"))
+                .frame(width: 40, height: 4)
+            Spacer()
+        }
     }
 
     // MARK: - 헤더

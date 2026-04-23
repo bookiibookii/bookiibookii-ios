@@ -249,8 +249,8 @@ struct GroupView: View {
                     Task { await viewModel.applyGroupTypes(next) }
                 }
             )
-            .presentationDetents([.fraction(0.33)])
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.height(240)])
+            .presentationDragIndicator(.hidden)
 
         case .category:
             GroupFilterSheet<CategoryFilter>(
@@ -263,8 +263,8 @@ struct GroupView: View {
                     Task { await viewModel.applyCategories(next) }
                 }
             )
-            .presentationDetents([.fraction(0.5)])
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.height(380)])
+            .presentationDragIndicator(.hidden)
 
         case .region:
             GroupRegionSheet(
@@ -273,8 +273,8 @@ struct GroupView: View {
                     Task { await viewModel.applyRegion(next) }
                 }
             )
-            .presentationDetents([.fraction(0.55)])
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.height(460)])
+            .presentationDragIndicator(.hidden)
         }
     }
 }

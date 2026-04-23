@@ -38,21 +38,34 @@ where Item.AllCases == [Item] {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            handleBar
+                .padding(.top, 12)
+
             header
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
 
             chipArea
                 .padding(.horizontal, 24)
-                .padding(.top, 24)
-
-            Spacer(minLength: 0)
+                .padding(.top, 20)
 
             actionRow
                 .padding(.horizontal, 24)
+                .padding(.top, 20)
                 .padding(.bottom, 24)
         }
         .background(Color("white"))
+    }
+
+    // 안드로이드 grp_bottom_sheet_handle 대응 (40×4 grey200)
+    private var handleBar: some View {
+        HStack {
+            Spacer()
+            Rectangle()
+                .fill(Color("grey200"))
+                .frame(width: 40, height: 4)
+            Spacer()
+        }
     }
 
     // MARK: - 헤더
@@ -97,18 +110,22 @@ where Item.AllCases == [Item] {
         }
     }
 
-    /// 가로 배열: [전체] | 세로 divider | [옵션들...]
+    /// 안드로이드 `FilterBottomSheetFragment.setupUI`의 addDynamicDivider 순서대로:
+    /// [전체] [함께 읽기] | divider | [직접 교환] [택배 교환]
+    /// (`dataText == "함께 읽기"`일 때 해당 칩 뒤에 divider 삽입)
     private var groupTypeChips: some View {
         HStack(spacing: 8) {
             chip(text: "전체", isSelected: selection.isEmpty) {
                 selection.removeAll()
             }
-            Rectangle()
-                .fill(Color("grey300"))
-                .frame(width: 1, height: 38)
-            ForEach(items) { item in
+            ForEach(Array(items.enumerated()), id: \.element.id) { _, item in
                 chip(text: itemDisplay(item), isSelected: selection.contains(item)) {
                     toggle(item)
+                }
+                if itemDisplay(item) == "함께 읽기" {
+                    Rectangle()
+                        .fill(Color("grey300"))
+                        .frame(width: 1, height: 38)
                 }
             }
             Spacer()
