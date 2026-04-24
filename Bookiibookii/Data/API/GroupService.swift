@@ -214,6 +214,24 @@ final class GroupService {
         guard response.isSuccess else { throw GroupServiceError.server(response.message) }
     }
 
+    /// PATCH /api/groups/{groupId}
+    func modifyGroup(groupId: Int, body: GroupModifyRequest) async throws {
+        let url = baseURL.appendingPathComponent("api/groups/\(groupId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(body)
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(GroupModifyResultWrapper.self, from: data)
+        guard response.isSuccess else { throw GroupServiceError.server(response.message) }
+    }
+
     /// DELETE /api/groups/{groupId}
     func deleteGroup(groupId: Int) async throws {
         let url = baseURL.appendingPathComponent("api/groups/\(groupId)")

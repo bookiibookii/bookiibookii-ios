@@ -6,8 +6,12 @@ struct GroupDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var applyMsg = ""
     @State private var showMoreSheet = false
+    @State private var showEditView = false
+
+    private let groupService: GroupService
 
     init(groupId: Int, groupService: GroupService) {
+        self.groupService = groupService
         _viewModel = StateObject(
             wrappedValue: GroupDetailViewModel(groupId: groupId, service: groupService)
         )
@@ -50,32 +54,41 @@ struct GroupDetailView: View {
                 applyDialog
                     .transition(.opacity.combined(with: .scale(scale: 0.96)))
             }
+
+            if viewModel.showDeleteConfirm {
+                Color.black.opacity(0.45)
+                    .ignoresSafeArea()
+                    .onTapGesture {}
+                deleteDialog
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
         }
         .animation(.easeInOut(duration: 0.2), value: viewModel.showApplyDialog)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.showDeleteConfirm)
         .overlay(alignment: .top) { headerBar }
         .fullScreenCover(isPresented: $viewModel.showApplicants) {
             GroupApplicantView(viewModel: viewModel)
+        }
+        .fullScreenCover(isPresented: $showEditView) {
+            if let config = viewModel.editConfig {
+                if viewModel.detail?.groupType == "TOGETHER" {
+                    GroupTogetherCreateView(groupService: groupService, editConfig: config)
+                } else {
+                    GroupRelayCreateView(groupService: groupService, editConfig: config)
+                }
+            }
+        }
+        .onChange(of: showEditView) { isShowing in
+            if !isShowing { Task { await viewModel.fetchDetail() } }
         }
         .sheet(isPresented: $showMoreSheet) {
             GroupMoreSheet(
                 isHost: viewModel.isHost,
                 canEdit: viewModel.canEdit,
-                onEdit: { viewModel.toast = "그룹 수정은 준비 중입니다" },
-                onDelete: {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        viewModel.showDeleteConfirm = true
-                    }
-                },
+                onEdit: { showEditView = true },
+                onDelete: { viewModel.showDeleteConfirm = true },
                 onReport: { viewModel.toast = "신고가 접수되었습니다." }
             )
-        }
-        .alert("그룹 삭제", isPresented: $viewModel.showDeleteConfirm) {
-            Button("취소", role: .cancel) {}
-            Button("삭제", role: .destructive) {
-                Task { await viewModel.deleteGroup() }
-            }
-        } message: {
-            Text("\(viewModel.detail?.bookTitle ?? "")\n\n그룹을 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")
         }
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)
@@ -512,6 +525,67 @@ struct GroupDetailView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
                         .background(Color("grey900"))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(24)
+        .frame(width: 340)
+        .background(Color("white"))
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+    }
+
+    // MARK: - 삭제 확인 다이얼로그 (중앙 모달)
+
+    private var deleteDialog: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                Text("그룹 삭제")
+                    .font(.pretendard(size: 20, weight: .medium))
+                    .foregroundColor(Color("grey900"))
+                Spacer()
+                Button {
+                    viewModel.showDeleteConfirm = false
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Color("grey900"))
+                        .frame(width: 32, height: 32)
+                        .background(Color("grey100"))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+            }
+
+            Text("그룹을 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")
+                .font(.pretendard(size: 16))
+                .foregroundColor(Color("grey700"))
+
+            HStack(spacing: 12) {
+                Button {
+                    viewModel.showDeleteConfirm = false
+                } label: {
+                    Text("취소")
+                        .font(.pretendard(size: 14))
+                        .foregroundColor(Color("grey900"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Color("grey200"))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    viewModel.showDeleteConfirm = false
+                    Task { await viewModel.deleteGroup() }
+                } label: {
+                    Text("삭제")
+                        .font(.pretendard(size: 14))
+                        .foregroundColor(Color("white"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Color(red: 1, green: 77 / 255, blue: 77 / 255))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
                 .buttonStyle(.plain)

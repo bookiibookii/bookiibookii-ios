@@ -263,6 +263,22 @@ struct GroupTagRequest: Encodable {
     let value: [String]
 }
 
+struct GroupModifyRequest: Encodable {
+    let startDate: String          // "yyyy-MM-dd"
+    let readingPeriod: Int
+    let groupComment: String
+    let customTag: String          // 없으면 ""
+    let tags: [GroupTagRequest]
+}
+
+// MARK: - 그룹 수정 응답
+
+struct GroupModifyResultWrapper: Codable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+}
+
 // MARK: - 그룹 상세
 
 struct GroupDetailResponse: Codable {

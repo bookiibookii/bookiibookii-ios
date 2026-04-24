@@ -6,9 +6,9 @@ struct GroupRelayCreateView: View {
     @Environment(\.openURL) private var openURL
     @State private var showDatePicker = false
 
-    init(groupService: GroupService) {
+    init(groupService: GroupService, editConfig: GroupEditConfig? = nil) {
         _viewModel = StateObject(
-            wrappedValue: GroupCreateViewModel(groupType: .relay, service: groupService)
+            wrappedValue: GroupCreateViewModel(groupType: .relay, editConfig: editConfig, service: groupService)
         )
     }
 
@@ -19,9 +19,13 @@ struct GroupRelayCreateView: View {
                 navBar
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 24) {
-                        bookSearchSection
-                        bookHaveSection
-                        tradeTypeSection
+                        if viewModel.isEditMode {
+                            bookTitleSection
+                        } else {
+                            bookSearchSection
+                            bookHaveSection
+                            tradeTypeSection
+                        }
                         startDateSection
                         readingPeriodSection
                         tagSection
@@ -59,7 +63,7 @@ struct GroupRelayCreateView: View {
 
     private var navBar: some View {
         ZStack {
-            Text("그룹 만들기")
+            Text(viewModel.isEditMode ? "그룹 수정" : "그룹 만들기")
                 .font(.pretendard(size: 20, weight: .bold))
                 .foregroundColor(Color("grey900"))
             HStack {
@@ -76,6 +80,21 @@ struct GroupRelayCreateView: View {
             .padding(.horizontal, 20)
         }
         .frame(height: 56)
+    }
+
+    // MARK: - 도서 제목 (수정 모드)
+
+    private var bookTitleSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel("도서", required: false)
+            Text(viewModel.editConfig?.bookTitle ?? "")
+                .font(.pretendard(size: 14))
+                .foregroundColor(Color("grey900"))
+                .padding(.horizontal, 16)
+                .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                .background(Color("grey100"))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
     }
 
     // MARK: - 도서 검색
@@ -335,7 +354,7 @@ struct GroupRelayCreateView: View {
                 if viewModel.phase == .submitting {
                     ProgressView().tint(Color("white"))
                 } else {
-                    Text("그룹 만들기")
+                    Text(viewModel.isEditMode ? "수정 완료" : "그룹 만들기")
                         .font(.pretendard(size: 18, weight: .bold))
                         .foregroundColor(viewModel.isFormValid ? Color("white") : Color("grey500"))
                 }

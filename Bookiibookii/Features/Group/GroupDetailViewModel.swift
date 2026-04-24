@@ -93,6 +93,22 @@ final class GroupDetailViewModel: ObservableObject {
     var isHost: Bool { detail?.isHost ?? false }
     var canEdit: Bool { isHost && detail?.groupStatus == "RECRUITING" }
 
+    var editConfig: GroupEditConfig? {
+        guard let d = detail else { return nil }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let date = formatter.date(from: d.startDate) ?? Date()
+        return GroupEditConfig(
+            groupId: groupId,
+            bookTitle: d.bookTitle,
+            startDate: date,
+            readingPeriod: d.readingPeriod,
+            groupComment: d.groupComment ?? "",
+            customTag: d.customTag ?? "",
+            tagCodes: d.groupTags ?? []
+        )
+    }
+
     var displayTags: [String] {
         guard let d = detail else { return [] }
         var all: [String] = []
