@@ -2,17 +2,11 @@ import Foundation
 
 // 안드로이드 RetrofitClient + ApiService.postLogin 대응
 final class AuthService {
-    private let baseURL = URL(string: "https://bookii.gyeonseo.com/")!
-
     // 안드로이드 AuthInterceptor.refreshToken 대응
     // Authorization 헤더에 만료된 accessToken, body에 refreshToken 전달
     func refresh(accessToken: String, refreshToken: String) async throws -> RefreshResult {
-        let url = baseURL.appendingPathComponent("api/auth/refresh")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.httpBody = try JSONEncoder().encode(RefreshRequest(refreshToken: refreshToken))
+        let target = AuthAPITarget.refresh(accessToken: accessToken, refreshToken: refreshToken)
+        let request = target.asURLRequest()
 
         let (data, httpResponse) = try await URLSession.shared.data(for: request)
 
@@ -30,19 +24,14 @@ final class AuthService {
     }
 
     func logout(accessToken: String) async {
-        let url = baseURL.appendingPathComponent("api/auth/logout")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let target = AuthAPITarget.logout(accessToken: accessToken)
+        let request = target.asURLRequest()
         _ = try? await URLSession.shared.data(for: request)
     }
 
     func login(socialType: String, token: String) async throws -> LoginResult {
-        let url = baseURL.appendingPathComponent("api/auth/login")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(LoginRequest(socialType: socialType, token: token))
+        let target = AuthAPITarget.login(socialType: socialType, token: token)
+        let request = target.asURLRequest()
 
         let (data, _) = try await URLSession.shared.data(for: request)
         let response = try JSONDecoder().decode(LoginResponse.self, from: data)
