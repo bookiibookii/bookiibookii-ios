@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import Kingfisher
 
 // 안드로이드 MypageFragment 대응 (심플 버전: 프로필 사진 + 닉네임)
 struct MyPageView: View {
@@ -38,16 +39,12 @@ struct MyPageView: View {
         Group {
             if let urlStr = viewModel.profile?.profileImageUrl,
                let url = URL(string: urlStr) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().scaledToFill()
-                    case .failure, .empty:
-                        defaultProfileIcon
-                    @unknown default:
-                        defaultProfileIcon
-                    }
-                }
+                KFImage(url)
+                    .placeholder { defaultProfileIcon }
+                    .retry(maxCount: 2)
+                    .cancelOnDisappear(true)
+                    .resizable()
+                    .scaledToFill()
             } else {
                 defaultProfileIcon
             }

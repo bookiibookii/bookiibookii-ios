@@ -1,106 +1,164 @@
 import SwiftUI
 
-// 안드로이드 HomeFragment 대응
+// 안드로이드 fragment_home.xml 대응
+// HOM-001: 헤더 + 3섹션 (진행 중인 교환 / 이런 그룹은 어떠세요? / 부키메이트)
 struct HomeView: View {
+    @StateObject private var viewModel: HomeViewModel
+    private let groupService: GroupService
+
+    var onNavigateToGroup: () -> Void
+    @State private var selectedGroupId: Int? = nil
+
+    init(
+        recommendationService: RecommendationService,
+        groupService: GroupService,
+        onNavigateToGroup: @escaping () -> Void = {}
+    ) {
+        _viewModel = StateObject(wrappedValue: HomeViewModel(recommendationService: recommendationService))
+        self.groupService = groupService
+        self.onNavigateToGroup = onNavigateToGroup
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            homeHeader
-            ScrollView {
-                VStack(spacing: 0) {
-                    exchangeProgressSection  // 진행 중인 교환
-                    homeGroupSection         // 이런 그룹은 어떠세요?
-                    homeMateSection          // 부키메이트가 되어보세요!
+            HomeHeaderView()
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    exchangeSection
+                    groupSection
+                    mateSection
                 }
                 .padding(.bottom, 24)
             }
         }
         .background(Color("grey100"))
+        .task { await viewModel.onAppear() }
+        .fullScreenCover(item: $selectedGroupId) { groupId in
+            GroupDetailView(groupId: groupId, groupService: groupService)
+        }
     }
 
-    // MARK: - 헤더 (section_home_header.xml 대응)
-    // 흰 배경 + 하단 grey_200 구분선
-    private var homeHeader: some View {
-        HStack {
-            // ic_home_logo: bookiibookii 텍스트 로고 (주황색)
-            Image("ic_title")
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(height: 20)
-                .foregroundColor(Color("main200"))
-
-            Spacer()
-
-            // ic_home_notification 대응 (clip-path → SF Symbol 대체)
-            Button(action: {}) {
-                Image(systemName: "bell")
-                    .font(.system(size: 20))
-                    .foregroundColor(Color("grey900"))
-            }
+    // MARK: - 섹션 1: 진행 중인 교환
+    private var exchangeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionTitle("진행 중인 교환")
+            HomeEmptyCard(
+                title: "아직 진행 중인 교환이 없어요",
+                description: "그룹에 참여하고 새로운 책을 만나보세요.",
+                buttonTitle: "그룹 둘러보기",
+                buttonStyle: .dark,
+                onTap: onNavigateToGroup
+            )
         }
         .padding(.horizontal, 20)
-        .frame(height: 68)
-        .background(Color("white"))
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(Color("grey200"))
-        }
+        .padding(.top, 16)
+        .padding(.bottom, 8)
     }
 
-    // MARK: - 섹션 1: 진행 중인 교환 (section_home_exchange_progress.xml)
-    private var exchangeProgressSection: some View {
-        HomeSectionView(title: "진행 중인 교환") {
-            emptyPlaceholder("진행 중인 교환이 없습니다")
+    // MARK: - 섹션 2: 이런 그룹은 어떠세요?
+    private var groupSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            groupSectionHeader
+            groupSectionBody
         }
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+        .padding(.bottom, 8)
     }
 
-    // MARK: - 섹션 2: 이런 그룹은 어떠세요? (section_home_group.xml)
-    private var homeGroupSection: some View {
-        HomeSectionView(title: "이런 그룹은 어떠세요?") {
-            emptyPlaceholder("추천 그룹을 불러오는 중입니다")
-        }
-    }
-
-    // MARK: - 섹션 3: 부키메이트가 되어보세요! (section_home_mate.xml)
-    private var homeMateSection: some View {
-        HomeSectionView(title: "부키메이트가 되어보세요!") {
-            emptyPlaceholder("추천 부키메이트를 불러오는 중입니다")
-        }
-    }
-
-    private func emptyPlaceholder(_ message: String) -> some View {
-        HStack {
-            Spacer()
-            Text(message)
-                .font(.system(size: 14))
-                .foregroundColor(Color("grey500"))
-            Spacer()
-        }
-        .frame(height: 100)
-    }
-}
-
-// MARK: - 홈 섹션 공통 컴포넌트
-private struct HomeSectionView<Content: View>: View {
-    let title: String
-    let content: () -> Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(title)
-                .font(.system(size: 20, weight: .bold))
+    private var groupSectionHeader: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Text("이런 그룹은 어떠세요?")
+                .font(.pretendard(size: 18, weight: .medium))
                 .foregroundColor(Color("grey900"))
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
-
-            content()
-                .padding(.bottom, 8)
+            Spacer()
+            if !viewModel.recommendedGroups.isEmpty {
+                refreshButton
+            }
         }
     }
-}
 
-#Preview {
-    HomeView()
+    private var refreshButton: some View {
+        Button {
+            Task { await viewModel.refreshRecommendedGroups() }
+        } label: {
+            Image(systemName: "arrow.clockwise")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(Color("grey500"))
+                .frame(width: 30, height: 30)
+                .background(Circle().fill(Color("white")))
+                .overlay(Circle().stroke(Color("grey200"), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("새로고침")
+    }
+
+    @ViewBuilder
+    private var groupSectionBody: some View {
+        if viewModel.recommendedGroups.isEmpty {
+            HomeEmptyCard(
+                title: "아직 추천할 그룹이 없어요",
+                description: "읽고 싶은 책으로 그룹을 직접 만들어보세요.",
+                buttonTitle: "그룹 만들기",
+                buttonStyle: .pale,
+                onTap: onNavigateToGroup
+            )
+        } else {
+            recommendedGroupGrid
+        }
+    }
+
+    private var recommendedGroupGrid: some View {
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+        return LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(viewModel.recommendedGroups) { item in
+                HomeRecommendedGroupCard(item: item) {
+                    selectedGroupId = item.groupId
+                }
+            }
+        }
+    }
+
+    // MARK: - 섹션 3: 부키메이트가 되어보세요!
+    private var mateSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionTitle("부키메이트가 되어보세요!")
+            mateSectionBody
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+        .padding(.bottom, 8)
+    }
+
+    @ViewBuilder
+    private var mateSectionBody: some View {
+        if viewModel.recommendedBookmates.isEmpty {
+            HomeEmptyCard(
+                title: "추천할 부키메이트가 없어요",
+                description: "책을 더 많이 읽고 활동하면 취향이 비슷한 메이트를 추천해드려요.",
+                buttonTitle: "서재 채우기",
+                buttonStyle: .pale,
+                onTap: onNavigateToGroup
+            )
+        } else {
+            mateList
+        }
+    }
+
+    private var mateList: some View {
+        VStack(spacing: 12) {
+            ForEach(viewModel.recommendedBookmates) { mate in
+                HomeMateCard(item: mate) {
+                    // TODO: 타 사용자 프로필 화면이 생기면 nickname으로 이동.
+                }
+            }
+        }
+    }
+
+    // MARK: - 공통 섹션 제목 (pretendard medium 18)
+    private func sectionTitle(_ text: String) -> some View {
+        Text(text)
+            .font(.pretendard(size: 18, weight: .medium))
+            .foregroundColor(Color("grey900"))
+    }
 }

@@ -11,5 +11,6 @@ enum API {
         static let mypage = "/api/mypage"
         static let groups = "/api/groups"
         static let books = "/api/books"
+        static let recommendations = "/api/recommendations"
     }
 }

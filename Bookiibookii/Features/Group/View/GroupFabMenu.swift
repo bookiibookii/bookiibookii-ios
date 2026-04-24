@@ -53,9 +53,9 @@ struct GroupFabMenu: View {
             Image("ic_fab_plus")
                 .renderingMode(.template)
                 .resizable()
-                .frame(width: 24, height: 24)
+                .frame(width: 19, height: 19)
                 .foregroundColor(Color("white"))
-                .frame(width: 70, height: 70)
+                .frame(width: 56, height: 56)
                 .background(Circle().fill(Color("grey900")))
         }
         .buttonStyle(.plain)

@@ -8,7 +8,7 @@ struct MainTabView: View {
     @State private var selectedTab: BookiiTabCase = .home
 
     var body: some View {
-        selectedTab.contentView(container: container)
+        selectedTab.contentView(container: container, selectTab: { selectedTab = $0 })
             .environmentObject(container)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaInset(edge: .bottom, spacing: 0) {
