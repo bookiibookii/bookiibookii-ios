@@ -8,4 +8,11 @@ enum NavigationDestination: Hashable {
     case onboardingProfile
     case onboardingSteps(name: String, s3Key: String?)
     case mainTab
+    case setting
+    case recievedReview
+    case profileChange
+    case questoin
+    case qustionDetail
+    case notice
+    case noticeDetail(title: String, dateText: String, content: String)
 }
