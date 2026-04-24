@@ -11,4 +11,5 @@ final class APIContainer: Sendable {
     var auth: AuthService { useCaseProvider.auth }
     var user: UserService { useCaseProvider.user }
     var group: GroupService { useCaseProvider.group }
+    var recommendation: RecommendationService { useCaseProvider.recommendation }
 }

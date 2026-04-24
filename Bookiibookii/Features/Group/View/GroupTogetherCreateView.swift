@@ -1,4 +1,5 @@
 import SwiftUI
+import Kingfisher
 
 struct GroupTogetherCreateView: View {
     @StateObject private var viewModel: GroupCreateViewModel
@@ -99,13 +100,14 @@ struct GroupTogetherCreateView: View {
                     ForEach(viewModel.searchResults) { book in
                         Button { viewModel.selectBook(book) } label: {
                             HStack(spacing: 10) {
-                                AsyncImage(url: URL(string: book.image)) { image in
-                                    image.resizable().scaledToFill()
-                                } placeholder: {
-                                    Color("grey200")
-                                }
-                                .frame(width: 40, height: 56)
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                                KFImage(URL(string: book.image))
+                                    .placeholder { Color("grey200") }
+                                    .retry(maxCount: 2)
+                                    .cancelOnDisappear(true)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 40, height: 56)
+                                    .clipShape(RoundedRectangle(cornerRadius: 4))
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(book.title)
                                         .font(.pretendard(size: 14))

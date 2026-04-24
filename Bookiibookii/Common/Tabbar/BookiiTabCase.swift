@@ -29,9 +29,17 @@ enum BookiiTabCase: Int, CaseIterable {
     }
 
     @ViewBuilder
-    func contentView(container: DIContainer) -> some View {
+    func contentView(
+        container: DIContainer,
+        selectTab: @escaping (BookiiTabCase) -> Void
+    ) -> some View {
         switch self {
-        case .home: HomeView()
+        case .home:
+            HomeView(
+                recommendationService: container.api.recommendation,
+                groupService: container.api.group,
+                onNavigateToGroup: { selectTab(.group) }
+            )
         case .group: GroupView(groupService: container.api.group)
         case .tracker: TrackerView()
         case .library: LibraryView()

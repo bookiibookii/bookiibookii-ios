@@ -1,4 +1,6 @@
 import SwiftUI
+import Combine
+import Kingfisher
 
 struct MyPageView: View {
     @EnvironmentObject private var container: DIContainer
@@ -130,20 +132,12 @@ struct MyPageView: View {
         Group {
             if let urlStr = viewModel.profile?.profileImageUrl,
                let url = URL(string: urlStr) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-
-                    case .failure, .empty:
-                        defaultProfileIcon
-
-                    @unknown default:
-                        defaultProfileIcon
-                    }
-                }
+                KFImage(url)
+                    .placeholder { defaultProfileIcon }
+                    .retry(maxCount: 2)
+                    .cancelOnDisappear(true)
+                    .resizable()
+                    .scaledToFill()
             } else {
                 defaultProfileIcon
             }

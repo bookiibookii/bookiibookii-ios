@@ -6,6 +6,13 @@ enum GroupAPITarget: APITargetType {
     case searchGroups(keyword: String, sort: GroupSort, page: Int, size: Int)
     case searchBooks(keyword: String, page: Int, size: Int)
     case createGroup(GroupCreateRequest)
+    case fetchGroupDetail(groupId: Int)
+    case applyGroup(groupId: Int, body: GroupApplyRequest)
+    case cancelApply(groupId: Int)
+    case fetchApplicants(groupId: Int)
+    case updateApplicant(applicationId: Int, body: GroupAppStatusRequest)
+    case modifyGroup(groupId: Int, body: GroupModifyRequest)
+    case deleteGroup(groupId: Int)
 
     var path: String {
         switch self {
@@ -17,13 +24,25 @@ enum GroupAPITarget: APITargetType {
             return API.Path.groups + "/search"
         case .searchBooks:
             return API.Path.books + "/search"
+        case .fetchGroupDetail(let groupId),
+             .modifyGroup(let groupId, _),
+             .deleteGroup(let groupId):
+            return API.Path.groups + "/\(groupId)"
+        case .applyGroup(let groupId, _), .cancelApply(let groupId):
+            return API.Path.groups + "/\(groupId)/apply"
+        case .fetchApplicants(let groupId):
+            return API.Path.groups + "/\(groupId)/applylist"
+        case .updateApplicant(let applicationId, _):
+            return API.Path.groups + "/apply/\(applicationId)"
         }
     }
 
     var method: HTTPMethod {
         switch self {
-        case .createGroup: return .post
-        default: return .get
+        case .createGroup, .applyGroup:         return .post
+        case .modifyGroup, .updateApplicant:    return .patch
+        case .cancelApply, .deleteGroup:        return .delete
+        default:                                return .get
         }
     }
 
@@ -60,16 +79,17 @@ enum GroupAPITarget: APITargetType {
 
     var body: Data? {
         switch self {
-        case .createGroup(let request):
-            return try? JSONEncoder().encode(request)
-        default:
-            return nil
+        case .createGroup(let request):           return try? JSONEncoder().encode(request)
+        case .applyGroup(_, let body):            return try? JSONEncoder().encode(body)
+        case .updateApplicant(_, let body):       return try? JSONEncoder().encode(body)
+        case .modifyGroup(_, let body):           return try? JSONEncoder().encode(body)
+        default:                                   return nil
         }
     }
 
     var headers: [String: String] {
         switch self {
-        case .createGroup:
+        case .createGroup, .applyGroup, .updateApplicant, .modifyGroup:
             return ["Content-Type": "application/json"]
         default:
             return [:]
