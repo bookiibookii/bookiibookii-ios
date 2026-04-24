@@ -106,9 +106,9 @@ final class GroupDetailViewModel: ObservableObject {
         switch d.buttonStatus {
         case "APPLY":   return "참여 신청하기"
         case "CANCEL":  return "신청 취소하기"
-        case "MANAGE":  return "참여 요청 관리\(d.waitingCount > 0 ? " (\(d.waitingCount))" : "")"
+        case "MANAGE":  return "참여 요청 관리"
         case "FULL":    return "모집 완료"
-        case "TRACKER": return d.groupType == "TOGETHER" ? "서재 보기" : "트래커 보기"
+        case "TRACKER": return d.groupType == "TOGETHER" ? "서재 보기" : "트래커 보기"  // groupType nil → RELAY 취급
         default:        return ""
         }
     }
@@ -124,7 +124,7 @@ final class GroupDetailViewModel: ObservableObject {
             if d.groupStatus == "RECRUITING" {
                 let msg = d.groupType == "TOGETHER"
                     ? "모임이 시작되면 서재가 생성됩니다!"
-                    : "모임이 시작되면 트래커가 생성됩니다!"
+                    : "모임이 시작되면 트래커가 생성됩니다!"  // nil → RELAY 취급
                 toast = msg
             } else {
                 shouldDismiss = true

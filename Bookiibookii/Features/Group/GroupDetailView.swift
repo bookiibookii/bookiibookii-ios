@@ -14,7 +14,7 @@ struct GroupDetailView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             Color("grey100").ignoresSafeArea()
 
             if viewModel.phase == .loading {
@@ -29,7 +29,7 @@ struct GroupDetailView: View {
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 84)
-                    .padding(.bottom, 100)
+                    .padding(.bottom, 32)
                 }
             } else if viewModel.phase == .failed {
                 VStack(spacing: 16) {
@@ -41,10 +41,6 @@ struct GroupDetailView: View {
                         .foregroundColor(Color("main200"))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-
-            if viewModel.detail != nil {
-                bottomBar
             }
         }
         .overlay(alignment: .top) { headerBar }
@@ -94,7 +90,7 @@ struct GroupDetailView: View {
             .padding(.horizontal, 24)
 
             Text(viewModel.detail?.title ?? "")
-                .font(.pretendard(size: 20, weight: .semibold))
+                .font(.pretendard(size: 20, weight: .medium))
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
                 .padding(.horizontal, 64)
@@ -157,15 +153,7 @@ struct GroupDetailView: View {
                             }
                         }
                         Spacer(minLength: 8)
-                        let (badgeBg, badgeText): (Color, String) = d.groupType == "TOGETHER"
-                            ? (Color("grey900"), "함께읽기(\(d.maxCapacity))")
-                            : (Color("main200"), d.title)
-                        Text(badgeText)
-                            .font(.pretendard(size: 11, weight: .medium))
-                            .foregroundColor(Color("white"))
-                            .padding(.horizontal, 8)
-                            .frame(height: 23)
-                            .background(Capsule().fill(badgeBg))
+                        statusBadge(d.groupStatus)
                     }
 
                     HStack(spacing: 4) {
@@ -207,13 +195,11 @@ struct GroupDetailView: View {
                             .frame(width: 20, height: 20)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                         Text(d.hostNickname)
-                            .font(.pretendard(size: 12))
+                            .font(.pretendard(size: 12, weight: .medium))
                             .foregroundColor(Color("grey700"))
-                            .padding(.leading, 4)
                         Text(d.startDate.replacingOccurrences(of: "-", with: "."))
                             .font(.pretendard(size: 11))
                             .foregroundColor(Color("grey400"))
-                            .padding(.leading, 4)
                         Spacer()
                     }
                     .padding(.top, 4)
@@ -230,18 +216,90 @@ struct GroupDetailView: View {
                         Text(tag)
                             .font(.pretendard(size: 11, weight: .medium))
                             .foregroundColor(Color("sub200"))
-                            .padding(.horizontal, 10)
-                            .frame(height: 23)
-                            .background(Capsule().fill(Color("sub100")))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color("sub100"))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                             .fixedSize()
                     }
                 }
                 .padding(.top, 12)
             }
+
+            actionButton
+                .padding(.top, 12)
         }
         .padding(16)
         .background(Color("white"))
         .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+
+    // MARK: - 상태 배지
+
+    @ViewBuilder
+    private func statusBadge(_ status: String) -> some View {
+        switch status {
+        case "RECRUITING":
+            Text("모집 중")
+                .font(.pretendard(size: 11))
+                .foregroundColor(Color("white"))
+                .padding(.horizontal, 8)
+                .frame(height: 23)
+                .background(Color("main200"))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        case "MATCHED":
+            Text("진행 중")
+                .font(.pretendard(size: 11))
+                .foregroundColor(Color("main200"))
+                .padding(.horizontal, 8)
+                .frame(height: 23)
+                .background(Color("white"))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color("main105"), lineWidth: 1))
+        case "COMPLETED":
+            Text("종료")
+                .font(.pretendard(size: 11))
+                .foregroundColor(Color("grey500"))
+                .padding(.horizontal, 8)
+                .frame(height: 23)
+                .background(Color("grey200"))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        default:
+            Text("마감")
+                .font(.pretendard(size: 11))
+                .foregroundColor(Color("grey500"))
+                .padding(.horizontal, 8)
+                .frame(height: 23)
+                .background(Color("grey200"))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    // MARK: - 카드 내부 버튼
+
+    @ViewBuilder
+    private var actionButton: some View {
+        if let d = viewModel.detail {
+            let isFull = d.buttonStatus == "FULL"
+            Button { viewModel.handleButtonTap() } label: {
+                HStack(spacing: 4) {
+                    Text(viewModel.buttonLabel)
+                        .font(.pretendard(size: 15))
+                        .foregroundColor(isFull ? Color("grey500") : Color("main200"))
+                    if d.buttonStatus == "MANAGE" && d.waitingCount > 0 {
+                        Text("(\(d.waitingCount))")
+                            .font(.pretendard(size: 15))
+                            .foregroundColor(Color("main200"))
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(isFull ? Color("grey200") : Color("main100"))
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+            }
+            .disabled(isFull)
+            .buttonStyle(.plain)
+        }
     }
 
     // MARK: - 그룹 소개
@@ -249,7 +307,7 @@ struct GroupDetailView: View {
     private func introSection(_ d: GroupDetailDto) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("그룹 소개")
-                .font(.pretendard(size: 16, weight: .semibold))
+                .font(.pretendard(size: 16, weight: .medium))
                 .foregroundColor(Color("grey900"))
                 .padding(.bottom, 12)
             Divider().background(Color("grey200"))
@@ -272,7 +330,9 @@ struct GroupDetailView: View {
                 .padding(.top, 12)
             }
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+        .padding(.bottom, 20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("white"))
         .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -284,7 +344,7 @@ struct GroupDetailView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 4) {
                 Text("참여 멤버")
-                    .font(.pretendard(size: 16, weight: .semibold))
+                    .font(.pretendard(size: 16, weight: .medium))
                     .foregroundColor(Color("grey900"))
                 Text("\(d.matchedCount)/\(d.maxCapacity)명")
                     .font(.pretendard(size: 14))
@@ -292,14 +352,16 @@ struct GroupDetailView: View {
             }
             .padding(.bottom, 12)
             Divider().background(Color("grey200"))
-            VStack(spacing: 12) {
+            VStack(spacing: 0) {
                 ForEach(Array((d.participantSlots ?? []).enumerated()), id: \.offset) { _, slot in
                     memberRow(slot)
                 }
             }
             .padding(.top, 12)
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
+        .padding(.bottom, 20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("white"))
         .clipShape(RoundedRectangle(cornerRadius: 20))
@@ -308,9 +370,9 @@ struct GroupDetailView: View {
     private func memberRow(_ slot: ParticipantSlot) -> some View {
         HStack(spacing: 12) {
             if slot.role == "EMPTY" {
-                Circle()
+                RoundedRectangle(cornerRadius: 16)
                     .fill(Color("grey300"))
-                    .frame(width: 36, height: 36)
+                    .frame(width: 40, height: 40)
             } else {
                 KFImage(slot.profileImageUrl.flatMap(URL.init(string:)))
                     .placeholder { Image("img_profile_default").resizable() }
@@ -318,10 +380,10 @@ struct GroupDetailView: View {
                     .cancelOnDisappear(true)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 36, height: 36)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .frame(width: 40, height: 40)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
             }
-            HStack(spacing: 4) {
+            HStack(spacing: 8) {
                 if slot.role == "EMPTY" {
                     Text("대기 중")
                         .font(.pretendard(size: 14))
@@ -329,11 +391,15 @@ struct GroupDetailView: View {
                 } else {
                     Text(slot.nickname ?? "알 수 없음")
                         .font(.pretendard(size: 14))
-                        .foregroundColor(Color("grey700"))
+                        .foregroundColor(Color("grey900"))
                     if slot.role == "HOST" {
-                        Text("(호스트)")
-                            .font(.pretendard(size: 12))
+                        Text("HOST")
+                            .font(.pretendard(size: 11))
                             .foregroundColor(Color("main200"))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color("main100"))
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     }
                     if slot.isMe {
                         Text("(나)")
@@ -344,28 +410,7 @@ struct GroupDetailView: View {
             }
             Spacer()
         }
-    }
-
-    // MARK: - 하단 버튼
-
-    private var bottomBar: some View {
-        VStack(spacing: 0) {
-            Divider().background(Color("grey200"))
-            Button { viewModel.handleButtonTap() } label: {
-                Text(viewModel.buttonLabel)
-                    .font(.pretendard(size: 15, weight: .medium))
-                    .foregroundColor(viewModel.detail?.buttonStatus == "FULL" ? Color("grey500") : Color("white"))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(viewModel.detail?.buttonStatus == "FULL" ? Color("grey300") : Color("main200"))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-            }
-            .disabled(viewModel.detail?.buttonStatus == "FULL")
-            .buttonStyle(.plain)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
-        }
-        .background(Color("white"))
+        .padding(.bottom, 12)
     }
 
     // MARK: - 신청 다이얼로그

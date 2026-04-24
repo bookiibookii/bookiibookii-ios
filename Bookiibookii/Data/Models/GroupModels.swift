@@ -297,7 +297,7 @@ struct GroupDetailDto: Codable {
     let customTag: String?
     let groupComment: String?
     let participantSlots: [ParticipantSlot]?
-    let groupType: String
+    let groupType: String?
 }
 
 struct ParticipantSlot: Codable {
