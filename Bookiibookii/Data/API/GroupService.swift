@@ -180,9 +180,9 @@ final class GroupService {
         guard response.isSuccess else { throw GroupServiceError.server(response.message) }
     }
 
-    /// GET /api/groups/{groupId}/applications
+    /// GET /api/groups/{groupId}/applylist
     func fetchApplicants(groupId: Int) async throws -> [GroupApplicantDto] {
-        let url = baseURL.appendingPathComponent("api/groups/\(groupId)/applications")
+        let url = baseURL.appendingPathComponent("api/groups/\(groupId)/applylist")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         let (data, http) = try await interceptor.request(request)
@@ -196,11 +196,11 @@ final class GroupService {
         return result.applicationList
     }
 
-    /// PUT /api/applications/{applicationId}
+    /// PATCH /api/groups/apply/{applyId}
     func updateApplicant(applicationId: Int, status: String) async throws {
-        let url = baseURL.appendingPathComponent("api/applications/\(applicationId)")
+        let url = baseURL.appendingPathComponent("api/groups/apply/\(applicationId)")
         var request = URLRequest(url: url)
-        request.httpMethod = "PUT"
+        request.httpMethod = "PATCH"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(GroupAppStatusRequest(status: status))
         let (data, http) = try await interceptor.request(request)

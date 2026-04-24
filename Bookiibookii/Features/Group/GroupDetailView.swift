@@ -42,16 +42,32 @@ struct GroupDetailView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+
+            if viewModel.showApplyDialog {
+                Color.black.opacity(0.45)
+                    .ignoresSafeArea()
+                    .onTapGesture {}
+                applyDialog
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
         }
+        .animation(.easeInOut(duration: 0.2), value: viewModel.showApplyDialog)
         .overlay(alignment: .top) { headerBar }
         .fullScreenCover(isPresented: $viewModel.showApplicants) {
             GroupApplicantView(viewModel: viewModel)
         }
-        .confirmationDialog("", isPresented: $showMoreSheet) {
-            moreSheetButtons
-        }
-        .sheet(isPresented: $viewModel.showApplyDialog) {
-            applyDialogSheet
+        .sheet(isPresented: $showMoreSheet) {
+            GroupMoreSheet(
+                isHost: viewModel.isHost,
+                canEdit: viewModel.canEdit,
+                onEdit: { viewModel.toast = "그룹 수정은 준비 중입니다" },
+                onDelete: {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        viewModel.showDeleteConfirm = true
+                    }
+                },
+                onReport: { viewModel.toast = "신고가 접수되었습니다." }
+            )
         }
         .alert("그룹 삭제", isPresented: $viewModel.showDeleteConfirm) {
             Button("취소", role: .cancel) {}
@@ -96,26 +112,6 @@ struct GroupDetailView: View {
                 .padding(.horizontal, 64)
         }
         .frame(height: 68)
-    }
-
-    // MARK: - 더보기
-
-    @ViewBuilder
-    private var moreSheetButtons: some View {
-        if viewModel.isHost {
-            Button(viewModel.canEdit ? "수정" : "수정 (모집 완료 후 불가)") {
-                viewModel.toast = "그룹 수정은 준비 중입니다"
-            }
-            .disabled(!viewModel.canEdit)
-            Button("삭제", role: .destructive) {
-                viewModel.showDeleteConfirm = true
-            }
-        } else {
-            Button("신고") {
-                viewModel.toast = "신고 기능은 준비 중입니다"
-            }
-        }
-        Button("취소", role: .cancel) {}
     }
 
     // MARK: - 카드 섹션
@@ -413,93 +409,117 @@ struct GroupDetailView: View {
         .padding(.bottom, 12)
     }
 
-    // MARK: - 신청 다이얼로그
+    // MARK: - 신청 다이얼로그 (중앙 모달)
 
-    private var applyDialogSheet: some View {
-        VStack(alignment: .leading, spacing: 0) {
+    private var applyDialog: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // 헤더
             HStack {
                 Text("그룹 참여 신청")
-                    .font(.pretendard(size: 20, weight: .bold))
+                    .font(.pretendard(size: 20, weight: .medium))
                     .foregroundColor(Color("grey900"))
                 Spacer()
-                Button { viewModel.showApplyDialog = false } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                        .foregroundColor(Color("grey400"))
+                Button {
+                    applyMsg = ""
+                    viewModel.showApplyDialog = false
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(Color("grey900"))
+                        .frame(width: 32, height: 32)
+                        .background(Color("grey100"))
+                        .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
             }
+
+            // 책 정보
             if let d = viewModel.detail {
                 HStack(spacing: 4) {
                     Text("[\(d.hostNickname)]")
-                        .font(.pretendard(size: 14))
-                        .foregroundColor(Color("grey700"))
+                        .font(.pretendard(size: 16))
+                        .foregroundColor(Color("grey800"))
                         .lineLimit(1)
                     Text(d.bookTitle)
-                        .font(.pretendard(size: 14))
-                        .foregroundColor(Color("grey700"))
+                        .font(.pretendard(size: 16))
+                        .foregroundColor(Color("grey800"))
                         .lineLimit(1)
                 }
-                .padding(.top, 4)
             }
-            HStack {
-                Text("신청 한마디")
-                    .font(.pretendard(size: 14))
-                    .foregroundColor(Color("black"))
-                Spacer()
-                Text("\(applyMsg.count)/200")
-                    .font(.pretendard(size: 12))
-                    .foregroundColor(Color("grey500"))
-            }
-            .padding(.top, 20)
-            TextEditor(text: $applyMsg)
-                .font(.pretendard(size: 14))
-                .foregroundColor(Color("black"))
-                .scrollContentBackground(.hidden)
-                .background(Color("grey100"))
-                .frame(height: 120)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .padding(.top, 8)
-                .onChange(of: applyMsg) { v in
-                    if v.count > 200 { applyMsg = String(v.prefix(200)) }
+
+            // 신청 한 마디 입력
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("신청 한 마디")
+                        .font(.pretendard(size: 14, weight: .medium))
+                        .foregroundColor(Color("grey900"))
+                    Spacer()
+                    Text("\(applyMsg.count)/50")
+                        .font(.pretendard(size: 12))
+                        .foregroundColor(Color("grey500"))
                 }
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $applyMsg)
+                        .font(.pretendard(size: 14))
+                        .foregroundColor(Color("grey900"))
+                        .scrollContentBackground(.hidden)
+                        .padding(8)
+                    if applyMsg.isEmpty {
+                        Text("호스트에게 간단한 소개를 남겨주세요.")
+                            .font(.pretendard(size: 14))
+                            .foregroundColor(Color("grey500"))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 12)
+                            .allowsHitTesting(false)
+                    }
+                }
+                .frame(height: 100)
+                .background(Color("grey100"))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .onChange(of: applyMsg) { v in
+                    if v.count > 50 { applyMsg = String(v.prefix(50)) }
+                }
+            }
+
+            // 버튼
             HStack(spacing: 12) {
                 Button {
                     applyMsg = ""
                     viewModel.showApplyDialog = false
                 } label: {
                     Text("취소")
-                        .font(.pretendard(size: 15, weight: .medium))
+                        .font(.pretendard(size: 14))
                         .foregroundColor(Color("grey900"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color("grey200"), lineWidth: 1))
+                        .background(Color("grey200"))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
                 .buttonStyle(.plain)
+
                 Button {
-                    guard !applyMsg.trimmingCharacters(in: .whitespaces).isEmpty else {
+                    let trimmed = applyMsg.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !trimmed.isEmpty else {
                         viewModel.toast = "호스트에게 보낼 한 마디를 입력해주세요."
                         return
                     }
-                    Task { await viewModel.applyGroup(msg: applyMsg) }
+                    Task { await viewModel.applyGroup(msg: trimmed) }
                     applyMsg = ""
                 } label: {
-                    Text("확인")
-                        .font(.pretendard(size: 15, weight: .medium))
+                    Text("신청하기")
+                        .font(.pretendard(size: 14))
                         .foregroundColor(Color("grey100"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
                         .background(Color("grey900"))
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.top, 20)
         }
         .padding(24)
-        .presentationDetents([.height(360)])
-        .presentationDragIndicator(.hidden)
-        .presentationBackground(Color("white"))
+        .frame(width: 340)
+        .background(Color("white"))
+        .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 }
