@@ -2,6 +2,7 @@ import Foundation
 
 // 안드로이드 GroupFragment.loadGroupData 대응. GET /api/groups 한 엔드포인트.
 final class GroupService {
+    private let baseURL = URL(string: API.baseURL + "/")!
     private let interceptor: AuthInterceptor
 
     init(interceptor: AuthInterceptor) { self.interceptor = interceptor }
