@@ -98,10 +98,10 @@ struct TrackerView: View {
 
     @ViewBuilder
     private func emptyState(phase: TrackerViewModel.Phase) -> some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack {
                 switch phase {
-                case .loading:
+                case .idle, .loading:
                     ProgressView()
                         .padding(.top, 80)
                 case .failed(let message):
@@ -116,7 +116,7 @@ struct TrackerView: View {
                         .foregroundColor(Color("main200"))
                     }
                     .padding(.top, 80)
-                case .idle, .refreshing, .loaded:
+                case .refreshing, .loaded:
                     TrackerEmptyCard(
                         tab: viewModel.selectedTab,
                         onNavigateToGroup: onNavigateToGroup
