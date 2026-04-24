@@ -32,16 +32,25 @@ struct GroupView: View {
             Color("grey100").ignoresSafeArea()
 
             VStack(spacing: 0) {
-                header
-                    .padding(.horizontal, 24)
-                    .padding(.top, 20)
+                VStack(spacing: 0) {
+                    header
+                        .padding(.horizontal, 24)
+                        .padding(.top, 20)
 
-                filterChipsRow
-                    .padding(.top, 16)
+                    filterChipsRow
+                        .padding(.top, 16)
+                        .padding(.bottom, 16)
+                }
+                .background(Color("white"))
+                .overlay(alignment: .bottom) {
+                    Rectangle()
+                        .fill(Color("grey200"))
+                        .frame(height: 1)
+                }
 
                 sortRow
                     .padding(.horizontal, 24)
-                    .padding(.top, 32)
+                    .padding(.top, 20)
 
                 listSection
                     .padding(.top, 12)
