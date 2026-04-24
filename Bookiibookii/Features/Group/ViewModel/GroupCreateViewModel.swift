@@ -34,6 +34,18 @@ enum ReadingTag: String, CaseIterable {
     }
 }
 
+// MARK: - 수정 모드 설정
+
+struct GroupEditConfig {
+    let groupId: Int
+    let bookTitle: String
+    let startDate: Date
+    let readingPeriod: Int
+    let groupComment: String
+    let customTag: String          // "" or raw tag (without #)
+    let tagCodes: [String]         // e.g. ["MEMO", "SERIOUS"]
+}
+
 // MARK: - ViewModel
 
 @MainActor
@@ -42,6 +54,8 @@ final class GroupCreateViewModel: ObservableObject {
     enum Phase { case idle, submitting, done, failed }
 
     let groupType: GroupType
+    let editConfig: GroupEditConfig?
+    var isEditMode: Bool { editConfig != nil }
 
     // 도서 검색
     @Published var searchQuery: String = ""
@@ -73,19 +87,28 @@ final class GroupCreateViewModel: ObservableObject {
     private let service: GroupService
     private var searchTask: Task<Void, Never>?
 
-    init(groupType: GroupType, service: GroupService) {
+    init(groupType: GroupType, editConfig: GroupEditConfig? = nil, service: GroupService) {
         self.groupType = groupType
+        self.editConfig = editConfig
         self.service = service
+        if let config = editConfig {
+            self.startDate = config.startDate
+            self.readingPeriod = String(config.readingPeriod)
+            self.groupComment = config.groupComment
+            self.customTag = config.customTag.isEmpty ? "" : "#\(config.customTag)"
+            self.selectedTags = Set(config.tagCodes.compactMap { ReadingTag(rawValue: $0) })
+        }
     }
 
     // MARK: - 유효성 검사
 
     var isFormValid: Bool {
-        guard selectedBook != nil else { return false }
         guard startDate != nil else { return false }
         guard let period = Int(readingPeriod), period >= 3, period <= 30 else { return false }
         guard !selectedTags.isEmpty else { return false }
         guard !groupComment.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
+        if isEditMode { return true }
+        guard selectedBook != nil else { return false }
         switch groupType {
         case .relay:
             guard bookHave != nil else { return false }
@@ -163,16 +186,25 @@ final class GroupCreateViewModel: ObservableObject {
     func submit() async {
         guard isFormValid, phase == .idle else { return }
         phase = .submitting
+        if let config = editConfig {
+            await modify(groupId: config.groupId)
+        } else {
+            await create()
+        }
+    }
 
+    private func buildTags() -> [GroupTagRequest] {
+        let tagsByType = Dictionary(grouping: Array(selectedTags), by: \.tagType)
+        return tagsByType.map { type, items in GroupTagRequest(type: type, value: items.map(\.rawValue)) }
+    }
+
+    private func rawCustomTag() -> String {
+        customTag.hasPrefix("#") ? String(customTag.dropFirst()) : customTag
+    }
+
+    private func create() async {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-
-        let tagsByType = Dictionary(grouping: Array(selectedTags), by: \.tagType)
-        let tags = tagsByType.map { type, items in
-            GroupTagRequest(type: type, value: items.map(\.rawValue))
-        }
-
-        let rawCustomTag = customTag.hasPrefix("#") ? String(customTag.dropFirst()) : customTag
 
         let request = GroupCreateRequest(
             isbn13: selectedBook!.isbn13,
@@ -180,7 +212,7 @@ final class GroupCreateViewModel: ObservableObject {
             startDate: formatter.string(from: startDate!),
             readingPeriod: Int(readingPeriod)!,
             groupComment: groupComment,
-            customTag: rawCustomTag,
+            customTag: rawCustomTag(),
             groupType: groupType == .relay ? "RELAY" : "TOGETHER",
             tradeType: {
                 switch tradeType {
@@ -191,7 +223,7 @@ final class GroupCreateViewModel: ObservableObject {
             }(),
             preferRegion: preferRegion,
             meetPlace: meetPlace,
-            tags: tags
+            tags: buildTags()
         )
 
         do {
@@ -200,6 +232,31 @@ final class GroupCreateViewModel: ObservableObject {
             phase = .done
         } catch let e as GroupServiceError {
             toast = e.errorDescription ?? "그룹 생성에 실패했습니다"
+            phase = .idle
+        } catch {
+            toast = "네트워크 오류가 발생했습니다"
+            phase = .idle
+        }
+    }
+
+    private func modify(groupId: Int) async {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+
+        let request = GroupModifyRequest(
+            startDate: formatter.string(from: startDate!),
+            readingPeriod: Int(readingPeriod)!,
+            groupComment: groupComment,
+            customTag: rawCustomTag(),
+            tags: buildTags()
+        )
+
+        do {
+            try await service.modifyGroup(groupId: groupId, body: request)
+            toast = "그룹 정보가 정상적으로 수정 되었습니다"
+            phase = .done
+        } catch let e as GroupServiceError {
+            toast = e.errorDescription ?? "그룹 수정에 실패했습니다"
             phase = .idle
         } catch {
             toast = "네트워크 오류가 발생했습니다"

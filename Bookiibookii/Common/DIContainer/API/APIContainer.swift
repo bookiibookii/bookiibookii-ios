@@ -1,16 +1,14 @@
 import Foundation
 
 final class APIContainer: Sendable {
-    let auth: AuthService
-    let interceptor: AuthInterceptor
-    let user: UserService
-    let group: GroupService
+    let useCaseProvider: UseCaseProvider
 
     init(auth: AuthService = AuthService()) {
-        self.auth = auth
-        let interceptor = AuthInterceptor(authService: auth)
-        self.interceptor = interceptor
-        self.user = UserService(interceptor: interceptor)
-        self.group = GroupService(interceptor: interceptor)
+        self.useCaseProvider = UseCaseProvider(auth: auth)
     }
+
+    // 하위 호환: 기존 호출부(api.auth / api.user / api.group) 유지
+    var auth: AuthService { useCaseProvider.auth }
+    var user: UserService { useCaseProvider.user }
+    var group: GroupService { useCaseProvider.group }
 }

@@ -2,7 +2,6 @@ import Foundation
 
 // 안드로이드 ApiService의 유저/온보딩 관련 엔드포인트 대응
 final class UserService {
-    private let baseURL = URL(string: "https://bookii.gyeonseo.com/")!
     private let interceptor: AuthInterceptor
 
     init(interceptor: AuthInterceptor) {
@@ -11,11 +10,8 @@ final class UserService {
 
     // POST /api/users/name-validation?nickname=xxx
     func checkNickname(_ nickname: String) async throws -> NicknameValidationResult {
-        var components = URLComponents(url: baseURL.appendingPathComponent("api/users/name-validation"), resolvingAgainstBaseURL: false)!
-        components.queryItems = [URLQueryItem(name: "nickname", value: nickname)]
-
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "POST"
+        let target = UserAPITarget.checkNickname(nickname)
+        let request = target.asURLRequest()
 
         let (data, _) = try await interceptor.request(request)
         let response = try JSONDecoder().decode(NicknameValidationResponse.self, from: data)
@@ -28,10 +24,8 @@ final class UserService {
 
     // POST /api/users/me/image/presigned-url
     func getPresignedUrl() async throws -> PresignedUrlResult {
-        let url = baseURL.appendingPathComponent("api/users/me/image/presigned-url")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let target = UserAPITarget.presignedURL
+        let request = target.asURLRequest()
 
         let (data, _) = try await interceptor.request(request)
         let response = try JSONDecoder().decode(PresignedUrlResponse.self, from: data)
@@ -60,11 +54,8 @@ final class UserService {
 
     // POST /api/onboarding
     func completeOnboarding(_ body: OnboardingRequest) async throws {
-        let url = baseURL.appendingPathComponent("api/onboarding")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        let target = UserAPITarget.completeOnboarding(body)
+        let request = target.asURLRequest()
 
         let (data, _) = try await interceptor.request(request)
         let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
@@ -77,9 +68,8 @@ final class UserService {
 
     // GET /api/mypage
     func getMypage() async throws -> MypageResult {
-        let url = baseURL.appendingPathComponent("api/mypage")
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        let target = UserAPITarget.mypage
+        let request = target.asURLRequest()
 
         let (data, _) = try await interceptor.request(request)
         let response = try JSONDecoder().decode(MypageResponse.self, from: data)
