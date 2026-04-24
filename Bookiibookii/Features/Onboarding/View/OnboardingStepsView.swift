@@ -42,39 +42,14 @@ struct OnboardingStepsView: View {
         }
     }
 
-    // MARK: - 헤더 (뒤로가기 + 로고)
+    // MARK: - 헤더
 
     private var headerSection: some View {
-        HStack {
-            Button(action: handleBack) {
-                Circle()
-                    .fill(Color.white)
-                    .frame(width: 40, height: 40)
-                    .overlay(
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(Color("grey900"))
-                    )
-            }
-
-            Spacer()
-
-            Image("ic_title")
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 204, height: 22)
-                .foregroundColor(Color("main200"))
-
-            Spacer()
-
-            Circle()
-                .fill(Color.clear)
-                .frame(width: 40, height: 40)
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 68)
-        .background(Color("grey100"))
+        CustomNavigationBar(
+            title: "온보딩",
+            onBack: handleBack,
+            rightButton: .none
+        )
     }
 
     // MARK: - 진행 바 (3단계)

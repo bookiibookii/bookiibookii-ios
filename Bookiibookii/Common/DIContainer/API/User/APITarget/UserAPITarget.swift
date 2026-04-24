@@ -5,6 +5,8 @@ enum UserAPITarget: APITargetType {
     case presignedURL
     case completeOnboarding(OnboardingRequest)
     case mypage
+    case profileChangeInfo
+    case updateProfileChangeInfo(ProfileChangeUpdateRequest)
 
     var path: String {
         switch self {
@@ -16,12 +18,15 @@ enum UserAPITarget: APITargetType {
             return API.Path.onboarding
         case .mypage:
             return API.Path.mypage
+        case .profileChangeInfo, .updateProfileChangeInfo:
+            return API.Path.users + "/me/profile-change"
         }
     }
 
     var method: HTTPMethod {
         switch self {
-        case .mypage: return .get
+        case .mypage, .profileChangeInfo: return .get
+        case .updateProfileChangeInfo: return .put
         case .checkNickname, .presignedURL, .completeOnboarding: return .post
         }
     }
@@ -39,6 +44,8 @@ enum UserAPITarget: APITargetType {
         switch self {
         case .completeOnboarding(let request):
             return try? JSONEncoder().encode(request)
+        case .updateProfileChangeInfo(let request):
+            return try? JSONEncoder().encode(request)
         default:
             return nil
         }
@@ -46,7 +53,7 @@ enum UserAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .presignedURL, .completeOnboarding:
+        case .presignedURL, .completeOnboarding, .updateProfileChangeInfo:
             return ["Content-Type": "application/json"]
         default:
             return [:]
