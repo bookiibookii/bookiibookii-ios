@@ -5,23 +5,35 @@ import SwiftUI
 struct HomeView: View {
     @StateObject private var viewModel: HomeViewModel
     private let groupService: GroupService
+    private let notificationService: NotificationService
 
     var onNavigateToGroup: () -> Void
     @State private var selectedGroupId: Int? = nil
+    @State private var showNotification = false
 
     init(
         recommendationService: RecommendationService,
         groupService: GroupService,
+        notificationService: NotificationService,
         onNavigateToGroup: @escaping () -> Void = {}
     ) {
-        _viewModel = StateObject(wrappedValue: HomeViewModel(recommendationService: recommendationService))
+        _viewModel = StateObject(
+            wrappedValue: HomeViewModel(
+                recommendationService: recommendationService,
+                notificationService: notificationService
+            )
+        )
         self.groupService = groupService
+        self.notificationService = notificationService
         self.onNavigateToGroup = onNavigateToGroup
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            HomeHeaderView()
+            HomeHeaderView(
+                hasNotificationBadge: viewModel.hasUnreadNotification,
+                onTapNotification: { showNotification = true }
+            )
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
                     exchangeSection
@@ -35,6 +47,11 @@ struct HomeView: View {
         .task { await viewModel.onAppear() }
         .fullScreenCover(item: $selectedGroupId) { groupId in
             GroupDetailView(groupId: groupId, groupService: groupService)
+        }
+        .fullScreenCover(isPresented: $showNotification, onDismiss: {
+            Task { await viewModel.refreshNotificationBadge() }
+        }) {
+            NotificationView(notificationService: notificationService)
         }
     }
 

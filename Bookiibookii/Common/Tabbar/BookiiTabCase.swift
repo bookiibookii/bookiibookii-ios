@@ -38,6 +38,7 @@ enum BookiiTabCase: Int, CaseIterable {
             HomeView(
                 recommendationService: container.api.recommendation,
                 groupService: container.api.group,
+                notificationService: container.api.notification,
                 onNavigateToGroup: { selectTab(.group) }
             )
         case .group: GroupView(groupService: container.api.group)

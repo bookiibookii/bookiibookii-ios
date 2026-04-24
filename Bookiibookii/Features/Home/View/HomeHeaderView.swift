@@ -1,7 +1,7 @@
 import SwiftUI
 
-// 안드로이드 section_home_header.xml 대응
-// 흰 배경 + 하단 grey_200 구분선, 로고(메인 오렌지) + 알림 벨 + red dot
+// 안드로이드 section_home_header.xml + ic_home_badge.xml 대응
+// 흰 배경 + 하단 grey_200 구분선, 로고(메인 오렌지) + 알림 벨 + 주황 뱃지(흰 테두리)
 struct HomeHeaderView: View {
     var hasNotificationBadge: Bool = true
     var onTapNotification: () -> Void = {}
@@ -24,9 +24,12 @@ struct HomeHeaderView: View {
                     .overlay(alignment: .topTrailing) {
                         if hasNotificationBadge {
                             Circle()
-                                .fill(Color(hex: 0xFF4D4D))
-                                .frame(width: 7, height: 7)
-                                .offset(x: 2, y: -1)
+                                .fill(Color("main200"))
+                                .frame(width: 8, height: 8)
+                                .overlay(
+                                    Circle().stroke(Color("white"), lineWidth: 1)
+                                )
+                                .offset(x: 2, y: -2)
                         }
                     }
             }
@@ -40,15 +43,6 @@ struct HomeHeaderView: View {
                 .fill(Color("grey200"))
                 .frame(height: 1)
         }
-    }
-}
-
-private extension Color {
-    init(hex: UInt32) {
-        let r = Double((hex >> 16) & 0xFF) / 255.0
-        let g = Double((hex >> 8)  & 0xFF) / 255.0
-        let b = Double(hex & 0xFF) / 255.0
-        self.init(red: r, green: g, blue: b)
     }
 }
 
