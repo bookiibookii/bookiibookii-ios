@@ -2,7 +2,7 @@ import Foundation
 
 // 안드로이드 GroupFragment.loadGroupData 대응. GET /api/groups 한 엔드포인트.
 final class GroupService {
-    private let baseURL = URL(string: "https://bookii.gyeonseo.com/")!
+    private let baseURL = URL(string: API.baseURL + "/")!
     private let interceptor: AuthInterceptor
 
     init(interceptor: AuthInterceptor) { self.interceptor = interceptor }
@@ -18,23 +18,16 @@ final class GroupService {
         page: Int,
         size: Int = 20
     ) async throws -> GroupPageResult {
-        var components = URLComponents(
-            url: baseURL.appendingPathComponent("api/groups"),
-            resolvingAgainstBaseURL: false
-        )!
-        var items: [URLQueryItem] = [
-            URLQueryItem(name: "sort", value: sort.rawValue),
-            URLQueryItem(name: "page", value: String(page)),
-            URLQueryItem(name: "size", value: String(size))
-        ]
-        groupTypes?.forEach { items.append(URLQueryItem(name: "groupTypes", value: $0)) }
-        tradeTypes?.forEach { items.append(URLQueryItem(name: "tradeTypes", value: $0)) }
-        meetPlace?.forEach  { items.append(URLQueryItem(name: "meetPlace",  value: $0)) }
-        categories?.forEach { items.append(URLQueryItem(name: "categories", value: $0)) }
-        components.queryItems = items
-
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
+        let target = GroupAPITarget.fetchGroups(
+            groupTypes: groupTypes,
+            tradeTypes: tradeTypes,
+            meetPlace: meetPlace,
+            categories: categories,
+            sort: sort,
+            page: page,
+            size: size
+        )
+        let request = target.asURLRequest()
 
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
@@ -50,9 +43,8 @@ final class GroupService {
 
     /// GET /api/groups/popular-keywords
     func fetchPopularKeywords() async throws -> [String] {
-        let url = baseURL.appendingPathComponent("api/groups/popular-keywords")
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        let target = GroupAPITarget.popularKeywords
+        let request = target.asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             throw GroupServiceError.http(http.statusCode)
@@ -67,18 +59,8 @@ final class GroupService {
     /// GET /api/groups/search?keyword=&sort=&page=&size=
     /// sort: .latest("LATEST") 또는 .popular("POPULAR") 만 사용
     func searchGroups(keyword: String, sort: GroupSort, page: Int, size: Int = 20) async throws -> GroupSearchResult {
-        var components = URLComponents(
-            url: baseURL.appendingPathComponent("api/groups/search"),
-            resolvingAgainstBaseURL: false
-        )!
-        components.queryItems = [
-            URLQueryItem(name: "keyword", value: keyword),
-            URLQueryItem(name: "sort",    value: sort.rawValue),
-            URLQueryItem(name: "page",    value: String(page)),
-            URLQueryItem(name: "size",    value: String(size))
-        ]
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
+        let target = GroupAPITarget.searchGroups(keyword: keyword, sort: sort, page: page, size: size)
+        let request = target.asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             throw GroupServiceError.http(http.statusCode)
@@ -92,17 +74,8 @@ final class GroupService {
 
     /// GET /api/books/search?keyword=&page=&size=
     func searchBooks(keyword: String, page: Int = 1, size: Int = 10) async throws -> [BookItem] {
-        var components = URLComponents(
-            url: baseURL.appendingPathComponent("api/books/search"),
-            resolvingAgainstBaseURL: false
-        )!
-        components.queryItems = [
-            URLQueryItem(name: "keyword", value: keyword),
-            URLQueryItem(name: "page",    value: String(page)),
-            URLQueryItem(name: "size",    value: String(size))
-        ]
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
+        let target = GroupAPITarget.searchBooks(keyword: keyword, page: page, size: size)
+        let request = target.asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             throw GroupServiceError.http(http.statusCode)
@@ -116,11 +89,8 @@ final class GroupService {
 
     /// POST /api/groups
     func createGroup(_ body: GroupCreateRequest) async throws {
-        let url = baseURL.appendingPathComponent("api/groups")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        let target = GroupAPITarget.createGroup(body)
+        let request = target.asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
