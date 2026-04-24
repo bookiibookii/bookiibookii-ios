@@ -130,6 +130,124 @@ final class GroupService {
         }
     }
 
+    /// GET /api/groups/{groupId}
+    func fetchGroupDetail(groupId: Int) async throws -> GroupDetailDto {
+        let url = baseURL.appendingPathComponent("api/groups/\(groupId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(GroupDetailResponse.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw GroupServiceError.server(response.message)
+        }
+        return result
+    }
+
+    /// POST /api/groups/{groupId}/apply
+    func applyGroup(groupId: Int, applyMsg: String) async throws {
+        let url = baseURL.appendingPathComponent("api/groups/\(groupId)/apply")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(GroupApplyRequest(applyMsg: applyMsg))
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(GroupApplyResultWrapper.self, from: data)
+        guard response.isSuccess else { throw GroupServiceError.server(response.message) }
+    }
+
+    /// DELETE /api/groups/{groupId}/apply
+    func cancelApply(groupId: Int) async throws {
+        let url = baseURL.appendingPathComponent("api/groups/\(groupId)/apply")
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(GroupCancelResultWrapper.self, from: data)
+        guard response.isSuccess else { throw GroupServiceError.server(response.message) }
+    }
+
+    /// GET /api/groups/{groupId}/applylist
+    func fetchApplicants(groupId: Int) async throws -> [GroupApplicantDto] {
+        let url = baseURL.appendingPathComponent("api/groups/\(groupId)/applylist")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(GroupApplicantListResponse.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw GroupServiceError.server(response.message)
+        }
+        return result.applicationList
+    }
+
+    /// PATCH /api/groups/apply/{applyId}
+    func updateApplicant(applicationId: Int, status: String) async throws {
+        let url = baseURL.appendingPathComponent("api/groups/apply/\(applicationId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(GroupAppStatusRequest(status: status))
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(GroupAppStatusResponse.self, from: data)
+        guard response.isSuccess else { throw GroupServiceError.server(response.message) }
+    }
+
+    /// PATCH /api/groups/{groupId}
+    func modifyGroup(groupId: Int, body: GroupModifyRequest) async throws {
+        let url = baseURL.appendingPathComponent("api/groups/\(groupId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(body)
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(GroupModifyResultWrapper.self, from: data)
+        guard response.isSuccess else { throw GroupServiceError.server(response.message) }
+    }
+
+    /// DELETE /api/groups/{groupId}
+    func deleteGroup(groupId: Int) async throws {
+        let url = baseURL.appendingPathComponent("api/groups/\(groupId)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(GroupDeleteResultWrapper.self, from: data)
+        guard response.isSuccess else { throw GroupServiceError.server(response.message) }
+    }
+
     private struct APIErrorMessage: Decodable { let message: String }
 }
 
