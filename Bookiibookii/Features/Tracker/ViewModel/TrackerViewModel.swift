@@ -67,8 +67,12 @@ final class TrackerViewModel: ObservableObject {
         case .myGroup: phase = hostPhase
         case .joined:  phase = guestPhase
         }
-        if case .loaded = phase { return }
-        await reload(tab: tab, isRefresh: false)
+        switch phase {
+        case .idle, .failed:
+            await reload(tab: tab, isRefresh: false)
+        case .loading, .refreshing, .loaded:
+            return
+        }
     }
 
     private func reload(tab: TrackerTab, isRefresh: Bool) async {
