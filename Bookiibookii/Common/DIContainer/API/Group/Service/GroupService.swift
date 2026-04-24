@@ -102,9 +102,7 @@ final class GroupService {
 
     /// GET /api/groups/{groupId}
     func fetchGroupDetail(groupId: Int) async throws -> GroupDetailDto {
-        let url = baseURL.appendingPathComponent("api/groups/\(groupId)")
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        let request = GroupAPITarget.fetchGroupDetail(groupId: groupId).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             throw GroupServiceError.http(http.statusCode)
@@ -118,11 +116,7 @@ final class GroupService {
 
     /// POST /api/groups/{groupId}/apply
     func applyGroup(groupId: Int, applyMsg: String) async throws {
-        let url = baseURL.appendingPathComponent("api/groups/\(groupId)/apply")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(GroupApplyRequest(applyMsg: applyMsg))
+        let request = GroupAPITarget.applyGroup(groupId: groupId, body: GroupApplyRequest(applyMsg: applyMsg)).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
@@ -136,9 +130,7 @@ final class GroupService {
 
     /// DELETE /api/groups/{groupId}/apply
     func cancelApply(groupId: Int) async throws {
-        let url = baseURL.appendingPathComponent("api/groups/\(groupId)/apply")
-        var request = URLRequest(url: url)
-        request.httpMethod = "DELETE"
+        let request = GroupAPITarget.cancelApply(groupId: groupId).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
@@ -152,9 +144,7 @@ final class GroupService {
 
     /// GET /api/groups/{groupId}/applylist
     func fetchApplicants(groupId: Int) async throws -> [GroupApplicantDto] {
-        let url = baseURL.appendingPathComponent("api/groups/\(groupId)/applylist")
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
+        let request = GroupAPITarget.fetchApplicants(groupId: groupId).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             throw GroupServiceError.http(http.statusCode)
@@ -168,11 +158,7 @@ final class GroupService {
 
     /// PATCH /api/groups/apply/{applyId}
     func updateApplicant(applicationId: Int, status: String) async throws {
-        let url = baseURL.appendingPathComponent("api/groups/apply/\(applicationId)")
-        var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(GroupAppStatusRequest(status: status))
+        let request = GroupAPITarget.updateApplicant(applicationId: applicationId, body: GroupAppStatusRequest(status: status)).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
@@ -186,11 +172,7 @@ final class GroupService {
 
     /// PATCH /api/groups/{groupId}
     func modifyGroup(groupId: Int, body: GroupModifyRequest) async throws {
-        let url = baseURL.appendingPathComponent("api/groups/\(groupId)")
-        var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
+        let request = GroupAPITarget.modifyGroup(groupId: groupId, body: body).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
@@ -204,9 +186,7 @@ final class GroupService {
 
     /// DELETE /api/groups/{groupId}
     func deleteGroup(groupId: Int) async throws {
-        let url = baseURL.appendingPathComponent("api/groups/\(groupId)")
-        var request = URLRequest(url: url)
-        request.httpMethod = "DELETE"
+        let request = GroupAPITarget.deleteGroup(groupId: groupId).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
