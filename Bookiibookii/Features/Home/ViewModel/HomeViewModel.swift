@@ -16,20 +16,39 @@ final class HomeViewModel: ObservableObject {
     @Published private(set) var recommendedBookmates: [RecommendedBookmateDto] = []
     @Published private(set) var matePhase: GroupPhase = .idle
 
+    @Published private(set) var hasUnreadNotification: Bool = false
+
     private let recommendationService: RecommendationService
+    private let notificationService: NotificationService
     private var didLoadInitial = false
 
-    init(recommendationService: RecommendationService) {
+    init(
+        recommendationService: RecommendationService,
+        notificationService: NotificationService
+    ) {
         self.recommendationService = recommendationService
+        self.notificationService = notificationService
     }
 
-    /// 홈 진입 최초 1회 로드 (그룹 + 부키메이트 병렬).
+    /// 홈 진입 최초 1회 로드 (그룹 + 부키메이트 병렬) + 알림 뱃지.
     func onAppear() async {
+        await refreshNotificationBadge()
         guard !didLoadInitial else { return }
         didLoadInitial = true
         async let groups: Void = loadRecommendedGroups(refresh: false)
         async let mates: Void = loadRecommendedBookmates()
         _ = await (groups, mates)
+    }
+
+    /// 알림 화면에서 돌아왔을 때 뱃지 갱신.
+    /// 안드로이드 HomeFragment.refreshNotiBadge 대응.
+    func refreshNotificationBadge() async {
+        async let sys = try? notificationService.fetchNotifications(category: .system, cursor: nil, size: 20)
+        async let kw = try? notificationService.fetchNotifications(category: .keyword, cursor: nil, size: 20)
+        let (systemResult, keywordResult) = await (sys, kw)
+        let systemItems = systemResult?.items ?? []
+        let keywordItems = keywordResult?.items ?? []
+        hasUnreadNotification = systemItems.contains { !$0.isRead } || keywordItems.contains { !$0.isRead }
     }
 
     /// 그룹 섹션 새로고침 버튼 탭.
