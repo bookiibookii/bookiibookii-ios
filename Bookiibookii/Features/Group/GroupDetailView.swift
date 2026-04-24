@@ -77,14 +77,14 @@ struct GroupDetailView: View {
             Color("white")
             HStack {
                 Button { dismiss() } label: {
-                    Image("ic_back_button")
+                    Image("ic_back")
                         .resizable()
                         .frame(width: 40, height: 40)
                 }
                 .buttonStyle(.plain)
                 Spacer()
                 Button { showMoreSheet = true } label: {
-                    Image("ic_more_btn")
+                    Image("ic_more")
                         .resizable()
                         .frame(width: 20, height: 20)
                         .frame(width: 40, height: 40)

@@ -38,7 +38,7 @@ struct GroupApplicantView: View {
             Color("white")
             HStack {
                 Button { dismiss() } label: {
-                    Image("ic_back_button")
+                    Image("ic_back")
                         .resizable()
                         .frame(width: 40, height: 40)
                 }
