@@ -38,7 +38,7 @@ enum TrackerCategoryMapper {
         switch key {
         case "ECON_BIZ":      return "경제/경영"
         case "SCI_IT":        return "과학/IT"
-        case "NOVEL_GENRE":   return "소설"
+        case "NOVEL_GENRE":   return "소설/장르"
         case "POEM_ESSAY":    return "시/에세이"
         case "HOME_HOBBY":    return "가정/취미"
         case "ART_CULTURE":   return "예술/문화"
