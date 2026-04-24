@@ -6,9 +6,9 @@ struct GroupRelayCreateView: View {
     @Environment(\.openURL) private var openURL
     @State private var showDatePicker = false
 
-    init(groupService: GroupService) {
+    init(groupService: GroupService, editConfig: GroupEditConfig? = nil) {
         _viewModel = StateObject(
-            wrappedValue: GroupCreateViewModel(groupType: .relay, service: groupService)
+            wrappedValue: GroupCreateViewModel(groupType: .relay, editConfig: editConfig, service: groupService)
         )
     }
 
@@ -19,9 +19,13 @@ struct GroupRelayCreateView: View {
                 navBar
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 24) {
-                        bookSearchSection
-                        bookHaveSection
-                        tradeTypeSection
+                        if viewModel.isEditMode {
+                            bookTitleSection
+                        } else {
+                            bookSearchSection
+                            bookHaveSection
+                            tradeTypeSection
+                        }
                         startDateSection
                         readingPeriodSection
                         tagSection
@@ -32,7 +36,16 @@ struct GroupRelayCreateView: View {
                     .padding(.bottom, 100)
                 }
             }
+
+            if viewModel.showBuyDialog {
+                Color.black.opacity(0.45)
+                    .ignoresSafeArea()
+                    .onTapGesture {}
+                buyDialog
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
         }
+        .animation(.easeInOut(duration: 0.2), value: viewModel.showBuyDialog)
         .safeAreaInset(edge: .bottom) {
             submitButton
                 .padding(.horizontal, 20)
@@ -40,19 +53,6 @@ struct GroupRelayCreateView: View {
                 .background(Color("white"))
         }
         .sheet(isPresented: $showDatePicker) { datePickerSheet }
-        .confirmationDialog(
-            "책을 먼저 구매하시겠습니까?",
-            isPresented: $viewModel.showBuyDialog,
-            titleVisibility: .visible
-        ) {
-            Button("구매하러 가기") {
-                if let url = viewModel.buyURL { openURL(url) }
-                viewModel.resetBookHave()
-            }
-            Button("취소", role: .cancel) { viewModel.resetBookHave() }
-        } message: {
-            Text(viewModel.selectedBook?.title ?? "선택하신 도서")
-        }
         .toast($viewModel.toast)
         .onChange(of: viewModel.phase) { phase in
             if phase == .done { dismiss() }
@@ -63,7 +63,7 @@ struct GroupRelayCreateView: View {
 
     private var navBar: some View {
         ZStack {
-            Text("그룹 만들기")
+            Text(viewModel.isEditMode ? "그룹 수정" : "그룹 만들기")
                 .font(.pretendard(size: 20, weight: .bold))
                 .foregroundColor(Color("grey900"))
             HStack {
@@ -80,6 +80,21 @@ struct GroupRelayCreateView: View {
             .padding(.horizontal, 20)
         }
         .frame(height: 56)
+    }
+
+    // MARK: - 도서 제목 (수정 모드)
+
+    private var bookTitleSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel("도서", required: false)
+            Text(viewModel.editConfig?.bookTitle ?? "")
+                .font(.pretendard(size: 14))
+                .foregroundColor(Color("grey900"))
+                .padding(.horizontal, 16)
+                .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                .background(Color("grey100"))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
     }
 
     // MARK: - 도서 검색
@@ -339,7 +354,7 @@ struct GroupRelayCreateView: View {
                 if viewModel.phase == .submitting {
                     ProgressView().tint(Color("white"))
                 } else {
-                    Text("그룹 만들기")
+                    Text(viewModel.isEditMode ? "수정 완료" : "그룹 만들기")
                         .font(.pretendard(size: 18, weight: .bold))
                         .foregroundColor(viewModel.isFormValid ? Color("white") : Color("grey500"))
                 }
@@ -353,6 +368,75 @@ struct GroupRelayCreateView: View {
         }
         .buttonStyle(.plain)
         .disabled(viewModel.phase == .submitting)
+    }
+
+    // MARK: - 구매 다이얼로그
+
+    private var buyDialog: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("책을 먼저 구매하시겠습니까?")
+                        .font(.pretendard(size: 20, weight: .medium))
+                        .foregroundColor(Color("grey900"))
+                    Spacer()
+                    Button {
+                        viewModel.resetBookHave()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Color("grey900"))
+                            .frame(width: 32, height: 32)
+                            .background(Color("grey100"))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                }
+                if let title = viewModel.selectedBook?.title {
+                    Text(title)
+                        .font(.pretendard(size: 16))
+                        .foregroundColor(Color("grey800"))
+                        .lineLimit(1)
+                }
+            }
+
+            Text("그룹을 만들기 위해서는 실물 책이 필요합니다. 알라딘으로 이동할까요?")
+                .font(.pretendard(size: 16))
+                .foregroundColor(Color("grey700"))
+
+            HStack(spacing: 12) {
+                Button {
+                    viewModel.resetBookHave()
+                } label: {
+                    Text("취소")
+                        .font(.pretendard(size: 14))
+                        .foregroundColor(Color("grey900"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Color("grey200"))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    if let url = viewModel.buyURL { openURL(url) }
+                    viewModel.resetBookHave()
+                } label: {
+                    Text("구매하러 가기")
+                        .font(.pretendard(size: 14))
+                        .foregroundColor(Color("grey100"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Color("grey900"))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(24)
+        .frame(width: 340)
+        .background(Color("white"))
+        .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 
     // MARK: - DatePicker 시트

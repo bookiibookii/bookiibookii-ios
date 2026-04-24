@@ -4,8 +4,12 @@ struct GroupSearchView: View {
     @StateObject private var viewModel: GroupSearchViewModel
     @Environment(\.dismiss) private var dismiss
     @FocusState private var isSearchFocused: Bool
+    @State private var selectedGroupId: Int? = nil
+
+    private let groupService: GroupService
 
     init(groupService: GroupService) {
+        self.groupService = groupService
         _viewModel = StateObject(wrappedValue: GroupSearchViewModel(service: groupService))
     }
 
@@ -27,6 +31,9 @@ struct GroupSearchView: View {
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)
         .onAppear { isSearchFocused = true }
+        .fullScreenCover(item: $selectedGroupId) { groupId in
+            GroupDetailView(groupId: groupId, groupService: groupService)
+        }
     }
 
     // MARK: - 검색바
@@ -223,7 +230,7 @@ struct GroupSearchView: View {
                     } else {
                         ForEach(Array(viewModel.searchResults.enumerated()), id: \.element.id) { idx, item in
                             GroupCard(item: item) {
-                                viewModel.toast = "그룹 상세는 준비 중입니다"
+                                selectedGroupId = item.groupId
                             }
                             .onAppear {
                                 if idx == viewModel.searchResults.count - 1 {

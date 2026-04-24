@@ -1,5 +1,9 @@
 import SwiftUI
 
+extension Int: @retroactive Identifiable {
+    public var id: Int { self }
+}
+
 struct GroupView: View {
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: GroupViewModel
@@ -7,6 +11,7 @@ struct GroupView: View {
     @State private var isFabOpen: Bool = false
     @State private var isSearchPresented: Bool = false
     @State private var activeCreate: CreateType? = nil
+    @State private var selectedGroupId: Int? = nil
 
     enum ActiveSheet: String, Identifiable {
         case groupType, region, category
@@ -73,6 +78,9 @@ struct GroupView: View {
             case .together:
                 GroupTogetherCreateView(groupService: container.api.group)
             }
+        }
+        .fullScreenCover(item: $selectedGroupId) { groupId in
+            GroupDetailView(groupId: groupId, groupService: container.api.group)
         }
         .onChange(of: activeCreate) { newValue in
             if newValue == nil { Task { await viewModel.refresh() } }
@@ -213,7 +221,7 @@ struct GroupView: View {
                 } else {
                     ForEach(Array(viewModel.items.enumerated()), id: \.element.id) { idx, item in
                         GroupCard(item: item) {
-                            viewModel.showComingSoon("그룹 상세는 준비 중입니다")
+                            selectedGroupId = item.groupId
                         }
                         .onAppear {
                             if idx == viewModel.items.count - 1 {
