@@ -108,7 +108,8 @@ struct NotificationEmptyCard: View {
                 message: "닉네임 님이 책 제목 그룹에 함께하고 싶어 해요. 프로필을 확인해볼까요?",
                 isRead: false,
                 createdAt: "2026-04-24T09:25:00",
-                readAt: nil
+                readAt: nil,
+                payload: nil
             ),
             bookTitle: "책 제목"
         )
@@ -120,7 +121,8 @@ struct NotificationEmptyCard: View {
                 message: "닉네임 님이 책 제목 그룹에 댓글을 남겼어요. 확인해볼까요?",
                 isRead: true,
                 createdAt: "2026-04-24T05:25:00",
-                readAt: nil
+                readAt: nil,
+                payload: nil
             ),
             bookTitle: "책 제목"
         )

@@ -6,6 +6,7 @@ protocol UseCaseProtocol {
     var group: GroupService { get }
     var recommendation: RecommendationService { get }
     var notification: NotificationService { get }
+    var keyword: KeywordService { get }
 }
 
 /// 도메인별 API UseCase 진입점을 한곳에서 제공합니다.
@@ -15,6 +16,7 @@ final class UseCaseProvider: UseCaseProtocol {
     let group: GroupService
     let recommendation: RecommendationService
     let notification: NotificationService
+    let keyword: KeywordService
 
     init(auth: AuthService = AuthService()) {
         self.auth = auth
@@ -23,5 +25,6 @@ final class UseCaseProvider: UseCaseProtocol {
         self.group = GroupService(interceptor: interceptor)
         self.recommendation = RecommendationService(interceptor: interceptor)
         self.notification = NotificationService(interceptor: interceptor)
+        self.keyword = KeywordService(interceptor: interceptor)
     }
 }

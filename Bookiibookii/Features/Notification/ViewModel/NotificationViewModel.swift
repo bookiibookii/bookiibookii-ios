@@ -86,7 +86,8 @@ final class NotificationViewModel: ObservableObject {
             message: original.message,
             isRead: true,
             createdAt: original.createdAt,
-            readAt: original.readAt
+            readAt: original.readAt,
+            payload: original.payload
         )
 
         do {

@@ -13,4 +13,5 @@ final class APIContainer: Sendable {
     var group: GroupService { useCaseProvider.group }
     var recommendation: RecommendationService { useCaseProvider.recommendation }
     var notification: NotificationService { useCaseProvider.notification }
+    var keyword: KeywordService { useCaseProvider.keyword }
 }

@@ -6,6 +6,7 @@ struct HomeView: View {
     @StateObject private var viewModel: HomeViewModel
     private let groupService: GroupService
     private let notificationService: NotificationService
+    private let keywordService: KeywordService
 
     var onNavigateToGroup: () -> Void
     @State private var selectedGroupId: Int? = nil
@@ -15,6 +16,7 @@ struct HomeView: View {
         recommendationService: RecommendationService,
         groupService: GroupService,
         notificationService: NotificationService,
+        keywordService: KeywordService,
         onNavigateToGroup: @escaping () -> Void = {}
     ) {
         _viewModel = StateObject(
@@ -25,6 +27,7 @@ struct HomeView: View {
         )
         self.groupService = groupService
         self.notificationService = notificationService
+        self.keywordService = keywordService
         self.onNavigateToGroup = onNavigateToGroup
     }
 
@@ -51,7 +54,11 @@ struct HomeView: View {
         .fullScreenCover(isPresented: $showNotification, onDismiss: {
             Task { await viewModel.refreshNotificationBadge() }
         }) {
-            NotificationView(notificationService: notificationService)
+            NotificationView(
+                notificationService: notificationService,
+                keywordService: keywordService,
+                groupService: groupService
+            )
         }
     }
 
