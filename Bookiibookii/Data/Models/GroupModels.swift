@@ -262,3 +262,106 @@ struct GroupTagRequest: Encodable {
     let type: String               // "METHOD" | "VIBE"
     let value: [String]
 }
+
+// MARK: - 그룹 상세
+
+struct GroupDetailResponse: Codable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+    let result: GroupDetailDto?
+}
+
+struct GroupDetailDto: Codable {
+    let groupId: Int
+    let title: String
+    let bookTitle: String
+    let bookImage: String?
+    let author: String
+    let category: String
+    let groupStatus: String       // RECRUITING | MATCHED | COMPLETED
+    let buttonStatus: String      // APPLY | CANCEL | MANAGE | FULL | TRACKER
+    let isHost: Bool
+    let readingPeriod: Int
+    let matchedCount: Int
+    let maxCapacity: Int
+    let waitingCount: Int
+    let isHot: Bool
+    let createdAt: String
+    let startDate: String
+    let hostNickname: String
+    let hostProfileImageUrl: String?
+    let preferRegion: String?
+    let meetPlace: String?
+    let groupTags: [String]?
+    let customTag: String?
+    let groupComment: String?
+    let participantSlots: [ParticipantSlot]?
+    let groupType: String
+}
+
+struct ParticipantSlot: Codable {
+    let nickname: String?
+    let profileImageUrl: String?
+    let role: String              // HOST | GUEST | EMPTY
+    let isMe: Bool
+}
+
+// MARK: - 신청 / 취소
+
+struct GroupApplyRequest: Encodable {
+    let applyMsg: String
+}
+
+struct GroupApplyResultWrapper: Codable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+}
+
+struct GroupCancelResultWrapper: Codable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+}
+
+// MARK: - 신청자 목록 (호스트용)
+
+struct GroupApplicantListResponse: Codable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+    let result: GroupApplicantListResult?
+}
+
+struct GroupApplicantListResult: Codable {
+    let applicationList: [GroupApplicantDto]
+    let totalCount: Int
+}
+
+struct GroupApplicantDto: Codable, Identifiable {
+    let applicationId: Int
+    let user: Int
+    let name: String
+    let tags: [String]?
+    let createdAt: String
+    let applyMsg: String
+    let profileImageUrl: String?
+    var id: Int { applicationId }
+}
+
+struct GroupAppStatusRequest: Encodable {
+    let status: String            // ACCEPTED | REJECTED
+}
+
+struct GroupAppStatusResponse: Codable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+}
+
+struct GroupDeleteResultWrapper: Codable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+}
