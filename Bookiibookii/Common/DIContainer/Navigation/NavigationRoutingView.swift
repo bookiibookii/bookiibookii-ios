@@ -25,6 +25,41 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .setting:
+            SettingView()
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .recievedReview:
+            RecievedReviewView()
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .profileChange:
+            ProfileChangeView(userService: container.api.user)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .questoin:
+            QuestoinView()
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .qustionDetail:
+            QustionDetailView()
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .notice:
+            NoticeView()
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .noticeDetail(let title, let dateText, let content):
+            NoticeDetailView(title: title, dateText: dateText, content: content)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         }
     }
 }

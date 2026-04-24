@@ -62,6 +62,33 @@ struct MypageResult: Decodable {
     let togetherGroup: Int?
 }
 
+// MARK: - 프로필 변경 (배송지/직접 교환 정보)
+
+struct ProfileChangeInfoResponse: Decodable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+    let result: ProfileChangeInfoResult?
+}
+
+struct ProfileChangeInfoResult: Codable, Equatable {
+    let recipientName: String?
+    let phoneNumber: String?
+    let zipCode: String?
+    let address: String?
+    let detailAddress: String?
+    let exchangeRegion: String?
+}
+
+struct ProfileChangeUpdateRequest: Encodable {
+    let recipientName: String?
+    let phoneNumber: String?
+    let zipCode: String?
+    let address: String?
+    let detailAddress: String?
+    let exchangeRegion: String?
+}
+
 // MARK: - 공통 단순 응답
 
 struct SimpleResponse: Decodable {

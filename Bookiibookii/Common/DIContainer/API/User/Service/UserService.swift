@@ -79,6 +79,31 @@ final class UserService {
         }
         return result
     }
+
+    // GET /api/users/me/profile-change
+    func getProfileChangeInfo() async throws -> ProfileChangeInfoResult {
+        let target = UserAPITarget.profileChangeInfo
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ProfileChangeInfoResponse.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.profileChangeFailed(response.message)
+        }
+        return result
+    }
+
+    // PUT /api/users/me/profile-change
+    func updateProfileChangeInfo(_ body: ProfileChangeUpdateRequest) async throws {
+        let target = UserAPITarget.updateProfileChangeInfo(body)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw UserError.profileChangeFailed(response.message)
+        }
+    }
 }
 
 enum UserError: LocalizedError {
@@ -86,6 +111,7 @@ enum UserError: LocalizedError {
     case uploadFailed
     case onboardingFailed(String)
     case profileFailed
+    case profileChangeFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -93,6 +119,7 @@ enum UserError: LocalizedError {
         case .uploadFailed: return "이미지 업로드에 실패했습니다."
         case .onboardingFailed(let msg): return msg
         case .profileFailed: return "프로필을 불러오지 못했습니다."
+        case .profileChangeFailed(let msg): return msg
         }
     }
 }
