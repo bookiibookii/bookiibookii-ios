@@ -4,7 +4,7 @@ import Foundation
 
 struct HostTrackerListItemDto: Decodable {
     let groupId: Int
-    let groupType: String?
+    let groupType: String
     let bookTitle: String
     let bookImage: String?
     let bookAuthor: String?
@@ -16,7 +16,7 @@ struct HostTrackerListItemDto: Decodable {
 
 struct GuestTrackerListItemDto: Decodable {
     let groupId: Int
-    let groupType: String?
+    let groupType: String
     let bookTitle: String
     let bookImage: String?
     let bookAuthor: String?
@@ -132,7 +132,7 @@ enum TrackerModelsMapper {
         case .none:
             guard let name = together?.hostNickname, !name.isEmpty else { return nil }
             if let count = together?.participantCount, count > 0 {
-                return "\(name) +\(count)"
+                return "\(name)  +\(count)"
             }
             return name
         }
