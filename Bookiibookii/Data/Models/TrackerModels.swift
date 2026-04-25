@@ -29,7 +29,7 @@ struct GuestTrackerListItemDto: Decodable {
 struct TrackerRelayDetailDto: Decodable {
     let partnerNickname: String?
     let hostProfileImageUrl: String?
-    let guestProfileImageUrls: [String]?
+    let guestProfileImageUrls: [String?]?
     let trackerStatus: String?
     let stepDates: [String?]?
 }
