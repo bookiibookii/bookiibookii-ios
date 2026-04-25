@@ -40,6 +40,7 @@ enum BookiiTabCase: Int, CaseIterable {
                 groupService: container.api.group,
                 notificationService: container.api.notification,
                 keywordService: container.api.keyword,
+                trackerService: container.api.tracker,
                 onNavigateToGroup: { selectTab(.group) }
             )
         case .group: GroupView(groupService: container.api.group)

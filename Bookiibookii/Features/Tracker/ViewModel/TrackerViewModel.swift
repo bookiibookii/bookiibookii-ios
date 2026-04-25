@@ -56,7 +56,14 @@ final class TrackerViewModel: ObservableObject {
     }
 
     func refresh() async {
-        await reload(tab: selectedTab, isRefresh: true)
+        // SwiftUI .refreshable이 view 업데이트 도중 Task를 취소해서
+        // URLSession.data(for:)가 -999(cancelled)로 끊기는 케이스가 있음.
+        // detached Task로 분리해서 refreshable의 cancellation과 끊는다.
+        let tab = selectedTab
+        let task = Task.detached { [weak self] in
+            await self?.reload(tab: tab, isRefresh: true)
+        }
+        _ = await task.value
     }
 
     // MARK: - Private

@@ -72,6 +72,16 @@ struct TrackerItem: Identifiable, Equatable {
     let bookCategory: String?
     let coverImageUrl: String?
     let withUserName: String?
+
+    // 릴레이(택배/직거래) 진행도
+    let stepDates: [String?]
+    let currentStepIndex: Int          // 0~3, 진행 중인 단계
+    let hostProfileImageUrl: String?
+    let guestProfileImageUrl: String?  // 1:1 릴레이라 단일
+
+    // 함께읽기 독서율
+    let myReadingRate: Int?
+    let groupReadingRate: Int?
 }
 
 // MARK: - 매퍼
@@ -84,6 +94,7 @@ extension HostTrackerListItemDto {
             relay: relayDetail,
             together: togetherDetail
         )
+        let stepDates = relayDetail?.stepDates ?? []
         return TrackerItem(
             id: groupId,
             groupId: groupId,
@@ -93,7 +104,13 @@ extension HostTrackerListItemDto {
             bookAuthor: bookAuthor ?? "",
             bookCategory: bookCategory,
             coverImageUrl: bookImage,
-            withUserName: withName
+            withUserName: withName,
+            stepDates: stepDates,
+            currentStepIndex: TrackerModelsMapper.stepIndex(stepDates: stepDates),
+            hostProfileImageUrl: relayDetail?.hostProfileImageUrl,
+            guestProfileImageUrl: relayDetail?.guestProfileImageUrls?.first ?? nil,
+            myReadingRate: togetherDetail?.myReadingRate,
+            groupReadingRate: togetherDetail?.groupReadingRate
         )
     }
 }
@@ -106,6 +123,7 @@ extension GuestTrackerListItemDto {
             relay: relayDetail,
             together: togetherDetail
         )
+        let stepDates = relayDetail?.stepDates ?? []
         return TrackerItem(
             id: groupId,
             groupId: groupId,
@@ -115,7 +133,13 @@ extension GuestTrackerListItemDto {
             bookAuthor: bookAuthor ?? "",
             bookCategory: bookCategory,
             coverImageUrl: bookImage,
-            withUserName: withName
+            withUserName: withName,
+            stepDates: stepDates,
+            currentStepIndex: TrackerModelsMapper.stepIndex(stepDates: stepDates),
+            hostProfileImageUrl: relayDetail?.hostProfileImageUrl,
+            guestProfileImageUrl: relayDetail?.guestProfileImageUrls?.first ?? nil,
+            myReadingRate: togetherDetail?.myReadingRate,
+            groupReadingRate: togetherDetail?.groupReadingRate
         )
     }
 }
@@ -136,5 +160,13 @@ enum TrackerModelsMapper {
             }
             return name
         }
+    }
+
+    /// stepDates에서 마지막으로 채워진 인덱스 = 진행 중인 단계.
+    /// 안드로이드 TrackerAdapter.progressStatusFromDates 로직 대응.
+    static func stepIndex(stepDates: [String?]) -> Int {
+        let lastFilled = stepDates.lastIndex(where: { !($0 ?? "").isEmpty }) ?? -1
+        // -1(아무 단계도 미진행) → 0단계로 표시 (호스트 읽는 중)
+        return max(0, min(lastFilled, 3))
     }
 }
