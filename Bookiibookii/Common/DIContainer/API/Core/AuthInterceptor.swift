@@ -32,7 +32,14 @@ actor AuthInterceptor {
         }
 
         // Access Token 갱신 후 재시도
-        let newToken = try await refreshIfNeeded()
+        let newToken: String
+        do {
+            newToken = try await refreshIfNeeded()
+        } catch AuthError.refreshFailed {
+            // refresh 자체가 400/401 (refreshToken 불일치/만료) → 안드로이드 routeLogout 대응
+            await forceLogout()
+            throw AuthError.refreshFailed
+        }
         let retryRequest = attach(token: newToken, to: urlRequest)
         let (retryData, retryResponse) = try await URLSession.shared.data(for: retryRequest)
 

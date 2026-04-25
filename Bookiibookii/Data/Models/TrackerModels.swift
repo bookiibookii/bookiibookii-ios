@@ -4,8 +4,8 @@ import Foundation
 
 struct HostTrackerListItemDto: Decodable {
     let groupId: Int
-    let groupType: String
-    let bookTitle: String
+    let groupType: String?
+    let bookTitle: String?
     let bookImage: String?
     let bookAuthor: String?
     let bookCategory: String?
@@ -16,8 +16,8 @@ struct HostTrackerListItemDto: Decodable {
 
 struct GuestTrackerListItemDto: Decodable {
     let groupId: Int
-    let groupType: String
-    let bookTitle: String
+    let groupType: String?
+    let bookTitle: String?
     let bookImage: String?
     let bookAuthor: String?
     let bookCategory: String?
@@ -89,7 +89,7 @@ extension HostTrackerListItemDto {
             groupId: groupId,
             role: .host,
             exchangeType: type,
-            bookTitle: bookTitle,
+            bookTitle: bookTitle ?? "",
             bookAuthor: bookAuthor ?? "",
             bookCategory: bookCategory,
             coverImageUrl: bookImage,
@@ -111,7 +111,7 @@ extension GuestTrackerListItemDto {
             groupId: groupId,
             role: .guest,
             exchangeType: type,
-            bookTitle: bookTitle,
+            bookTitle: bookTitle ?? "",
             bookAuthor: bookAuthor ?? "",
             bookCategory: bookCategory,
             coverImageUrl: bookImage,

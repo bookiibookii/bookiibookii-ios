@@ -8,18 +8,27 @@ final class AuthService {
         let target = AuthAPITarget.refresh(accessToken: accessToken, refreshToken: refreshToken)
         let request = target.asURLRequest()
 
+        let bodyString = request.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? "<nil>"
+        print("[AUTH/REFRESH] url=\(request.url?.absoluteString ?? "") method=\(request.httpMethod ?? "?")")
+        print("[AUTH/REFRESH] SEND accessToken(tail12)=\(accessToken.suffix(12)) refreshToken(tail12)=\(refreshToken.suffix(12))")
+        print("[AUTH/REFRESH] SEND body=\(bodyString)")
+
         let (data, httpResponse) = try await URLSession.shared.data(for: request)
 
-        guard let statusCode = (httpResponse as? HTTPURLResponse)?.statusCode,
-              statusCode != 400, statusCode != 401 else {
+        let statusCode = (httpResponse as? HTTPURLResponse)?.statusCode ?? -1
+        print("[AUTH/REFRESH] RECV status=\(statusCode) body=\(String(data: data, encoding: .utf8)?.prefix(600) ?? "<non-utf8>")")
+
+        guard statusCode != 400, statusCode != 401 else {
             throw AuthError.refreshFailed
         }
 
         let response = try JSONDecoder().decode(RefreshResponse.self, from: data)
 
         guard response.isSuccess, let result = response.result else {
+            print("[AUTH/REFRESH] isSuccess=\(response.isSuccess) code=\(response.code) message=\(response.message)")
             throw AuthError.refreshFailed
         }
+        print("[AUTH/REFRESH] RECV accessToken(tail12)=\(result.accessToken.suffix(12)) refreshToken(tail12)=\(result.refreshToken.suffix(12))")
         return result
     }
 
