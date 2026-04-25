@@ -75,12 +75,8 @@ final class TokenManager: @unchecked Sendable {
             kSecClass:       kSecClassGenericPassword,
             kSecAttrAccount: key.rawValue
         ]
-        let updateStatus = SecItemUpdate(query as CFDictionary, [kSecValueData: data] as CFDictionary)
-        if updateStatus == errSecItemNotFound {
-            let addStatus = SecItemAdd(query.merging([kSecValueData: data]) { $1 } as CFDictionary, nil)
-            print("[KEYCHAIN] add \(key.rawValue) status=\(addStatus) tail=\(value.suffix(12))")
-        } else {
-            print("[KEYCHAIN] update \(key.rawValue) status=\(updateStatus) tail=\(value.suffix(12))")
+        if SecItemUpdate(query as CFDictionary, [kSecValueData: data] as CFDictionary) == errSecItemNotFound {
+            SecItemAdd(query.merging([kSecValueData: data]) { $1 } as CFDictionary, nil)
         }
     }
 
