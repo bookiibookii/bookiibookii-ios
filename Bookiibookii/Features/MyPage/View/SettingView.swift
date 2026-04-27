@@ -122,11 +122,16 @@ struct SettingView: View {
                 )
             }
             .buttonStyle(.plain)
-            settingRow(
-                iconName: "info",
-                title: "신고하기",
-                subtitle: "악성 유저를 신고해주세요!"
-            )
+            Button {
+                container.navigationRouter.push(to: .report)
+            } label: {
+                settingRow(
+                    iconName: "info",
+                    title: "신고하기",
+                    subtitle: "악성 유저를 신고해주세요!"
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 

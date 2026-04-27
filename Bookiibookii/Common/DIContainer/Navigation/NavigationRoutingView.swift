@@ -60,6 +60,16 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .report:
+            ReportView()
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .reportDetail:
+            ReportDetailView()
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         }
     }
 }
