@@ -15,5 +15,6 @@ enum API {
         static let notifications = "/api/notifications"
         static let keywords = "/api/keywords"
         static let trackers = "/api/groups/me/trackers"
+        static let library = "/api/library"
     }
 }

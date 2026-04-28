@@ -49,7 +49,7 @@ enum BookiiTabCase: Int, CaseIterable {
                 trackerService: container.api.tracker,
                 onNavigateToGroup: { selectTab(.group) }
             )
-        case .library: LibraryView()
+        case .library: LibraryView(libraryService: container.api.library)
         case .myPage: MyPageView(userService: container.api.user)
         }
     }
