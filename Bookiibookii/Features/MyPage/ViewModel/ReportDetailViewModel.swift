@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 final class ReportDetailViewModel: ObservableObject {
     static let maxContentLength = 1000

@@ -15,4 +15,5 @@ final class APIContainer: Sendable {
     var notification: NotificationService { useCaseProvider.notification }
     var keyword: KeywordService { useCaseProvider.keyword }
     var tracker: TrackerService { useCaseProvider.tracker }
+    var library: LibraryService { useCaseProvider.library }
 }

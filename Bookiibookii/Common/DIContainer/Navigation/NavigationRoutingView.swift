@@ -70,6 +70,11 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .librarySearch:
+            LibrarySearchView(libraryService: container.api.library)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         }
     }
 }
