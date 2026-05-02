@@ -409,7 +409,7 @@ struct TradeStepRow: Identifiable {
     let badge: String
 }
 
-private struct TradeStatusRow: View {
+struct TradeStatusRow: View {
     let item: TradeStepRow
 
     var body: some View {
