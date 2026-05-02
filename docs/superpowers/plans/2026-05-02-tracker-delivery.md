@@ -55,19 +55,19 @@ xcodebuild -project Bookiibookii.xcodeproj -scheme Bookiibookii \
 `Bookiibookii/Common/DIContainer/API/Common/Domain.swift`의 `enum Path { ... }` 블록 마지막 `static let library = "/api/library"` 바로 뒤에 다음 줄을 추가한다:
 
 ```swift
-static let trackerDetailFmt        = "/api/groups/%@/tracker"
-static let trackerReadingFmt       = "/api/groups/%@/tracker/reading"
-static let trackerExtensionFmt     = "/api/groups/%@/tracker/extension"
-static let trackerDoneFmt          = "/api/groups/%@/tracker/done"
-static let trackerDeliveryFmt      = "/api/groups/%@/tracker/delivery"
-static let trackerReceptionFmt     = "/api/groups/%@/tracker/reception"
-static let trackerVerificationFmt  = "/api/groups/%@/tracker/reception/verification"
-static let trackerPresignedUrlFmt  = "/api/groups/%@/tracker/images/presigned-url"
-static let trackerImageDeliveryFmt = "/api/groups/%@/tracker/images/delivery"
-static let trackerImageReceivedFmt = "/api/groups/%@/tracker/images/received"
+static func trackerDetail(groupId: Int)        -> String { "/api/groups/\(groupId)/tracker" }
+static func trackerReading(groupId: Int)       -> String { "/api/groups/\(groupId)/tracker/reading" }
+static func trackerPeriodExtension(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/extension" }
+static func trackerDone(groupId: Int)          -> String { "/api/groups/\(groupId)/tracker/done" }
+static func trackerDelivery(groupId: Int)      -> String { "/api/groups/\(groupId)/tracker/delivery" }
+static func trackerReception(groupId: Int)     -> String { "/api/groups/\(groupId)/tracker/reception" }
+static func trackerVerification(groupId: Int)  -> String { "/api/groups/\(groupId)/tracker/reception/verification" }
+static func trackerPresignedUrl(groupId: Int)  -> String { "/api/groups/\(groupId)/tracker/images/presigned-url" }
+static func trackerImageDelivery(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/images/delivery" }
+static func trackerImageReceived(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/images/received" }
 ```
 
-`%@`는 groupId 자리. 호출 측에서 `String(format: API.Path.trackerDetailFmt, "\(groupId)")`로 치환한다. 기존 `static let trackers = "/api/groups/me/trackers"`는 그대로 유지.
+호출 측에서 `API.Path.trackerDetail(groupId: groupId)`와 같이 타입 안전하게 호출한다. 기존 `static let trackers = "/api/groups/me/trackers"`는 그대로 유지.
 
 - [ ] **Step 2: 빌드 확인**
 
@@ -116,16 +116,16 @@ enum TrackerAPITarget: APITargetType {
         switch self {
         case .hostList:                            return API.Path.trackers + "/host"
         case .guestList:                           return API.Path.trackers + "/guest"
-        case .detail(let id):                      return String(format: API.Path.trackerDetailFmt, "\(id)")
-        case .startReading(let id):                return String(format: API.Path.trackerReadingFmt, "\(id)")
-        case .requestExtension(let id, _):         return String(format: API.Path.trackerExtensionFmt, "\(id)")
-        case .markDone(let id):                    return String(format: API.Path.trackerDoneFmt, "\(id)")
-        case .startShipping(let id, _):            return String(format: API.Path.trackerDeliveryFmt, "\(id)")
-        case .registerReceipt(let id, _):          return String(format: API.Path.trackerReceptionFmt, "\(id)")
-        case .verifyReception(let id):             return String(format: API.Path.trackerVerificationFmt, "\(id)")
-        case .presignedUrl(let id):                return String(format: API.Path.trackerPresignedUrlFmt, "\(id)")
-        case .shippingImage(let id):               return String(format: API.Path.trackerImageDeliveryFmt, "\(id)")
-        case .receivedImage(let id):               return String(format: API.Path.trackerImageReceivedFmt, "\(id)")
+        case .detail(let id):                      return API.Path.trackerDetail(groupId: id)
+        case .startReading(let id):                return API.Path.trackerReading(groupId: id)
+        case .requestExtension(let id, _):         return API.Path.trackerPeriodExtension(groupId: id)
+        case .markDone(let id):                    return API.Path.trackerDone(groupId: id)
+        case .startShipping(let id, _):            return API.Path.trackerDelivery(groupId: id)
+        case .registerReceipt(let id, _):          return API.Path.trackerReception(groupId: id)
+        case .verifyReception(let id):             return API.Path.trackerVerification(groupId: id)
+        case .presignedUrl(let id):                return API.Path.trackerPresignedUrl(groupId: id)
+        case .shippingImage(let id):               return API.Path.trackerImageDelivery(groupId: id)
+        case .receivedImage(let id):               return API.Path.trackerImageReceived(groupId: id)
         }
     }
 

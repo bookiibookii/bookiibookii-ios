@@ -16,15 +16,15 @@ enum API {
         static let keywords = "/api/keywords"
         static let trackers = "/api/groups/me/trackers"
         static let library = "/api/library"
-        static let trackerDetailFmt        = "/api/groups/%@/tracker"
-        static let trackerReadingFmt       = "/api/groups/%@/tracker/reading"
-        static let trackerExtensionFmt     = "/api/groups/%@/tracker/extension"
-        static let trackerDoneFmt          = "/api/groups/%@/tracker/done"
-        static let trackerDeliveryFmt      = "/api/groups/%@/tracker/delivery"
-        static let trackerReceptionFmt     = "/api/groups/%@/tracker/reception"
-        static let trackerVerificationFmt  = "/api/groups/%@/tracker/reception/verification"
-        static let trackerPresignedUrlFmt  = "/api/groups/%@/tracker/images/presigned-url"
-        static let trackerImageDeliveryFmt = "/api/groups/%@/tracker/images/delivery"
-        static let trackerImageReceivedFmt = "/api/groups/%@/tracker/images/received"
+        static func trackerDetail(groupId: Int)        -> String { "/api/groups/\(groupId)/tracker" }
+        static func trackerReading(groupId: Int)       -> String { "/api/groups/\(groupId)/tracker/reading" }
+        static func trackerPeriodExtension(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/extension" }
+        static func trackerDone(groupId: Int)          -> String { "/api/groups/\(groupId)/tracker/done" }
+        static func trackerDelivery(groupId: Int)      -> String { "/api/groups/\(groupId)/tracker/delivery" }
+        static func trackerReception(groupId: Int)     -> String { "/api/groups/\(groupId)/tracker/reception" }
+        static func trackerVerification(groupId: Int)  -> String { "/api/groups/\(groupId)/tracker/reception/verification" }
+        static func trackerPresignedUrl(groupId: Int)  -> String { "/api/groups/\(groupId)/tracker/images/presigned-url" }
+        static func trackerImageDelivery(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/images/delivery" }
+        static func trackerImageReceived(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/images/received" }
     }
 }
