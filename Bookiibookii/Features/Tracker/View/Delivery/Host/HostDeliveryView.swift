@@ -15,6 +15,10 @@ struct HostDeliveryView: View {
     @State private var showPhotoPicker: Bool = false
     @State private var shippingPhotoUrl: String?
     @State private var shippingPhotoSource: ShippingPhotoSource = .delivery
+    @State private var receivePickedItem: PhotosPickerItem?
+    @State private var receivePickedImage: UIImage?
+    @State private var receiveChecked: Bool = false
+    @State private var showReceivePhotoPicker: Bool = false
 
     private enum ShippingPhotoSource {
         case delivery   // host's own shipment photo
@@ -303,6 +307,31 @@ struct HostDeliveryView: View {
                     // silent fallback — sheet shows "사진을 불러올 수 없어요"
                 }
             }
+        case .receiveConfirm:
+            HostReceiveConfirmSheet(
+                pickedImage: receivePickedImage,
+                isChecked: $receiveChecked,
+                onClose: { resetReceiveForm(); vm.dismissSheet() },
+                onPickImage: { showReceivePhotoPicker = true },
+                onFinish: {
+                    guard let image = receivePickedImage, receiveChecked else { return }
+                    Task {
+                        await vm.registerReceipt(image: image)
+                        resetReceiveForm()
+                        vm.dismissSheet()
+                    }
+                }
+            )
+            .presentationDetents([.large])
+            .photosPicker(isPresented: $showReceivePhotoPicker, selection: $receivePickedItem, matching: .images)
+            .onChange(of: receivePickedItem) { _, newItem in
+                Task {
+                    guard let newItem,
+                          let data = try? await newItem.loadTransferable(type: Data.self),
+                          let image = UIImage(data: data) else { return }
+                    receivePickedImage = image
+                }
+            }
         default:
             Text("시트: \(sheet.rawValue)")
                 .padding(40)
@@ -319,6 +348,12 @@ struct HostDeliveryView: View {
         trackingNumber = ""
         pickedItem = nil
         pickedImage = nil
+    }
+
+    private func resetReceiveForm() {
+        receivePickedItem = nil
+        receivePickedImage = nil
+        receiveChecked = false
     }
 }
 
