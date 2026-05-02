@@ -1,10 +1,18 @@
 import SwiftUI
+import PhotosUI
+import UIKit
 
 // 안드 HostActivity 대응. ViewModel이 phase / 시트 / 액션을 관리.
 struct HostDeliveryView: View {
     @StateObject private var vm: HostDeliveryViewModel
     private let onBack: () -> Void
     @State private var extendDaysInput: String = ""
+    @State private var courier: String = ""
+    @State private var trackingNumber: String = ""
+    @State private var pickedItem: PhotosPickerItem?
+    @State private var pickedImage: UIImage?
+    @State private var showCourierPicker: Bool = false
+    @State private var showPhotoPicker: Bool = false
 
     init(groupId: Int, service: TrackerService, onBack: @escaping () -> Void = {}) {
         _vm = StateObject(wrappedValue: HostDeliveryViewModel(groupId: groupId, service: service))
@@ -213,11 +221,56 @@ struct HostDeliveryView: View {
         case .readingDone:
             HostReadingDoneSheet(onGoCard: vm.dismissSheet)
                 .presentationDetents([.medium])
+        case .shippingInput:
+            HostShippingInputSheet(
+                courier: $courier,
+                trackingNumber: $trackingNumber,
+                courierOptions: courierOptions,
+                pickedImage: pickedImage,
+                onClose: { resetShippingForm(); vm.dismissSheet() },
+                onSelectCourier: { showCourierPicker = true },
+                onPickImage: { showPhotoPicker = true },
+                onRegister: {
+                    guard !courier.isEmpty, !trackingNumber.isEmpty, let image = pickedImage else { return }
+                    Task {
+                        await vm.startShipping(company: courier, trackingNumber: trackingNumber, image: image)
+                        resetShippingForm()
+                        vm.dismissSheet()
+                    }
+                }
+            )
+            .presentationDetents([.large])
+            .confirmationDialog("택배사 선택", isPresented: $showCourierPicker, titleVisibility: .visible) {
+                ForEach(courierOptions, id: \.self) { option in
+                    Button(option) { courier = option }
+                }
+                Button("취소", role: .cancel) {}
+            }
+            .photosPicker(isPresented: $showPhotoPicker, selection: $pickedItem, matching: .images)
+            .onChange(of: pickedItem) { _, newItem in
+                Task {
+                    guard let newItem,
+                          let data = try? await newItem.loadTransferable(type: Data.self),
+                          let image = UIImage(data: data) else { return }
+                    pickedImage = image
+                }
+            }
         default:
             Text("시트: \(sheet.rawValue)")
                 .padding(40)
                 .presentationDetents([.medium])
         }
+    }
+
+    private var courierOptions: [String] {
+        ["CJ대한통운", "롯데택배", "한진택배", "우체국택배", "로젠택배", "쿠팡로지스틱스"]
+    }
+
+    private func resetShippingForm() {
+        courier = ""
+        trackingNumber = ""
+        pickedItem = nil
+        pickedImage = nil
     }
 }
 
