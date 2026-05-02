@@ -160,8 +160,31 @@ struct HostDeliveryView: View {
     @ViewBuilder
     private func sheetView(for sheet: DeliverySheet) -> some View {
         switch sheet {
+        case .start:
+            HostStartSheet(
+                startDate: vm.detail?.startDate ?? "",
+                endDate: vm.detail?.endDate ?? "",
+                onStart: { Task { await vm.startReading(); vm.dismissSheet() } }
+            )
+            .presentationDetents([.medium])
+        case .reading:
+            HostReadingSheet(
+                title: "책을 읽고 있어요",
+                startDate: vm.detail?.startDate ?? "",
+                endDate: vm.detail?.endDate ?? "",
+                onWriteCard: vm.dismissSheet,
+                onExtendPeriod: { vm.tapStep(.extendPeriod) },
+                onFinish: { Task { await vm.markDone(); vm.dismissSheet() } }
+            )
+            .presentationDetents([.medium])
+        case .readingStatus:
+            HostReadingStatusSheet(
+                startDate: vm.detail?.startDate ?? "",
+                endDate: vm.detail?.endDate ?? "",
+                onGoCard: vm.dismissSheet
+            )
+            .presentationDetents([.medium])
         default:
-            // 임시 placeholder — Task 12~17에서 각 시트로 교체
             Text("시트: \(sheet.rawValue)")
                 .padding(40)
                 .presentationDetents([.medium])
