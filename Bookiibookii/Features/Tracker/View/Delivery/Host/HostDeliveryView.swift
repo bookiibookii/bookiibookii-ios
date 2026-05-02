@@ -4,6 +4,7 @@ import SwiftUI
 struct HostDeliveryView: View {
     @StateObject private var vm: HostDeliveryViewModel
     private let onBack: () -> Void
+    @State private var extendDaysInput: String = ""
 
     init(groupId: Int, service: TrackerService, onBack: @escaping () -> Void = {}) {
         _vm = StateObject(wrappedValue: HostDeliveryViewModel(groupId: groupId, service: service))
@@ -184,6 +185,34 @@ struct HostDeliveryView: View {
                 onGoCard: vm.dismissSheet
             )
             .presentationDetents([.medium])
+        case .extendPeriod:
+            HostExtendPeriodSheet(
+                days: $extendDaysInput,
+                originalEndDate: vm.detail?.endDate ?? "",
+                extendedEndDate: vm.detail?.endDate ?? "", // 임시: API 호출 후 vm.detail.endDate가 실제 연장일로 갱신됨
+                onClose: { extendDaysInput = ""; vm.dismissSheet() },
+                onCancel: { extendDaysInput = ""; vm.dismissSheet() },
+                onApply: {
+                    let days = Int(extendDaysInput) ?? 3
+                    Task {
+                        await vm.requestExtension(days: days)
+                        extendDaysInput = ""
+                        vm.dismissSheet()
+                    }
+                }
+            )
+            .presentationDetents([.medium, .large])
+        case .extendRequest:
+            // 게스트 연장 신청이 자동 승인된 경우. 서버가 이미 endDate를 갱신했으므로 원본/신규가 같은 값으로 표시됨 (현 주기 한계).
+            HostExtendRequestSheet(
+                originalEndDate: vm.detail?.endDate ?? "",
+                newEndDate: vm.detail?.endDate ?? "",
+                onConfirm: vm.dismissSheet
+            )
+            .presentationDetents([.medium])
+        case .readingDone:
+            HostReadingDoneSheet(onGoCard: vm.dismissSheet)
+                .presentationDetents([.medium])
         default:
             Text("시트: \(sheet.rawValue)")
                 .padding(40)
