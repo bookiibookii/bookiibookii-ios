@@ -34,6 +34,47 @@ final class TrackerService {
         }
         return (response.result ?? []).map { $0.toTrackerItem() }
     }
+
+    // MARK: - 택배 교환 단순 액션
+
+    /// GET /api/groups/{groupId}/tracker
+    func fetchDetail(groupId: Int) async throws -> TrackerDetailResponse {
+        try await requestDetail(target: .detail(groupId: groupId))
+    }
+
+    /// PATCH /api/groups/{groupId}/tracker/reading
+    func startReading(groupId: Int) async throws -> TrackerDetailResponse {
+        try await requestDetail(target: .startReading(groupId: groupId))
+    }
+
+    /// PATCH /api/groups/{groupId}/tracker/extension?days=
+    func requestExtension(groupId: Int, days: Int = 3) async throws -> TrackerDetailResponse {
+        try await requestDetail(target: .requestExtension(groupId: groupId, days: days))
+    }
+
+    /// PATCH /api/groups/{groupId}/tracker/done
+    func markDone(groupId: Int) async throws -> TrackerDetailResponse {
+        try await requestDetail(target: .markDone(groupId: groupId))
+    }
+
+    /// PATCH /api/groups/{groupId}/tracker/reception/verification
+    func verifyReception(groupId: Int) async throws -> TrackerDetailResponse {
+        try await requestDetail(target: .verifyReception(groupId: groupId))
+    }
+
+    // MARK: - 공통 디코딩 헬퍼
+
+    private func requestDetail(target: TrackerAPITarget) async throws -> TrackerDetailResponse {
+        let (data, http) = try await interceptor.request(target.asURLRequest())
+        guard (200...299).contains(http.statusCode) else {
+            throw TrackerServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(ApiResponseDTO<TrackerDetailResponse>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw TrackerServiceError.server(response.message)
+        }
+        return result
+    }
 }
 
 enum TrackerServiceError: LocalizedError {
