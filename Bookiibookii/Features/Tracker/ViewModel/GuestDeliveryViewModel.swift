@@ -69,7 +69,7 @@ final class GuestDeliveryViewModel: ObservableObject {
         case .initState, .hostReading:           return .readingStatus
         case .hostShippingReady, .hostShipped:   return .shippingStatus
         case .guestReading:                       return .reading
-        case .guestShippingReady:                 return .shippingInput
+        case .guestShippingReady:                 return .shipping
         case .guestShipped:                       return .shipped
         case .finished:                           return .tradeFinish
         }

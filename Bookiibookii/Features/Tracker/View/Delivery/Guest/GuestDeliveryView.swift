@@ -171,10 +171,191 @@ struct GuestDeliveryView: View {
 
     @ViewBuilder
     private func sheetView(for sheet: DeliverySheet) -> some View {
-        // Task 20에서 case 채움
-        Text("게스트 시트: \(sheet.rawValue)")
-            .padding(40)
+        switch sheet {
+        case .start:
+            GuestStartSheet(
+                startDate: vm.detail?.startDate ?? "",
+                endDate: vm.detail?.endDate ?? "",
+                onStart: { vm.dismissSheet() }
+            )
             .presentationDetents([.medium])
+        case .reading:
+            GuestReadingSheet(
+                title: "책을 읽고 있어요",
+                startDate: vm.detail?.startDate ?? "",
+                endDate: vm.detail?.endDate ?? "",
+                onWriteCard: vm.dismissSheet,
+                onExtendPeriod: { vm.tapStep(.extendPeriod) },
+                onFinish: { Task { await vm.markDone(); vm.dismissSheet() } }
+            )
+            .presentationDetents([.medium])
+        case .readingStatus:
+            GuestReadingStatusSheet(
+                startDate: vm.detail?.startDate ?? "",
+                endDate: vm.detail?.endDate ?? "",
+                onGoCard: vm.dismissSheet
+            )
+            .presentationDetents([.medium])
+        case .readingDone:
+            GuestReadingDoneSheet(onGoCard: vm.dismissSheet)
+                .presentationDetents([.medium])
+        case .extendPeriod:
+            GuestExtendPeriodSheet(
+                days: $extendDaysInput,
+                originalEndDate: vm.detail?.endDate ?? "",
+                extendedEndDate: vm.detail?.endDate ?? "",
+                onClose: { extendDaysInput = ""; vm.dismissSheet() },
+                onCancel: { extendDaysInput = ""; vm.dismissSheet() },
+                onApply: {
+                    let days = Int(extendDaysInput) ?? 3
+                    Task {
+                        await vm.requestExtension(days: days)
+                        extendDaysInput = ""
+                        vm.dismissSheet()
+                    }
+                }
+            )
+            .presentationDetents([.medium, .large])
+        case .extendRequest:
+            GuestExtendRequestSheet(
+                originalEndDate: vm.detail?.endDate ?? "",
+                newEndDate: vm.detail?.endDate ?? "",
+                onConfirm: vm.dismissSheet
+            )
+            .presentationDetents([.medium])
+        case .shipping:
+            GuestShippingSheet(
+                receiverName: vm.detail?.deliveryInfo?.receiverName ?? "",
+                receiverPhone: vm.detail?.deliveryInfo?.receiverPhone ?? "",
+                address: vm.detail?.deliveryInfo?.receiverAddress ?? "",
+                onCopy: {
+                    let address = vm.detail?.deliveryInfo?.receiverAddress ?? ""
+                    UIPasteboard.general.string = address
+                    vm.toastMessage = "주소가 복사되었어요"
+                },
+                onRegister: { vm.tapStep(.shippingInput) }
+            )
+            .presentationDetents([.medium, .large])
+        case .shippingInput:
+            GuestShippingInputSheet(
+                courier: $courier,
+                trackingNumber: $trackingNumber,
+                courierOptions: courierOptions,
+                pickedImage: pickedImage,
+                onClose: { resetShippingForm(); vm.dismissSheet() },
+                onSelectCourier: { showCourierPicker = true },
+                onPickImage: { showPhotoPicker = true },
+                onRegister: {
+                    guard !courier.isEmpty, !trackingNumber.isEmpty, let image = pickedImage else { return }
+                    Task {
+                        await vm.startShipping(company: courier, trackingNumber: trackingNumber, image: image)
+                        resetShippingForm()
+                        vm.dismissSheet()
+                    }
+                }
+            )
+            .presentationDetents([.large])
+            .confirmationDialog("택배사 선택", isPresented: $showCourierPicker, titleVisibility: .visible) {
+                ForEach(courierOptions, id: \.self) { option in
+                    Button(option) { courier = option }
+                }
+                Button("취소", role: .cancel) {}
+            }
+            .photosPicker(isPresented: $showPhotoPicker, selection: $pickedItem, matching: .images)
+            .onChange(of: pickedItem) { _, newItem in
+                Task {
+                    guard let newItem,
+                          let data = try? await newItem.loadTransferable(type: Data.self),
+                          let image = UIImage(data: data) else { return }
+                    pickedImage = image
+                }
+            }
+        case .shippingPhoto:
+            GuestShippingPhotoSheet(
+                imageUrl: shippingPhotoUrl,
+                onConfirm: { shippingPhotoUrl = nil; vm.dismissSheet() }
+            )
+            .presentationDetents([.large])
+            .task {
+                shippingPhotoUrl = nil
+                do {
+                    let url = try await vm.service.fetchShippingImageURL(groupId: vm.groupId)
+                    shippingPhotoUrl = url.absoluteString
+                } catch { /* silent */ }
+            }
+        case .shipped:
+            GuestShippedSheet(
+                courier: vm.detail?.deliveryInfo?.deliveryCompany ?? "",
+                trackingNumber: vm.detail?.deliveryInfo?.trackingNumber ?? "",
+                onViewShippingPhoto: { vm.tapStep(.shippingPhoto) },
+                onDoReceiveConfirm: { vm.tapStep(.receiveConfirm) }
+            )
+            .presentationDetents([.medium])
+        case .shippingStatus:
+            GuestShippingStatusSheet(
+                courier: vm.detail?.deliveryInfo?.deliveryCompany ?? "",
+                trackingNumber: vm.detail?.deliveryInfo?.trackingNumber ?? "",
+                isReceived: vm.detail?.deliveryInfo?.isVerified ?? false,
+                onConfirm: { vm.tapStep(.shippingPhoto) }
+            )
+            .presentationDetents([.medium])
+        case .receiveConfirm:
+            GuestReceiveConfirmSheet(
+                pickedImage: receivePickedImage,
+                isChecked: $receiveChecked,
+                onClose: { resetReceiveForm(); vm.dismissSheet() },
+                onPickImage: { showReceivePhotoPicker = true },
+                onFinish: {
+                    guard let image = receivePickedImage, receiveChecked else { return }
+                    Task {
+                        await vm.registerReceipt(image: image)
+                        resetReceiveForm()
+                        vm.dismissSheet()
+                    }
+                }
+            )
+            .presentationDetents([.large])
+            .photosPicker(isPresented: $showReceivePhotoPicker, selection: $receivePickedItem, matching: .images)
+            .onChange(of: receivePickedItem) { _, newItem in
+                Task {
+                    guard let newItem,
+                          let data = try? await newItem.loadTransferable(type: Data.self),
+                          let image = UIImage(data: data) else { return }
+                    receivePickedImage = image
+                }
+            }
+        case .tradeFinish:
+            GuestTradeFinishSheet(onWriteReview: vm.dismissSheet)
+                .presentationDetents([.medium])
+        case .groupManage:
+            GuestGroupManageSheet(
+                onTapDetail: vm.dismissSheet,
+                onTapReport: vm.dismissSheet
+            )
+            .presentationDetents([.medium])
+        case .photoSelection:
+            Color.clear.onAppear { vm.dismissSheet() }
+        case .sendConfirm:
+            GuestSendConfirmView(imageUrl: nil, isChecked: false, onConfirm: vm.dismissSheet)
+                .presentationDetents([.medium])
+        }
+    }
+
+    private var courierOptions: [String] {
+        ["CJ대한통운", "롯데택배", "한진택배", "우체국택배", "로젠택배", "쿠팡로지스틱스"]
+    }
+
+    private func resetShippingForm() {
+        courier = ""
+        trackingNumber = ""
+        pickedItem = nil
+        pickedImage = nil
+    }
+
+    private func resetReceiveForm() {
+        receivePickedItem = nil
+        receivePickedImage = nil
+        receiveChecked = false
     }
 }
 
