@@ -62,6 +62,16 @@ final class TrackerService {
         try await requestDetail(target: .verifyReception(groupId: groupId))
     }
 
+    /// GET /api/groups/{groupId}/tracker/images/delivery
+    func fetchShippingImageURL(groupId: Int) async throws -> URL {
+        try await requestImageURL(target: .shippingImage(groupId: groupId))
+    }
+
+    /// GET /api/groups/{groupId}/tracker/images/received
+    func fetchReceivedImageURL(groupId: Int) async throws -> URL {
+        try await requestImageURL(target: .receivedImage(groupId: groupId))
+    }
+
     // MARK: - 공통 디코딩 헬퍼
 
     private func requestDetail(target: TrackerAPITarget) async throws -> TrackerDetailResponse {
@@ -70,6 +80,35 @@ final class TrackerService {
             throw TrackerServiceError.http(http.statusCode)
         }
         let response = try JSONDecoder().decode(ApiResponseDTO<TrackerDetailResponse>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw TrackerServiceError.server(response.message)
+        }
+        return result
+    }
+
+    private func requestImageURL(target: TrackerAPITarget) async throws -> URL {
+        let (data, http) = try await interceptor.request(target.asURLRequest())
+        guard (200...299).contains(http.statusCode) else {
+            throw TrackerServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(ApiResponseDTO<TrackerImageResponse>.self, from: data)
+        guard response.isSuccess,
+              let urlString = response.result?.imageUrl,
+              let url = URL(string: urlString) else {
+            throw TrackerServiceError.server(response.message)
+        }
+        return url
+    }
+
+    /// POST /api/groups/{groupId}/tracker/images/presigned-url
+    private func fetchPresignedUrl(groupId: Int) async throws -> TrackerPresignedUrlResponse {
+        let (data, http) = try await interceptor.request(
+            TrackerAPITarget.presignedUrl(groupId: groupId).asURLRequest()
+        )
+        guard (200...299).contains(http.statusCode) else {
+            throw TrackerServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(ApiResponseDTO<TrackerPresignedUrlResponse>.self, from: data)
         guard response.isSuccess, let result = response.result else {
             throw TrackerServiceError.server(response.message)
         }
