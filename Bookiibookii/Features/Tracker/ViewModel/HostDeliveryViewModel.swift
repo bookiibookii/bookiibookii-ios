@@ -11,7 +11,7 @@ final class HostDeliveryViewModel: ObservableObject {
     @Published var toastMessage: String?
 
     let groupId: Int
-    private let service: TrackerService
+    let service: TrackerService
     private var presentedPhases: Set<DeliveryPhase> = []
 
     init(groupId: Int, service: TrackerService) {
@@ -77,10 +77,10 @@ final class HostDeliveryViewModel: ObservableObject {
         case .initState:           return .start
         case .hostReading:         return .reading
         case .hostShippingReady:   return .shippingInput
-        case .hostShipped:         return .shipped
+        case .hostShipped:         return .shippingStatus
         case .guestReading:        return .readingStatus
         case .guestShippingReady:  return .readingDone
-        case .guestShipped:        return .receiveConfirm
+        case .guestShipped:        return .shipped
         case .finished:            return .tradeFinish
         }
     }

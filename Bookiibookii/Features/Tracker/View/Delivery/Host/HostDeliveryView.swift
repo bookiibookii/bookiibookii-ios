@@ -13,6 +13,13 @@ struct HostDeliveryView: View {
     @State private var pickedImage: UIImage?
     @State private var showCourierPicker: Bool = false
     @State private var showPhotoPicker: Bool = false
+    @State private var shippingPhotoUrl: String?
+    @State private var shippingPhotoSource: ShippingPhotoSource = .delivery
+
+    private enum ShippingPhotoSource {
+        case delivery   // host's own shipment photo
+        case received   // host's receipt-of-return photo (guest's return shipment)
+    }
 
     init(groupId: Int, service: TrackerService, onBack: @escaping () -> Void = {}) {
         _vm = StateObject(wrappedValue: HostDeliveryViewModel(groupId: groupId, service: service))
@@ -253,6 +260,47 @@ struct HostDeliveryView: View {
                           let data = try? await newItem.loadTransferable(type: Data.self),
                           let image = UIImage(data: data) else { return }
                     pickedImage = image
+                }
+            }
+        case .shipped:
+            HostShippedSheet(
+                courier: vm.detail?.deliveryInfo?.deliveryCompany ?? "",
+                trackingNumber: vm.detail?.deliveryInfo?.trackingNumber ?? "",
+                onViewShippingPhoto: {
+                    shippingPhotoSource = .received
+                    vm.tapStep(.shippingPhoto)
+                },
+                onDoReceiveConfirm: { vm.tapStep(.receiveConfirm) }
+            )
+            .presentationDetents([.medium])
+        case .shippingStatus:
+            HostShippingStatusSheet(
+                courier: vm.detail?.deliveryInfo?.deliveryCompany ?? "",
+                trackingNumber: vm.detail?.deliveryInfo?.trackingNumber ?? "",
+                isReceived: vm.detail?.deliveryInfo?.isVerified ?? false,
+                onConfirm: {
+                    shippingPhotoSource = .delivery
+                    vm.tapStep(.shippingPhoto)
+                }
+            )
+            .presentationDetents([.medium])
+        case .shippingPhoto:
+            HostShippingPhotoSheet(
+                imageUrl: shippingPhotoUrl,
+                onConfirm: { shippingPhotoUrl = nil; vm.dismissSheet() }
+            )
+            .presentationDetents([.large])
+            .task {
+                shippingPhotoUrl = nil
+                do {
+                    let url: URL
+                    switch shippingPhotoSource {
+                    case .delivery: url = try await vm.service.fetchShippingImageURL(groupId: vm.groupId)
+                    case .received: url = try await vm.service.fetchReceivedImageURL(groupId: vm.groupId)
+                    }
+                    shippingPhotoUrl = url.absoluteString
+                } catch {
+                    // silent fallback — sheet shows "사진을 불러올 수 없어요"
                 }
             }
         default:
