@@ -1,11 +1,16 @@
 import Foundation
+import UIKit
 
 // 안드로이드 TrkMainViewModel.loadHostTrackers / loadGuestTrackers 대응.
 // ApiResponseDTO<[Dto]> 디코딩 후 도메인 모델(TrackerItem)로 매핑해서 반환.
 final class TrackerService {
     private let interceptor: AuthInterceptor
+    private let s3: S3UploadClient
 
-    init(interceptor: AuthInterceptor) { self.interceptor = interceptor }
+    init(interceptor: AuthInterceptor, s3: S3UploadClient = S3UploadClient()) {
+        self.interceptor = interceptor
+        self.s3 = s3
+    }
 
     /// GET /api/groups/me/trackers/host
     func fetchHostTrackers() async throws -> [TrackerItem] {
@@ -114,16 +119,59 @@ final class TrackerService {
         }
         return result
     }
+
+    // MARK: - 업로드 묶음 (presignedUrl → S3 PUT → 도메인 API)
+
+    /// POST /api/groups/{groupId}/tracker/delivery (이미지 업로드 포함)
+    func startShipping(
+        groupId: Int,
+        deliveryCompany: String,
+        trackingNumber: String,
+        image: UIImage
+    ) async throws -> TrackerDetailResponse {
+        let s3Key = try await uploadImage(groupId: groupId, image: image)
+        let body = TrackerShippingStartRequest(
+            deliveryCompany: deliveryCompany,
+            trackingNumber: trackingNumber,
+            s3Key: s3Key
+        )
+        return try await requestDetail(
+            target: .startShipping(groupId: groupId, body: body)
+        )
+    }
+
+    /// PATCH /api/groups/{groupId}/tracker/reception (이미지 업로드 포함)
+    func registerReceipt(
+        groupId: Int,
+        image: UIImage
+    ) async throws -> TrackerDetailResponse {
+        let s3Key = try await uploadImage(groupId: groupId, image: image)
+        let body = TrackerReceiveRequest(s3Key: s3Key)
+        return try await requestDetail(
+            target: .registerReceipt(groupId: groupId, body: body)
+        )
+    }
+
+    private func uploadImage(groupId: Int, image: UIImage) async throws -> String {
+        guard let jpeg = image.jpegData(compressionQuality: 0.85) else {
+            throw TrackerServiceError.imageEncodingFailed
+        }
+        let presigned = try await fetchPresignedUrl(groupId: groupId)
+        try await s3.put(data: jpeg, to: presigned.presignedPutUrl, contentType: "image/jpeg")
+        return presigned.s3Key
+    }
 }
 
 enum TrackerServiceError: LocalizedError {
     case http(Int)
     case server(String)
+    case imageEncodingFailed
 
     var errorDescription: String? {
         switch self {
-        case .http(let code): return "서버 오류 (\(code))"
-        case .server(let msg): return msg
+        case .http(let code):       return "서버 오류 (\(code))"
+        case .server(let msg):      return msg
+        case .imageEncodingFailed:  return "이미지를 변환하지 못했습니다."
         }
     }
 }
