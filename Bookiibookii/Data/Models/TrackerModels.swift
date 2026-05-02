@@ -43,12 +43,12 @@ struct TrackerTogetherDetailDto: Decodable {
 
 // MARK: - 도메인 모델
 
-enum ExchangeRole {
+enum ExchangeRole: Hashable {
     case host
     case guest
 }
 
-enum ExchangeType {
+enum ExchangeType: Hashable {
     case delivery   // 택배
     case direct     // 직거래
     case none       // 함께읽기
@@ -62,7 +62,7 @@ enum ExchangeType {
     }
 }
 
-struct TrackerItem: Identifiable, Equatable {
+struct TrackerItem: Identifiable, Equatable, Hashable {
     let id: Int            // = groupId
     let groupId: Int
     let role: ExchangeRole

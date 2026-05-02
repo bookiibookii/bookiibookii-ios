@@ -2,7 +2,10 @@ import SwiftUI
 
 // 안드로이드 TrkMainFragment 대응.
 struct TrackerView: View {
+    @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: TrackerViewModel
+    @State private var path = NavigationPath()
+    private let trackerService: TrackerService
     private let onNavigateToGroup: () -> Void
 
     init(
@@ -10,21 +13,61 @@ struct TrackerView: View {
         onNavigateToGroup: @escaping () -> Void
     ) {
         _viewModel = StateObject(wrappedValue: TrackerViewModel(service: trackerService))
+        self.trackerService = trackerService
         self.onNavigateToGroup = onNavigateToGroup
     }
 
     var body: some View {
-        ZStack {
-            Color("grey100").ignoresSafeArea()
+        NavigationStack(path: $path) {
+            ZStack {
+                Color("grey100").ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                header
-                tabSegment
-                content
+                VStack(spacing: 0) {
+                    header
+                    tabSegment
+                    content
+                }
+            }
+            .task { await viewModel.onAppear() }
+            .toast($viewModel.toast)
+            .navigationDestination(for: TrackerItem.self) { item in
+                deliveryDestination(for: item)
+                    .toolbar(.hidden, for: .navigationBar)
             }
         }
-        .task { await viewModel.onAppear() }
-        .toast($viewModel.toast)
+    }
+
+    @ViewBuilder
+    private func deliveryDestination(for item: TrackerItem) -> some View {
+        switch (item.role, item.exchangeType) {
+        case (.host, .delivery):
+            HostDeliveryView(
+                groupId: item.groupId,
+                service: trackerService,
+                onBack: { path.removeLast() }
+            )
+        case (.guest, .delivery):
+            GuestDeliveryView(
+                groupId: item.groupId,
+                service: trackerService,
+                onBack: { path.removeLast() }
+            )
+        default:
+            VStack(spacing: 12) {
+                Text("이번 사이클에서 미지원")
+                    .font(.pretendard(size: 16, weight: .medium))
+                    .foregroundColor(Color("grey700"))
+                Text("직거래 / 함께읽기는 곧 지원될 예정입니다.")
+                    .font(.pretendard(size: 13))
+                    .foregroundColor(Color("grey500"))
+                Button("뒤로") { path.removeLast() }
+                    .font(.pretendard(size: 14, weight: .medium))
+                    .foregroundColor(Color("main200"))
+                    .padding(.top, 8)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color("grey100"))
+        }
     }
 
     // MARK: - 헤더
@@ -133,7 +176,7 @@ struct TrackerView: View {
         ScrollView(showsIndicators: false) {
             LazyVStack(spacing: 16) {
                 ForEach(items) { item in
-                    TrackerCard(item: item, onTap: { /* no-op: 다음 PR에서 상세 이동 */ })
+                    TrackerCard(item: item, onTap: { path.append(item) })
                 }
             }
             .padding(.horizontal, 24)
