@@ -271,7 +271,7 @@ struct HostDeliveryView: View {
                 courier: vm.detail?.deliveryInfo?.deliveryCompany ?? "",
                 trackingNumber: vm.detail?.deliveryInfo?.trackingNumber ?? "",
                 onViewShippingPhoto: {
-                    shippingPhotoSource = .received
+                    shippingPhotoSource = .delivery
                     vm.tapStep(.shippingPhoto)
                 },
                 onDoReceiveConfirm: { vm.tapStep(.receiveConfirm) }
@@ -283,7 +283,7 @@ struct HostDeliveryView: View {
                 trackingNumber: vm.detail?.deliveryInfo?.trackingNumber ?? "",
                 isReceived: vm.detail?.deliveryInfo?.isVerified ?? false,
                 onConfirm: {
-                    shippingPhotoSource = .delivery
+                    shippingPhotoSource = .received
                     vm.tapStep(.shippingPhoto)
                 }
             )
@@ -332,10 +332,39 @@ struct HostDeliveryView: View {
                     receivePickedImage = image
                 }
             }
-        default:
-            Text("시트: \(sheet.rawValue)")
-                .padding(40)
+        case .tradeFinish:
+            HostTradeFinishSheet(onWriteReview: vm.dismissSheet)
                 .presentationDetents([.medium])
+        case .groupManage:
+            HostGroupManageSheet(
+                isInProgress: vm.phase != .initState && vm.phase != .finished,
+                onTapDetail: vm.dismissSheet,
+                onTapEdit: vm.dismissSheet,
+                onTapDelete: vm.dismissSheet
+            )
+            .presentationDetents([.medium])
+        case .sendConfirm:
+            HostSendConfirmView(
+                imageUrl: shippingPhotoUrl,
+                isChecked: true,
+                onConfirm: { shippingPhotoUrl = nil; vm.dismissSheet() }
+            )
+            .presentationDetents([.large])
+            .task {
+                // Same load pattern as .shippingPhoto, defaulting to .delivery source.
+                if shippingPhotoUrl == nil {
+                    do {
+                        let url = try await vm.service.fetchShippingImageURL(groupId: vm.groupId)
+                        shippingPhotoUrl = url.absoluteString
+                    } catch { /* silent fallback */ }
+                }
+            }
+        case .photoSelection:
+            // 자동 시트 매핑 없음 — 트래커 흐름에서 사용 안 함. 안전하게 닫기.
+            Color.clear.onAppear { vm.dismissSheet() }
+        case .shipping:
+            // 호스트는 .shipping 자동 매핑 없음 — 안전하게 닫기.
+            Color.clear.onAppear { vm.dismissSheet() }
         }
     }
 
