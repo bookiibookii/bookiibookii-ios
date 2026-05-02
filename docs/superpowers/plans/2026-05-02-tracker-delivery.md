@@ -254,10 +254,11 @@ struct TrackerReceiveRequest: Encodable {
     let s3Key: String
 }
 
-struct PresignedUrlResponse: Decodable {
+struct TrackerPresignedUrlResponse: Decodable {
     let s3Key: String
     let presignedPutUrl: String
 }
+// 주의: `PresignedUrlResponse` 이름은 `UserModels.swift`에 이미 존재 — 트래커 도메인은 접두사 `Tracker`로 분리.
 
 struct TrackerImageResponse: Decodable {
     let imageUrl: String
@@ -456,14 +457,14 @@ git commit -m "feat(tracker): TrackerService 단순 액션 5종 추가 (detail/r
     }
 
     /// POST /api/groups/{groupId}/tracker/images/presigned-url
-    private func fetchPresignedUrl(groupId: Int) async throws -> PresignedUrlResponse {
+    private func fetchPresignedUrl(groupId: Int) async throws -> TrackerPresignedUrlResponse {
         let (data, http) = try await interceptor.request(
             TrackerAPITarget.presignedUrl(groupId: groupId).asURLRequest()
         )
         guard (200...299).contains(http.statusCode) else {
             throw TrackerServiceError.http(http.statusCode)
         }
-        let response = try JSONDecoder().decode(ApiResponseDTO<PresignedUrlResponse>.self, from: data)
+        let response = try JSONDecoder().decode(ApiResponseDTO<TrackerPresignedUrlResponse>.self, from: data)
         guard response.isSuccess, let result = response.result else {
             throw TrackerServiceError.server(response.message)
         }
