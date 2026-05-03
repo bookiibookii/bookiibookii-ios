@@ -167,10 +167,14 @@ struct GuestDeliveryView: View {
                 onStart: { Task { await vm.startReading(); vm.dismissSheet() } }
             )
         case .reading:
+            // 안드 GuestReadingBottomDialogFragment: canExtend = extensionCount<1 && status in [GUEST_READING, GUEST_EXTENSION]
             GuestReadingSheet(
                 title: "책을 읽고 있어요",
                 startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
                 endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
+                canExtendPeriod: (vm.detail?.extensionCount ?? 0) < 1
+                    && (vm.detail?.trackerStatus == .guestReading
+                        || vm.detail?.trackerStatus == .guestExtension),
                 onWriteCard: vm.dismissSheet,
                 onExtendPeriod: { vm.tapStep(.extendPeriod) },
                 onFinish: { Task { await vm.markDone(); vm.dismissSheet() } }

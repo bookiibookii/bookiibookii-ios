@@ -166,10 +166,14 @@ struct HostDeliveryView: View {
                 onStart: { Task { await vm.startReading(); vm.dismissSheet() } }
             )
         case .reading:
+            // 안드 HostReadingBottomDialogFragment: canExtend = extensionCount<1 && status in [HOST_READING, HOST_EXTENSION]
             HostReadingSheet(
                 title: "책을 읽고 있어요",
                 startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
                 endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
+                canExtendPeriod: (vm.detail?.extensionCount ?? 0) < 1
+                    && (vm.detail?.trackerStatus == .hostReading
+                        || vm.detail?.trackerStatus == .hostExtension),
                 onWriteCard: vm.dismissSheet,
                 onExtendPeriod: { vm.tapStep(.extendPeriod) },
                 onFinish: { Task { await vm.markDone(); vm.dismissSheet() } }
