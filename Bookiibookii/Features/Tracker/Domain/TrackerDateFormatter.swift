@@ -39,4 +39,17 @@ enum TrackerDateFormatter {
         let extended = Calendar.current.date(byAdding: .day, value: safeDays, to: base) ?? base
         return output.string(from: extended)
     }
+
+    /// startDate raw + readingPeriod 일수 → "yyyy.MM.dd".
+    /// 안드 GuestStartBottomDialogFragment.addDaysFromStartDate 대응.
+    /// (RECEIVED 단계처럼 서버 endDate가 아직 없을 때 시작일 + 기간으로 종료일 미리 계산)
+    static func endDateFromReadingPeriod(startRaw: String?, period: Int) -> String {
+        guard let startRaw, startRaw.count >= 10,
+              let base = parser.date(from: String(startRaw.prefix(10))) else {
+            return "미정"
+        }
+        let safeDays = max(0, period)
+        let end = Calendar.current.date(byAdding: .day, value: safeDays, to: base) ?? base
+        return output.string(from: end)
+    }
 }

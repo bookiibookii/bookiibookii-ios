@@ -155,10 +155,16 @@ struct GuestDeliveryView: View {
     private func sheetView(for sheet: DeliverySheet) -> some View {
         switch sheet {
         case .start:
+            // 안드 GuestStartBottomDialogFragment 대응:
+            // - 시작하기 버튼: vm.startReading() (서버 RECEIVED → GUEST_READING 진입)
+            // - 종료일은 startDate + readingPeriod 로 계산 (서버 endDate 아직 없을 수 있음)
             GuestStartSheet(
                 startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
-                endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
-                onStart: { vm.dismissSheet() }
+                endDate: TrackerDateFormatter.endDateFromReadingPeriod(
+                    startRaw: vm.detail?.startDate,
+                    period: vm.detail?.readingPeriod ?? 0
+                ),
+                onStart: { Task { await vm.startReading(); vm.dismissSheet() } }
             )
         case .reading:
             GuestReadingSheet(
@@ -249,18 +255,10 @@ struct GuestDeliveryView: View {
             }
         case .shippingPhoto:
             GuestShippingPhotoSheet(
-                imageUrl: shippingPhotoUrl,
-                onConfirm: { shippingPhotoUrl = nil; vm.dismissSheet() }
+                groupId: vm.groupId,
+                service: vm.service,
+                onConfirm: { vm.dismissSheet() }
             )
-            .task {
-                shippingPhotoUrl = nil
-                do {
-                    let url = try await vm.service.fetchShippingImageURL(groupId: vm.groupId)
-                    shippingPhotoUrl = url.absoluteString
-                } catch {
-                    vm.toastMessage = "사진을 불러올 수 없어요"
-                }
-            }
         case .shipped:
             GuestShippedSheet(
                 courier: vm.detail?.deliveryInfo?.deliveryCompany ?? "",

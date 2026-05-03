@@ -57,7 +57,11 @@ final class GuestDeliveryViewModel: ObservableObject {
         }
     }
 
-    // MARK: - 액션 (게스트용 — startReading / verifyReception 없음)
+    // MARK: - 액션 (게스트용 — verifyReception 없음. startReading은 RECEIVED 단계에서 호출)
+
+    func startReading() async {
+        await runAction { try await self.service.startReading(groupId: self.groupId) }
+    }
 
     func requestExtension(days: Int) async {
         await runAction { try await self.service.requestExtension(groupId: self.groupId, days: days) }
