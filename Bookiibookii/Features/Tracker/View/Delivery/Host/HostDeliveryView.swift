@@ -383,8 +383,11 @@ struct HostDeliveryView: View {
                 return s
             },
             set: { newValue in
-                if newValue == nil {
-                    // 하단 시트 dismiss는 vm 통해 정리
+                // SwiftUI는 두 가지 경로로 set(nil)을 호출함:
+                //   1) BottomSheet → 다이얼로그 전환: get이 nil 반환 → SwiftUI가 set(nil) → 다이얼로그가 vm에 살아있음. dismiss하면 안 됨.
+                //   2) 사용자 swipe-down: 진짜 BottomSheet가 닫힘. vm 정리 필요.
+                // 현 vm.activeSheet가 BottomSheet인지로 두 케이스 구분.
+                if newValue == nil, let s = vm.activeSheet, s.isBottomSheet {
                     vm.dismissSheet()
                 }
             }

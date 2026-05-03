@@ -349,7 +349,12 @@ struct GuestDeliveryView: View {
                 return s
             },
             set: { newValue in
-                if newValue == nil { vm.dismissSheet() }
+                // BottomSheet → 다이얼로그 전환 시 SwiftUI가 set(nil)을 호출하지만
+                // 그건 vm을 정리하면 안 됨 (다이얼로그가 vm에 살아있음).
+                // 진짜 BottomSheet가 닫힌 경우(swipe-down)에만 dismiss.
+                if newValue == nil, let s = vm.activeSheet, s.isBottomSheet {
+                    vm.dismissSheet()
+                }
             }
         )
     }
