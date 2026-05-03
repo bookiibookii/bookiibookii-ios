@@ -139,9 +139,9 @@ struct GuestDeliveryView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
+    /// row 탭 — 서버에서 최신 phase를 받아 시트 노출.
     private func tapCurrentPhaseSheet() {
-        guard let sheet = vm.defaultSheet(for: vm.phase) else { return }
-        vm.tapStep(sheet)
+        Task { await vm.refreshAndShowSheet() }
     }
 
     @ViewBuilder

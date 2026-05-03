@@ -35,6 +35,24 @@ final class GuestDeliveryViewModel: ObservableObject {
         activeSheet = nil
     }
 
+    /// row 탭 진입점 — 서버에서 최신 detail을 받아 phase 갱신 후 현재 phase 시트 노출.
+    /// presentedPhases를 우회해 명시 탭은 항상 시트가 열린다.
+    func refreshAndShowSheet() async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            let response = try await service.fetchDetail(groupId: groupId)
+            detail = response
+            phase = DeliveryPhase.from(response.trackerStatus)
+            if let sheet = defaultSheet(for: phase) {
+                activeSheet = sheet
+            }
+        } catch {
+            toastMessage = (error as? LocalizedError)?.errorDescription
+                ?? "네트워크 오류, 다시 시도해주세요"
+        }
+    }
+
     // MARK: - 액션 (게스트용 — startReading / verifyReception 없음)
 
     func requestExtension(days: Int) async {

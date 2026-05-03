@@ -142,9 +142,9 @@ struct HostDeliveryView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
+    /// row 탭 — 서버에서 최신 phase를 받아 시트 노출.
     private func tapCurrentPhaseSheet() {
-        guard let sheet = vm.defaultSheet(for: vm.phase) else { return }
-        vm.tapStep(sheet)
+        Task { await vm.refreshAndShowSheet() }
     }
 
     // MARK: - 시트 라우팅 (Task 12~17에서 case별 시트 채움)
