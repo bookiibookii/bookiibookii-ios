@@ -19,7 +19,6 @@ struct HostDeliveryView: View {
     @State private var receivePickedImage: UIImage?
     @State private var receiveChecked: Bool = false
     @State private var showReceivePhotoPicker: Bool = false
-    @State private var sheetHeight: CGFloat = 300   // fittedSheetDetent 측정값 보관
 
     private enum ShippingPhotoSource {
         case delivery   // host's own shipment photo
@@ -52,7 +51,7 @@ struct HostDeliveryView: View {
             sheetView(for: sheet)
                 .presentationBackground(Color("white"))
                 .presentationCornerRadius(24)
-                .fittedSheetDetent($sheetHeight)
+                .presentationDetents([.height(sheet.fixedHeight)])
         }
         .overlay {
             if vm.isLoading {
