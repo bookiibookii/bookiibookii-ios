@@ -112,16 +112,20 @@ struct GuestDeliveryView: View {
     }
 
     private var statusCard: some View {
-        VStack(spacing: 0) {
-            ForEach(rows.indices, id: \.self) { index in
-                let row = rows[index]
-                Button {
-                    if let sheet = row.sheet { vm.tapStep(sheet) }
-                } label: {
-                    TradeStatusRow(item: row.step)
+        // 안드 GuestViewModel.buildSteps + reversed() 와 동일.
+        // 어디 row 클릭하든 현재 phase에 매핑된 단일 시트가 노출 (안드 동작).
+        let steps = TrackerStepBuilder.buildGuestSteps(phase: vm.phase)
+        return VStack(spacing: 0) {
+            ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
+                Button { tapCurrentPhaseSheet() } label: {
+                    TradeStatusRow(item: TradeStepRow(
+                        title: step.title,
+                        description: step.description,
+                        badge: step.badge
+                    ))
                 }
                 .buttonStyle(.plain)
-                if index != rows.count - 1 {
+                if index != steps.count - 1 {
                     Rectangle()
                         .fill(Color("grey100"))
                         .frame(height: 1)
@@ -135,43 +139,9 @@ struct GuestDeliveryView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    private var rows: [GuestDeliveryRow] {
-        let p = vm.phase
-        return [
-            GuestDeliveryRow(step: .init(title: "호스트 독서", description: "호스트가 책을 읽는 중",
-                                         badge: badge(for: p, threshold: .hostReading)),
-                             sheet: .readingStatus),
-            GuestDeliveryRow(step: .init(title: "게스트에게 발송", description: "호스트가 책을 발송",
-                                         badge: badge(for: p, threshold: .hostShipped)),
-                             sheet: .shippingStatus),
-            GuestDeliveryRow(step: .init(title: "게스트 수령", description: "수령 사진 등록",
-                                         badge: badge(for: p, threshold: .guestReading)),
-                             sheet: .receiveConfirm),
-            GuestDeliveryRow(step: .init(title: "게스트 독서", description: "내가 책을 읽는 중",
-                                         badge: badge(for: p, threshold: .guestReading)),
-                             sheet: .reading),
-            GuestDeliveryRow(step: .init(title: "호스트에게 회수", description: "운송장 등록 후 발송",
-                                         badge: badge(for: p, threshold: .guestShipped)),
-                             sheet: .shippingInput),
-            GuestDeliveryRow(step: .init(title: "호스트 수령", description: "호스트가 수령",
-                                         badge: badge(for: p, threshold: .finished)),
-                             sheet: .shipped),
-            GuestDeliveryRow(step: .init(title: "거래 종료", description: "리뷰 작성",
-                                         badge: badge(for: p, threshold: .finished)),
-                             sheet: .tradeFinish),
-        ]
-    }
-
-    private func badge(for phase: DeliveryPhase, threshold: DeliveryPhase) -> String {
-        let order: [DeliveryPhase] = [
-            .initState, .hostReading, .hostShippingReady, .hostShipped,
-            .guestReading, .guestShippingReady, .guestShipped, .finished
-        ]
-        let current = order.firstIndex(of: phase) ?? 0
-        let target = order.firstIndex(of: threshold) ?? 0
-        if current > target { return "완료" }
-        if current == target { return "진행중" }
-        return "대기"
+    private func tapCurrentPhaseSheet() {
+        guard let sheet = vm.defaultSheet(for: vm.phase) else { return }
+        vm.tapStep(sheet)
     }
 
     @ViewBuilder
@@ -362,11 +332,6 @@ struct GuestDeliveryView: View {
         resetReceiveForm()
         shippingPhotoUrl = nil
     }
-}
-
-private struct GuestDeliveryRow {
-    let step: TradeStepRow
-    let sheet: DeliverySheet?
 }
 
 #Preview("GuestDelivery") {
