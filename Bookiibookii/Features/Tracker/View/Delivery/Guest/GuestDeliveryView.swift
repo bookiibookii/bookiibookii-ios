@@ -26,6 +26,7 @@ struct GuestDeliveryView: View {
     @State private var showReceivePhotoPicker: Bool = false
     @State private var shippingPhotoUrl: String?
     @State private var shippingPhotoSource: ShippingPhotoSource = .delivery
+    @State private var sheetHeight: CGFloat = 300   // fittedSheetDetent 측정값 보관
 
     private enum ShippingPhotoSource {
         case delivery
@@ -53,6 +54,7 @@ struct GuestDeliveryView: View {
             sheetView(for: sheet)
                 .presentationBackground(Color("white"))
                 .presentationCornerRadius(24)
+                .fittedSheetDetent($sheetHeight)
         }
         .overlay {
             if vm.isLoading {
@@ -182,7 +184,6 @@ struct GuestDeliveryView: View {
                 endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onStart: { vm.dismissSheet() }
             )
-            .presentationDetents([.medium])
         case .reading:
             GuestReadingSheet(
                 title: "책을 읽고 있어요",
@@ -192,17 +193,14 @@ struct GuestDeliveryView: View {
                 onExtendPeriod: { vm.tapStep(.extendPeriod) },
                 onFinish: { Task { await vm.markDone(); vm.dismissSheet() } }
             )
-            .presentationDetents([.medium])
         case .readingStatus:
             GuestReadingStatusSheet(
                 startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
                 endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onGoCard: vm.dismissSheet
             )
-            .presentationDetents([.medium])
         case .readingDone:
             GuestReadingDoneSheet(onGoCard: vm.dismissSheet)
-                .presentationDetents([.medium])
         case .extendPeriod:
             GuestExtendPeriodSheet(
                 days: $extendDaysInput,
@@ -222,14 +220,12 @@ struct GuestDeliveryView: View {
                     }
                 }
             )
-            .presentationDetents([.medium, .large])
         case .extendRequest:
             GuestExtendRequestSheet(
                 originalEndDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 newEndDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onConfirm: vm.dismissSheet
             )
-            .presentationDetents([.medium])
         case .shipping:
             GuestShippingSheet(
                 receiverName: vm.detail?.deliveryInfo?.receiverName ?? "",
@@ -242,7 +238,6 @@ struct GuestDeliveryView: View {
                 },
                 onRegister: { vm.tapStep(.shippingInput) }
             )
-            .presentationDetents([.medium, .large])
         case .shippingInput:
             GuestShippingInputSheet(
                 courier: $courier,
@@ -261,7 +256,6 @@ struct GuestDeliveryView: View {
                     }
                 }
             )
-            .presentationDetents([.large])
             .confirmationDialog("택배사 선택", isPresented: $showCourierPicker, titleVisibility: .visible) {
                 ForEach(courierOptions, id: \.self) { option in
                     Button(option) { courier = option }
@@ -282,7 +276,6 @@ struct GuestDeliveryView: View {
                 imageUrl: shippingPhotoUrl,
                 onConfirm: { shippingPhotoUrl = nil; vm.dismissSheet() }
             )
-            .presentationDetents([.large])
             .task {
                 shippingPhotoUrl = nil
                 do {
@@ -299,7 +292,6 @@ struct GuestDeliveryView: View {
                 onViewShippingPhoto: { vm.tapStep(.shippingPhoto) },
                 onDoReceiveConfirm: { vm.tapStep(.receiveConfirm) }
             )
-            .presentationDetents([.medium])
         case .shippingStatus:
             GuestShippingStatusSheet(
                 courier: vm.detail?.deliveryInfo?.deliveryCompany ?? "",
@@ -307,7 +299,6 @@ struct GuestDeliveryView: View {
                 isReceived: vm.detail?.deliveryInfo?.isVerified ?? false,
                 onConfirm: { vm.tapStep(.shippingPhoto) }
             )
-            .presentationDetents([.medium])
         case .receiveConfirm:
             GuestReceiveConfirmSheet(
                 pickedImage: receivePickedImage,
@@ -323,7 +314,6 @@ struct GuestDeliveryView: View {
                     }
                 }
             )
-            .presentationDetents([.large])
             .photosPicker(isPresented: $showReceivePhotoPicker, selection: $receivePickedItem, matching: .images)
             .onChange(of: receivePickedItem) { _, newItem in
                 Task {
@@ -335,18 +325,15 @@ struct GuestDeliveryView: View {
             }
         case .tradeFinish:
             GuestTradeFinishSheet(onWriteReview: vm.dismissSheet)
-                .presentationDetents([.medium])
         case .groupManage:
             GuestGroupManageSheet(
                 onTapDetail: vm.dismissSheet,
                 onTapReport: vm.dismissSheet
             )
-            .presentationDetents([.medium])
         case .photoSelection:
             Color.clear.onAppear { vm.dismissSheet() }
         case .sendConfirm:
             GuestSendConfirmView(imageUrl: nil, isChecked: false, onConfirm: vm.dismissSheet)
-                .presentationDetents([.medium])
         }
     }
 

@@ -162,3 +162,35 @@ struct SheetContainer<Content: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
+
+// MARK: - 콘텐츠 자연 크기에 맞춰 시트 높이 측정 (안드 BottomSheet wrap_content 동일)
+
+struct SheetContentHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+extension View {
+    /// 시트 콘텐츠 높이를 측정해 `presentationDetents([.height(measured)])` 적용.
+    /// 사용 측에 `@State var sheetHeight: CGFloat`을 두고 binding 전달.
+    /// 콘텐츠 크기보다 큰 빈 영역이 노출되지 않도록 한다 — 안드 wrap_content와 동등.
+    func fittedSheetDetent(_ height: Binding<CGFloat>) -> some View {
+        self
+            .background(
+                GeometryReader { geo in
+                    Color.clear.preference(
+                        key: SheetContentHeightKey.self,
+                        value: geo.size.height
+                    )
+                }
+            )
+            .onPreferenceChange(SheetContentHeightKey.self) { newValue in
+                // 0이 reduce되어 들어오는 첫 프레임 회피
+                guard newValue > 0 else { return }
+                height.wrappedValue = newValue
+            }
+            .presentationDetents([.height(max(height.wrappedValue, 1))])
+    }
+}

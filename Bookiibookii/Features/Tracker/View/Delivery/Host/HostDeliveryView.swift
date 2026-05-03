@@ -19,6 +19,7 @@ struct HostDeliveryView: View {
     @State private var receivePickedImage: UIImage?
     @State private var receiveChecked: Bool = false
     @State private var showReceivePhotoPicker: Bool = false
+    @State private var sheetHeight: CGFloat = 300   // fittedSheetDetent 측정값 보관
 
     private enum ShippingPhotoSource {
         case delivery   // host's own shipment photo
@@ -51,6 +52,7 @@ struct HostDeliveryView: View {
             sheetView(for: sheet)
                 .presentationBackground(Color("white"))
                 .presentationCornerRadius(24)
+                .fittedSheetDetent($sheetHeight)
         }
         .overlay {
             if vm.isLoading {
@@ -188,7 +190,6 @@ struct HostDeliveryView: View {
                 endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onStart: { Task { await vm.startReading(); vm.dismissSheet() } }
             )
-            .presentationDetents([.medium])
         case .reading:
             HostReadingSheet(
                 title: "책을 읽고 있어요",
@@ -198,14 +199,12 @@ struct HostDeliveryView: View {
                 onExtendPeriod: { vm.tapStep(.extendPeriod) },
                 onFinish: { Task { await vm.markDone(); vm.dismissSheet() } }
             )
-            .presentationDetents([.medium])
         case .readingStatus:
             HostReadingStatusSheet(
                 startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
                 endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onGoCard: vm.dismissSheet
             )
-            .presentationDetents([.medium])
         case .extendPeriod:
             HostExtendPeriodSheet(
                 days: $extendDaysInput,
@@ -225,7 +224,6 @@ struct HostDeliveryView: View {
                     }
                 }
             )
-            .presentationDetents([.medium, .large])
         case .extendRequest:
             // 게스트 연장 신청이 자동 승인된 경우. 서버가 이미 endDate를 갱신했으므로 원본/신규가 같은 값으로 표시됨 (현 주기 한계).
             HostExtendRequestSheet(
@@ -233,10 +231,8 @@ struct HostDeliveryView: View {
                 newEndDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onConfirm: vm.dismissSheet
             )
-            .presentationDetents([.medium])
         case .readingDone:
             HostReadingDoneSheet(onGoCard: vm.dismissSheet)
-                .presentationDetents([.medium])
         case .shippingInput:
             HostShippingInputSheet(
                 courier: $courier,
@@ -255,7 +251,6 @@ struct HostDeliveryView: View {
                     }
                 }
             )
-            .presentationDetents([.large])
             .confirmationDialog("택배사 선택", isPresented: $showCourierPicker, titleVisibility: .visible) {
                 ForEach(courierOptions, id: \.self) { option in
                     Button(option) { courier = option }
@@ -281,7 +276,6 @@ struct HostDeliveryView: View {
                 },
                 onDoReceiveConfirm: { vm.tapStep(.receiveConfirm) }
             )
-            .presentationDetents([.medium])
         case .shippingStatus:
             HostShippingStatusSheet(
                 courier: vm.detail?.deliveryInfo?.deliveryCompany ?? "",
@@ -292,13 +286,11 @@ struct HostDeliveryView: View {
                     vm.tapStep(.shippingPhoto)
                 }
             )
-            .presentationDetents([.medium])
         case .shippingPhoto:
             HostShippingPhotoSheet(
                 imageUrl: shippingPhotoUrl,
                 onConfirm: { shippingPhotoUrl = nil; vm.dismissSheet() }
             )
-            .presentationDetents([.large])
             .task {
                 shippingPhotoUrl = nil
                 do {
@@ -327,7 +319,6 @@ struct HostDeliveryView: View {
                     }
                 }
             )
-            .presentationDetents([.large])
             .photosPicker(isPresented: $showReceivePhotoPicker, selection: $receivePickedItem, matching: .images)
             .onChange(of: receivePickedItem) { _, newItem in
                 Task {
@@ -339,7 +330,6 @@ struct HostDeliveryView: View {
             }
         case .tradeFinish:
             HostTradeFinishSheet(onWriteReview: vm.dismissSheet)
-                .presentationDetents([.medium])
         case .groupManage:
             HostGroupManageSheet(
                 isInProgress: vm.phase != .initState && vm.phase != .finished,
@@ -347,14 +337,12 @@ struct HostDeliveryView: View {
                 onTapEdit: vm.dismissSheet,
                 onTapDelete: vm.dismissSheet
             )
-            .presentationDetents([.medium])
         case .sendConfirm:
             HostSendConfirmView(
                 imageUrl: shippingPhotoUrl,
                 isChecked: true,
                 onConfirm: { shippingPhotoUrl = nil; vm.dismissSheet() }
             )
-            .presentationDetents([.large])
             .task {
                 // Same load pattern as .shippingPhoto, defaulting to .delivery source.
                 if shippingPhotoUrl == nil {
