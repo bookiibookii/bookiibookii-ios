@@ -49,7 +49,9 @@ struct GuestDeliveryView: View {
         }
         .background(Color("grey100"))
         .task { await vm.onAppear() }
-        .sheet(item: $vm.activeSheet) { sheet in sheetView(for: sheet) }
+        .sheet(item: $vm.activeSheet, onDismiss: handleSheetDismiss) { sheet in
+            sheetView(for: sheet)
+        }
         .overlay {
             if vm.isLoading {
                 Color.black.opacity(0.3).ignoresSafeArea()
@@ -281,7 +283,9 @@ struct GuestDeliveryView: View {
                 do {
                     let url = try await vm.service.fetchShippingImageURL(groupId: vm.groupId)
                     shippingPhotoUrl = url.absoluteString
-                } catch { /* silent */ }
+                } catch {
+                    vm.toastMessage = "사진을 불러올 수 없어요"
+                }
             }
         case .shipped:
             GuestShippedSheet(
@@ -356,6 +360,16 @@ struct GuestDeliveryView: View {
         receivePickedItem = nil
         receivePickedImage = nil
         receiveChecked = false
+    }
+
+    /// 시트가 어떤 경로(콜백/swipe-down)로 닫히든 폼 상태 초기화.
+    /// SwiftUI .sheet(item:onDismiss:)는 swipe-dismiss에도 호출되므로
+    /// 콜백 안의 reset과 중복되더라도 여기서 일괄 정리한다.
+    private func handleSheetDismiss() {
+        extendDaysInput = ""
+        resetShippingForm()
+        resetReceiveForm()
+        shippingPhotoUrl = nil
     }
 }
 
