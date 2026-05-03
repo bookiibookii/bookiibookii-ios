@@ -49,6 +49,8 @@ struct HostDeliveryView: View {
         .task { await vm.onAppear() }
         .sheet(item: $vm.activeSheet, onDismiss: handleSheetDismiss) { sheet in
             sheetView(for: sheet)
+                .presentationBackground(Color("white"))
+                .presentationCornerRadius(24)
         }
         .overlay {
             if vm.isLoading {
@@ -182,16 +184,16 @@ struct HostDeliveryView: View {
         switch sheet {
         case .start:
             HostStartSheet(
-                startDate: vm.detail?.startDate ?? "",
-                endDate: vm.detail?.endDate ?? "",
+                startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
+                endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onStart: { Task { await vm.startReading(); vm.dismissSheet() } }
             )
             .presentationDetents([.medium])
         case .reading:
             HostReadingSheet(
                 title: "책을 읽고 있어요",
-                startDate: vm.detail?.startDate ?? "",
-                endDate: vm.detail?.endDate ?? "",
+                startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
+                endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onWriteCard: vm.dismissSheet,
                 onExtendPeriod: { vm.tapStep(.extendPeriod) },
                 onFinish: { Task { await vm.markDone(); vm.dismissSheet() } }
@@ -199,16 +201,19 @@ struct HostDeliveryView: View {
             .presentationDetents([.medium])
         case .readingStatus:
             HostReadingStatusSheet(
-                startDate: vm.detail?.startDate ?? "",
-                endDate: vm.detail?.endDate ?? "",
+                startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
+                endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onGoCard: vm.dismissSheet
             )
             .presentationDetents([.medium])
         case .extendPeriod:
             HostExtendPeriodSheet(
                 days: $extendDaysInput,
-                originalEndDate: vm.detail?.endDate ?? "",
-                extendedEndDate: vm.detail?.endDate ?? "", // 임시: API 호출 후 vm.detail.endDate가 실제 연장일로 갱신됨
+                originalEndDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
+                extendedEndDate: TrackerDateFormatter.extendedEndDateText(
+                    endRaw: vm.detail?.endDate,
+                    days: Int(extendDaysInput) ?? 0
+                ),
                 onClose: { extendDaysInput = ""; vm.dismissSheet() },
                 onCancel: { extendDaysInput = ""; vm.dismissSheet() },
                 onApply: {
@@ -224,8 +229,8 @@ struct HostDeliveryView: View {
         case .extendRequest:
             // 게스트 연장 신청이 자동 승인된 경우. 서버가 이미 endDate를 갱신했으므로 원본/신규가 같은 값으로 표시됨 (현 주기 한계).
             HostExtendRequestSheet(
-                originalEndDate: vm.detail?.endDate ?? "",
-                newEndDate: vm.detail?.endDate ?? "",
+                originalEndDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
+                newEndDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onConfirm: vm.dismissSheet
             )
             .presentationDetents([.medium])

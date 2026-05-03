@@ -51,6 +51,8 @@ struct GuestDeliveryView: View {
         .task { await vm.onAppear() }
         .sheet(item: $vm.activeSheet, onDismiss: handleSheetDismiss) { sheet in
             sheetView(for: sheet)
+                .presentationBackground(Color("white"))
+                .presentationCornerRadius(24)
         }
         .overlay {
             if vm.isLoading {
@@ -176,16 +178,16 @@ struct GuestDeliveryView: View {
         switch sheet {
         case .start:
             GuestStartSheet(
-                startDate: vm.detail?.startDate ?? "",
-                endDate: vm.detail?.endDate ?? "",
+                startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
+                endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onStart: { vm.dismissSheet() }
             )
             .presentationDetents([.medium])
         case .reading:
             GuestReadingSheet(
                 title: "책을 읽고 있어요",
-                startDate: vm.detail?.startDate ?? "",
-                endDate: vm.detail?.endDate ?? "",
+                startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
+                endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onWriteCard: vm.dismissSheet,
                 onExtendPeriod: { vm.tapStep(.extendPeriod) },
                 onFinish: { Task { await vm.markDone(); vm.dismissSheet() } }
@@ -193,8 +195,8 @@ struct GuestDeliveryView: View {
             .presentationDetents([.medium])
         case .readingStatus:
             GuestReadingStatusSheet(
-                startDate: vm.detail?.startDate ?? "",
-                endDate: vm.detail?.endDate ?? "",
+                startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
+                endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onGoCard: vm.dismissSheet
             )
             .presentationDetents([.medium])
@@ -204,8 +206,11 @@ struct GuestDeliveryView: View {
         case .extendPeriod:
             GuestExtendPeriodSheet(
                 days: $extendDaysInput,
-                originalEndDate: vm.detail?.endDate ?? "",
-                extendedEndDate: vm.detail?.endDate ?? "",
+                originalEndDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
+                extendedEndDate: TrackerDateFormatter.extendedEndDateText(
+                    endRaw: vm.detail?.endDate,
+                    days: Int(extendDaysInput) ?? 0
+                ),
                 onClose: { extendDaysInput = ""; vm.dismissSheet() },
                 onCancel: { extendDaysInput = ""; vm.dismissSheet() },
                 onApply: {
@@ -220,8 +225,8 @@ struct GuestDeliveryView: View {
             .presentationDetents([.medium, .large])
         case .extendRequest:
             GuestExtendRequestSheet(
-                originalEndDate: vm.detail?.endDate ?? "",
-                newEndDate: vm.detail?.endDate ?? "",
+                originalEndDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
+                newEndDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
                 onConfirm: vm.dismissSheet
             )
             .presentationDetents([.medium])
