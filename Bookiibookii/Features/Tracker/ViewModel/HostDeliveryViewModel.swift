@@ -12,7 +12,9 @@ final class HostDeliveryViewModel: ObservableObject {
 
     let groupId: Int
     let service: TrackerService
-    private var presentedPhases: Set<DeliveryPhase> = []
+    /// 안드 GuestActivity/HostActivity의 showSheetOnceForStatus 트래킹 대응.
+    /// 같은 status에서 자동으로 두 번 열리지 않도록 한 번 띄운 status를 기억.
+    private var presentedStatuses: Set<TrackerStatusDTO> = []
 
     init(groupId: Int, service: TrackerService) {
         self.groupId = groupId
@@ -35,8 +37,8 @@ final class HostDeliveryViewModel: ObservableObject {
         activeSheet = nil
     }
 
-    /// row 탭 진입점 — 서버에서 최신 detail을 받아 phase 갱신 후 현재 phase 시트 노출.
-    /// presentedPhases를 우회해 명시 탭은 항상 시트가 열린다.
+    /// row 탭 진입점 — 서버에서 최신 detail을 받아 phase 갱신 후 현재 status 시트 노출.
+    /// presentedStatuses를 우회해 명시 탭은 항상 시트가 열린다.
     func refreshAndShowSheet() async {
         isLoading = true
         defer { isLoading = false }
@@ -44,7 +46,10 @@ final class HostDeliveryViewModel: ObservableObject {
             let response = try await service.fetchDetail(groupId: groupId)
             detail = response
             phase = DeliveryPhase.from(response.trackerStatus)
-            if let sheet = defaultSheet(for: phase) {
+            if let sheet = defaultSheet(
+                for: response.trackerStatus,
+                isVerified: response.deliveryInfo?.isVerified ?? false
+            ) {
                 activeSheet = sheet
             }
         } catch {
@@ -88,18 +93,22 @@ final class HostDeliveryViewModel: ObservableObject {
         await runAction { try await self.service.verifyReception(groupId: self.groupId) }
     }
 
-    // MARK: - 첫 진입 / phase advance 시 자동 시트 표시
+    // MARK: - 자동 시트 매핑 (안드 HostActivity.createSheetForStatus 대응)
 
-    func defaultSheet(for phase: DeliveryPhase) -> DeliverySheet? {
-        switch phase {
-        case .initState:           return .start
-        case .hostReading:         return .reading
-        case .hostShippingReady:   return .shippingInput
-        case .hostShipped:         return .shippingStatus
-        case .guestReading:        return .readingStatus
-        case .guestShippingReady:  return .readingDone
-        case .guestShipped:        return .shipped
-        case .finished:            return .tradeFinish
+    /// 서버 status + 수령확인 여부 → 노출 시트.
+    /// 안드 HostActivity.createSheetForStatus와 1:1.
+    func defaultSheet(for status: TrackerStatusDTO, isVerified: Bool) -> DeliverySheet? {
+        switch status {
+        case .ready:                                    return .start
+        case .hostReading, .hostExtension:              return .reading
+        case .hostDone:                                 return .shipping
+        case .shippingToGuest, .received:               return .shippingStatus
+        case .guestReading:
+            return isVerified ? .readingStatus : .shippingStatus
+        case .guestExtension:                           return .extendRequest
+        case .guestDone:                                return .readingDone
+        case .shippingToHost:                           return .shipped
+        case .returned, .completed, .unknown:           return .tradeFinish
         }
     }
 
@@ -122,21 +131,19 @@ final class HostDeliveryViewModel: ObservableObject {
 
     private func handle(_ response: TrackerDetailResponse, autoPresent: Bool) {
         detail = response
-        let newPhase = DeliveryPhase.from(response.trackerStatus)
-        let phaseChanged = newPhase != phase
-        phase = newPhase
-        if autoPresent && phaseChanged {
-            autoPresentIfNeeded()
-        } else if autoPresent && presentedPhases.isEmpty {
-            // 첫 진입 (initState→initState로 변화 없음일 때도 한 번 표시)
-            autoPresentIfNeeded()
+        phase = DeliveryPhase.from(response.trackerStatus)
+        if autoPresent {
+            autoPresentIfNeeded(
+                status: response.trackerStatus,
+                isVerified: response.deliveryInfo?.isVerified ?? false
+            )
         }
     }
 
-    private func autoPresentIfNeeded() {
-        guard !presentedPhases.contains(phase),
-              let sheet = defaultSheet(for: phase) else { return }
-        presentedPhases.insert(phase)
+    private func autoPresentIfNeeded(status: TrackerStatusDTO, isVerified: Bool) {
+        guard !presentedStatuses.contains(status),
+              let sheet = defaultSheet(for: status, isVerified: isVerified) else { return }
+        presentedStatuses.insert(status)
         activeSheet = sheet
     }
 }

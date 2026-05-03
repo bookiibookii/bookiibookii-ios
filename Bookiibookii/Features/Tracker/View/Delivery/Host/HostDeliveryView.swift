@@ -326,8 +326,17 @@ struct HostDeliveryView: View {
             // 자동 시트 매핑 없음 — 트래커 흐름에서 사용 안 함. 안전하게 닫기.
             Color.clear.onAppear { vm.dismissSheet() }
         case .shipping:
-            // 호스트는 .shipping 자동 매핑 없음 — 안전하게 닫기.
-            Color.clear.onAppear { vm.dismissSheet() }
+            // HOST_DONE — 게스트 배송지로 발송할 운송장 등록 진입 (안드 HostShippingBottomDialog).
+            HostShippingSheet(
+                receiverName: vm.detail?.deliveryInfo?.receiverName ?? "",
+                receiverPhone: vm.detail?.deliveryInfo?.receiverPhone ?? "",
+                address: vm.detail?.deliveryInfo?.receiverAddress ?? "",
+                onCopy: {
+                    UIPasteboard.general.string = vm.detail?.deliveryInfo?.receiverAddress ?? ""
+                    vm.toastMessage = "주소가 복사되었어요"
+                },
+                onRegister: { vm.tapStep(.shippingInput) }
+            )
         }
     }
 
