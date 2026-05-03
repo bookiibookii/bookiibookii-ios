@@ -240,5 +240,6 @@ struct TrackerPresignedUrlResponse: Decodable {
 }
 
 struct TrackerImageResponse: Decodable {
-    let imageUrl: String
+    /// 안드 TrackerCheckShippingImageResponseDto / TrackerCheckImageResponseDto 의 `presignedGetUrl` 필드.
+    let presignedGetUrl: String
 }

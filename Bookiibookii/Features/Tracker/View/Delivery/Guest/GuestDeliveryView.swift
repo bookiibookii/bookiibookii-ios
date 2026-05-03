@@ -49,11 +49,18 @@ struct GuestDeliveryView: View {
         }
         .background(Color("grey100"))
         .task { await vm.onAppear() }
-        .sheet(item: $vm.activeSheet, onDismiss: handleSheetDismiss) { sheet in
+        // 하단 시트 (안드 BottomSheetDialogFragment 대응)
+        .sheet(item: bottomSheetBinding, onDismiss: handleSheetDismiss) { sheet in
             sheetView(for: sheet)
                 .presentationBackground(Color("white"))
                 .presentationCornerRadius(24)
                 .presentationDetents([.height(sheet.fixedHeight)])
+        }
+        // 중앙 다이얼로그 (안드 일반 DialogFragment 대응)
+        .overlay {
+            if let sheet = vm.activeSheet, !sheet.isBottomSheet {
+                centerDialogOverlay(for: sheet)
+            }
         }
         .overlay {
             if vm.isLoading {
@@ -331,6 +338,33 @@ struct GuestDeliveryView: View {
         resetShippingForm()
         resetReceiveForm()
         shippingPhotoUrl = nil
+    }
+
+    /// vm.activeSheet 중 BottomSheet인 것만 .sheet(item:)에 전달.
+    /// 중앙 다이얼로그(non-bottom)는 overlay로 별도 처리되므로 nil 반환.
+    private var bottomSheetBinding: Binding<DeliverySheet?> {
+        Binding(
+            get: {
+                guard let s = vm.activeSheet, s.isBottomSheet else { return nil }
+                return s
+            },
+            set: { newValue in
+                if newValue == nil { vm.dismissSheet() }
+            }
+        )
+    }
+
+    /// 안드 일반 DialogFragment 대응 — 반투명 dim + 중앙 카드.
+    @ViewBuilder
+    private func centerDialogOverlay(for sheet: DeliverySheet) -> some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture { /* 외부 탭 ignore — 다이얼로그 내부 닫기 버튼으로만 닫힘 */ }
+            sheetView(for: sheet)
+                .padding(.horizontal, 20)
+        }
+        .transition(.opacity)
     }
 }
 

@@ -98,7 +98,7 @@ final class TrackerService {
         }
         let response = try JSONDecoder().decode(ApiResponseDTO<TrackerImageResponse>.self, from: data)
         guard response.isSuccess,
-              let urlString = response.result?.imageUrl,
+              let urlString = response.result?.presignedGetUrl,
               let url = URL(string: urlString) else {
             throw TrackerServiceError.server(response.message)
         }

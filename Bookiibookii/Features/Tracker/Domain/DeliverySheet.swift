@@ -22,6 +22,25 @@ enum DeliverySheet: String, Identifiable {
 
     var id: String { rawValue }
 
+    /// 안드 BottomSheetDialogFragment(=하단 시트)인지 여부.
+    /// false면 일반 DialogFragment → 중앙 모달로 표시.
+    /// 안드 trkHost/trkGuest 클래스명 기준으로 분류:
+    /// - *BottomDialogFragment / Activity 패턴 → 하단 시트
+    /// - *DialogFragment(=non-bottom) → 중앙 다이얼로그
+    var isBottomSheet: Bool {
+        switch self {
+        // 하단 시트 (안드 BottomSheetDialogFragment)
+        case .start, .reading, .readingStatus, .readingDone,
+             .extendRequest, .shipping, .shipped, .shippingStatus,
+             .tradeFinish, .groupManage:
+            return true
+        // 중앙 다이얼로그 (안드 일반 DialogFragment)
+        case .extendPeriod, .receiveConfirm, .sendConfirm,
+             .shippingInput, .shippingPhoto, .photoSelection:
+            return false
+        }
+    }
+
     /// 안드 fragment_*_bottom_dialog.xml 컴포넌트 합산 기반 시트 높이(pt).
     /// 시뮬레이터에서 ±20pt 단위로 미세 조정 가능.
     var fixedHeight: CGFloat {
