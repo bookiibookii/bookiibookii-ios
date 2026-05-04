@@ -168,17 +168,13 @@ struct CardAddView: View {
                             showReplacePicker = true
                         } label: {
                             Image("pencil")
+                                .renderingMode(.original)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 24, height: 24)
-                                .padding(4)
-                                .frame(width: 32, height: 32)
-                                .background(Color("white"))
-                                .clipShape(Circle())
-                                .overlay(Circle().stroke(Color("grey200"), lineWidth: 1))
                         }
                         .buttonStyle(.plain)
-                        .padding(16)
+                        .padding(20)
                     }
                     .frame(width: Self.photoPreviewWidth, height: Self.photoPreviewHeight)
                     .clipShape(RoundedRectangle(cornerRadius: 20))

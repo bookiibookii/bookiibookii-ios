@@ -50,7 +50,9 @@ struct LibraryView: View {
                 CircleButton(systemName: "magnifyingglass") {
                     container.navigationRouter.push(to: .librarySearch)
                 }
-                CircleButton(systemName: "bookmark")
+                CircleButton(systemName: "bookmark") {
+                    container.navigationRouter.push(to: .libraryBookmarkedCards)
+                }
             }
         }
         .padding(.horizontal, 24)

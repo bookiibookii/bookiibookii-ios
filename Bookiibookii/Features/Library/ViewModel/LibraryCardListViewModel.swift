@@ -46,41 +46,37 @@ final class LibraryCardListViewModel: ObservableObject {
 
     func toggleBookmark(cardId: Int) async {
         guard let index = cards.firstIndex(where: { $0.id == cardId }) else { return }
+        guard cards[index].isBookmarkable else { return }
         let previous = cards[index].isBookmarked
-        cards[index] = LibraryCard(
-            id: cards[index].id,
-            page: cards[index].page,
-            memo: cards[index].memo,
-            imageURL: cards[index].imageURL,
-            creatorName: cards[index].creatorName,
-            isBookmarked: !previous,
-            createdAt: cards[index].createdAt,
-            messageCount: cards[index].messageCount
-        )
+        let optimistic = !previous
+
+        func replacingCard(at i: Int, bookmarked: Bool) -> [LibraryCard] {
+            cards.enumerated().map { idx, card in
+                guard idx == i else { return card }
+                return LibraryCard(
+                    id: card.id,
+                    isBookmarkable: card.isBookmarkable,
+                    bookTitle: card.bookTitle,
+                    page: card.page,
+                    memo: card.memo,
+                    imageURL: card.imageURL,
+                    creatorName: card.creatorName,
+                    isBookmarked: bookmarked,
+                    createdAt: card.createdAt,
+                    messageCount: card.messageCount
+                )
+            }
+        }
+
+        cards = replacingCard(at: index, bookmarked: optimistic)
 
         do {
             let serverValue = try await libraryService.toggleLibraryCardBookmark(cardId: cardId)
-            cards[index] = LibraryCard(
-                id: cards[index].id,
-                page: cards[index].page,
-                memo: cards[index].memo,
-                imageURL: cards[index].imageURL,
-                creatorName: cards[index].creatorName,
-                isBookmarked: serverValue,
-                createdAt: cards[index].createdAt,
-                messageCount: cards[index].messageCount
-            )
+            guard let idx = cards.firstIndex(where: { $0.id == cardId }) else { return }
+            cards = replacingCard(at: idx, bookmarked: serverValue)
         } catch {
-            cards[index] = LibraryCard(
-                id: cards[index].id,
-                page: cards[index].page,
-                memo: cards[index].memo,
-                imageURL: cards[index].imageURL,
-                creatorName: cards[index].creatorName,
-                isBookmarked: previous,
-                createdAt: cards[index].createdAt,
-                messageCount: cards[index].messageCount
-            )
+            guard let idx = cards.firstIndex(where: { $0.id == cardId }) else { return }
+            cards = replacingCard(at: idx, bookmarked: previous)
         }
     }
 }

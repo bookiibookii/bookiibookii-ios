@@ -17,6 +17,23 @@ final class LibraryService {
         return try await requestBooks(request)
     }
 
+    func fetchBookmarkedLibraryCards() async throws -> [LibraryCard] {
+        let request = LibraryAPITarget.fetchBookmarkedCards.asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<[GroupCardResponseDTO]>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess else {
+            throw LibraryServiceError.server(response.message)
+        }
+
+        return (response.result ?? []).map { $0.toLibraryCard() }
+    }
+
     func fetchLibraryCards(groupId: Int) async throws -> LibraryCardList {
         let request = LibraryAPITarget.fetchCards(groupId: groupId).asURLRequest()
         let (data, http) = try await interceptor.request(request)
@@ -54,8 +71,11 @@ final class LibraryService {
         guard response.isSuccess else {
             throw LibraryServiceError.server(response.message)
         }
+        guard let dto = response.result else {
+            throw LibraryServiceError.invalidResponse
+        }
 
-        return response.result?.bookmarked ?? false
+        return dto.bookmarked
     }
 
     /// POST `/api/cards/{userBookId}/presigned-url` — 응답의 `presignedPutUrl`로 이미지 바이너리 PUT (Authorization 없음).

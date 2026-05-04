@@ -80,6 +80,8 @@ struct LibraryTopComment: Equatable, Identifiable {
 
 struct LibraryCard: Equatable, Identifiable {
     let id: Int
+    let isBookmarkable: Bool
+    let bookTitle: String?
     let page: Int
     let memo: String
     let imageURL: String?
@@ -87,6 +89,26 @@ struct LibraryCard: Equatable, Identifiable {
     let isBookmarked: Bool
     let createdAt: String?
     let messageCount: Int
+}
+
+extension GroupCardResponseDTO {
+    func toLibraryCard() -> LibraryCard {
+        let serverCardId = cardId
+        let rowId = serverCardId ?? (-abs(stableLibraryCardRowId(for: self)) - 1)
+        let title = bookTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return LibraryCard(
+            id: rowId,
+            isBookmarkable: serverCardId != nil,
+            bookTitle: (title?.isEmpty == false) ? title : nil,
+            page: page ?? 0,
+            memo: memo ?? "",
+            imageURL: cardImage?.presignedGetUrl,
+            creatorName: (creatorName ?? "").isEmpty ? "-" : (creatorName ?? ""),
+            isBookmarked: isBookmarked ?? false,
+            createdAt: createdAt,
+            messageCount: 0
+        )
+    }
 }
 
 extension CardListResponseDTO {
@@ -117,18 +139,7 @@ extension CardListResponseDTO {
             ]
         }
 
-        let mappedCards = (cards ?? []).map { dto in
-            LibraryCard(
-                id: dto.cardId ?? Int.random(in: 100_000...999_999),
-                page: dto.page ?? 0,
-                memo: dto.memo ?? "",
-                imageURL: dto.cardImage?.presignedGetUrl,
-                creatorName: (dto.creatorName ?? "").isEmpty ? "-" : (dto.creatorName ?? ""),
-                isBookmarked: dto.isBookmarked ?? false,
-                createdAt: dto.createdAt,
-                messageCount: 0
-            )
-        }
+        let mappedCards = (cards ?? []).map { $0.toLibraryCard() }
 
         return LibraryCardList(
             groupId: groupId ?? 0,
@@ -136,4 +147,13 @@ extension CardListResponseDTO {
             cards: mappedCards
         )
     }
+}
+
+private func stableLibraryCardRowId(for dto: GroupCardResponseDTO) -> Int {
+    let s = "\(dto.page ?? 0)|\(dto.memo ?? "")|\(dto.createdAt ?? "")|\(dto.cardImage?.s3Key ?? "")|\(dto.bookTitle ?? "")"
+    var h: UInt64 = 5381
+    for byte in s.utf8 {
+        h = ((h << 5) &+ h) &+ UInt64(byte)
+    }
+    return Int(truncatingIfNeeded: h & 0x7fff_ffff)
 }
