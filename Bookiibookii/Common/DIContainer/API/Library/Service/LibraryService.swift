@@ -17,6 +17,47 @@ final class LibraryService {
         return try await requestBooks(request)
     }
 
+    func fetchLibraryCards(groupId: Int) async throws -> LibraryCardList {
+        let request = LibraryAPITarget.fetchCards(groupId: groupId).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<CardListResponseDTO>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess else {
+            throw LibraryServiceError.server(response.message)
+        }
+
+        return (response.result ?? CardListResponseDTO(
+            groupId: groupId,
+            currentBookOwner: nil,
+            myComment: nil,
+            partnerComment: nil,
+            togetherComments: nil,
+            cards: []
+        )).toDomain()
+    }
+
+    func toggleLibraryCardBookmark(cardId: Int) async throws -> Bool {
+        let request = LibraryAPITarget.toggleCardBookmark(cardId: cardId).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<CardBookmarkResponseDTO>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess else {
+            throw LibraryServiceError.server(response.message)
+        }
+
+        return response.result?.bookmarked ?? false
+    }
+
     private func requestBooks(_ request: URLRequest) async throws -> [LibraryBook] {
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {

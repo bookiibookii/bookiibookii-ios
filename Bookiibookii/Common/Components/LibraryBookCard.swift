@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LibraryBookCard: View {
     let book: LibraryBook
+    var onTap: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -44,6 +45,10 @@ struct LibraryBookCard: View {
                     .font(.pretendard(size: 11, weight: .medium))
                     .foregroundColor(Color("grey700"))
             }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap?()
         }
     }
 }

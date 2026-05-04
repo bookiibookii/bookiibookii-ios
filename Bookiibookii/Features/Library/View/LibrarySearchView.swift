@@ -119,7 +119,9 @@ struct LibrarySearchView: View {
                         spacing: 24
                     ) {
                         ForEach(viewModel.resultBooks) { book in
-                            LibraryBookCard(book: book)
+                            LibraryBookCard(book: book) {
+                                container.navigationRouter.push(to: .libraryCards(book: book))
+                            }
                         }
                     }
                 }
