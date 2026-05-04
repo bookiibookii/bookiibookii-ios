@@ -16,5 +16,15 @@ enum API {
         static let keywords = "/api/keywords"
         static let trackers = "/api/groups/me/trackers"
         static let library = "/api/library"
+        static func trackerDetail(groupId: Int)        -> String { "/api/groups/\(groupId)/tracker" }
+        static func trackerReading(groupId: Int)       -> String { "/api/groups/\(groupId)/tracker/reading" }
+        static func trackerPeriodExtension(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/extension" }
+        static func trackerDone(groupId: Int)          -> String { "/api/groups/\(groupId)/tracker/done" }
+        static func trackerDelivery(groupId: Int)      -> String { "/api/groups/\(groupId)/tracker/delivery" }
+        static func trackerReception(groupId: Int)     -> String { "/api/groups/\(groupId)/tracker/reception" }
+        static func trackerVerification(groupId: Int)  -> String { "/api/groups/\(groupId)/tracker/reception/verification" }
+        static func trackerPresignedUrl(groupId: Int)  -> String { "/api/groups/\(groupId)/tracker/images/presigned-url" }
+        static func trackerImageDelivery(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/images/delivery" }
+        static func trackerImageReceived(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/images/received" }
     }
 }

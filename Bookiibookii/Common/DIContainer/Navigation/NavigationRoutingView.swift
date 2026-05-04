@@ -90,6 +90,24 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .hostDelivery(let groupId):
+            HostDeliveryView(
+                groupId: groupId,
+                service: container.api.tracker,
+                onBack: { container.navigationRouter.pop() }
+            )
+            .environmentObject(container)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationBarBackButtonHidden(true)
+        case .guestDelivery(let groupId):
+            GuestDeliveryView(
+                groupId: groupId,
+                service: container.api.tracker,
+                onBack: { container.navigationRouter.pop() }
+            )
+            .environmentObject(container)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationBarBackButtonHidden(true)
         }
     }
 }

@@ -2,6 +2,7 @@ import SwiftUI
 
 // 안드로이드 TrkMainFragment 대응.
 struct TrackerView: View {
+    @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: TrackerViewModel
     private let onNavigateToGroup: () -> Void
 
@@ -25,6 +26,19 @@ struct TrackerView: View {
         }
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)
+    }
+
+    /// 카드 탭 시 outer NavigationStack(`BookiibookiiApp`)에 push.
+    /// 직거래 / 함께읽기는 이번 사이클 미지원 → 토스트로 안내.
+    private func navigate(to item: TrackerItem) {
+        switch (item.role, item.exchangeType) {
+        case (.host, .delivery):
+            container.navigationRouter.push(to: .hostDelivery(groupId: item.groupId))
+        case (.guest, .delivery):
+            container.navigationRouter.push(to: .guestDelivery(groupId: item.groupId))
+        default:
+            viewModel.toast = "이번 사이클에서 미지원"
+        }
     }
 
     // MARK: - 헤더
@@ -133,7 +147,7 @@ struct TrackerView: View {
         ScrollView(showsIndicators: false) {
             LazyVStack(spacing: 16) {
                 ForEach(items) { item in
-                    TrackerCard(item: item, onTap: { /* no-op: 다음 PR에서 상세 이동 */ })
+                    TrackerCard(item: item, onTap: { navigate(to: item) })
                 }
             }
             .padding(.horizontal, 24)

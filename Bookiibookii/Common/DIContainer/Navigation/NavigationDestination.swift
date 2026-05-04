@@ -21,4 +21,6 @@ enum NavigationDestination: Hashable {
     case libraryBookmarkedCards
     case libraryCards(book: LibraryBook)
     case libraryCardAdd(userBookId: Int)
+    case hostDelivery(groupId: Int)
+    case guestDelivery(groupId: Int)
 }
