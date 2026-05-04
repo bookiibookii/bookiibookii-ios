@@ -18,4 +18,6 @@ enum NavigationDestination: Hashable {
     case report
     case reportDetail
     case librarySearch
+    case hostDelivery(groupId: Int)
+    case guestDelivery(groupId: Int)
 }

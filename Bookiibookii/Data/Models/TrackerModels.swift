@@ -43,12 +43,12 @@ struct TrackerTogetherDetailDto: Decodable {
 
 // MARK: - 도메인 모델
 
-enum ExchangeRole {
+enum ExchangeRole: Hashable {
     case host
     case guest
 }
 
-enum ExchangeType {
+enum ExchangeType: Hashable {
     case delivery   // 택배
     case direct     // 직거래
     case none       // 함께읽기
@@ -62,7 +62,7 @@ enum ExchangeType {
     }
 }
 
-struct TrackerItem: Identifiable, Equatable {
+struct TrackerItem: Identifiable, Equatable, Hashable {
     let id: Int            // = groupId
     let groupId: Int
     let role: ExchangeRole
@@ -169,4 +169,77 @@ enum TrackerModelsMapper {
         // -1(아무 단계도 미진행) → 0단계로 표시 (호스트 읽는 중)
         return max(0, min(lastFilled, 3))
     }
+}
+
+// MARK: - 택배 교환 상세 DTO (안드로이드 TrackerDetailResponseDto 대응)
+
+struct TrackerDetailResponse: Decodable {
+    let bookTitle: String?
+    let partnerNickname: String?
+    let trackerStatus: TrackerStatusDTO
+    let startDate: String?
+    let endDate: String?
+    let extensionCount: Int?
+    let extensionDays: Int?
+    let readingPeriod: Int?
+    let trackerId: Int?
+    let deliveryInfo: DeliveryInfoDTO?
+    let meetingInfo: MeetingInfoDTO?
+}
+
+struct DeliveryInfoDTO: Decodable {
+    let receiverName: String?
+    let receiverPhone: String?
+    let receiverAddress: String?
+    let deliveryCompany: String?
+    let trackingNumber: String?
+    let isVerified: Bool?
+}
+
+struct MeetingInfoDTO: Decodable {
+    let meetingTime: String?
+    let meetingPlace: String?
+}
+
+enum TrackerStatusDTO: String, Decodable {
+    case ready              = "READY"
+    case hostReading        = "HOST_READING"
+    case hostExtension      = "HOST_EXTENSION"
+    case hostDone           = "HOST_DONE"
+    case shippingToGuest    = "SHIPPING_TO_GUEST"
+    case received           = "RECEIVED"
+    case guestReading       = "GUEST_READING"
+    case guestExtension     = "GUEST_EXTENSION"
+    case guestDone          = "GUEST_DONE"
+    case shippingToHost     = "SHIPPING_TO_HOST"
+    case returned           = "RETURNED"
+    case completed          = "COMPLETED"
+    case unknown            = "UNKNOWN"
+
+    init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = TrackerStatusDTO(rawValue: raw) ?? .unknown
+    }
+}
+
+// MARK: - 배송/수령 요청·응답
+
+struct TrackerShippingStartRequest: Encodable {
+    let deliveryCompany: String
+    let trackingNumber: String
+    let s3Key: String
+}
+
+struct TrackerReceiveRequest: Encodable {
+    let s3Key: String
+}
+
+struct TrackerPresignedUrlResponse: Decodable {
+    let s3Key: String
+    let presignedPutUrl: String
+}
+
+struct TrackerImageResponse: Decodable {
+    /// 안드 TrackerCheckShippingImageResponseDto / TrackerCheckImageResponseDto 의 `presignedGetUrl` 필드.
+    let presignedGetUrl: String
 }
