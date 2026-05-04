@@ -1,6 +1,7 @@
-import Foundation
-import SwiftUI
 import Combine
+import Foundation
+import PhotosUI
+import SwiftUI
 
 // 안드로이드 OnbProfileViewModel 대응
 final class OnboardingProfileViewModel: ObservableObject {
@@ -70,6 +71,8 @@ final class OnboardingProfileViewModel: ObservableObject {
     @Published var nickname: String = ""
     @Published var nicknameState: NicknameValidationState = .idle
     @Published var selectedImage: UIImage?
+    /// 앨범 선택 후 디코딩 실패 시 메시지 (카드 추가 화면과 동일한 로더 사용).
+    @Published var photoImportError: String?
     @Published var isCompleting: Bool = false
     @Published var readyToAdvance: ReadyToAdvance? = nil
 
@@ -77,6 +80,28 @@ final class OnboardingProfileViewModel: ObservableObject {
 
     init(userService: UserService) {
         self.userService = userService
+    }
+
+    // MARK: - 프로필 사진 (PhotosPicker · CardAdd와 동일 로더)
+    func consumePhotosPickerItem(_ item: PhotosPickerItem?) {
+        guard let item else { return }
+        Task {
+            await loadProfilePhoto(from: item)
+        }
+    }
+
+    private func loadProfilePhoto(from item: PhotosPickerItem) async {
+        do {
+            let image = try await PhotosPickerImageLoader.uiImage(from: item)
+            await MainActor.run {
+                self.selectedImage = image
+                self.photoImportError = nil
+            }
+        } catch {
+            await MainActor.run {
+                self.photoImportError = error.localizedDescription
+            }
+        }
     }
 
     // MARK: - 닉네임 중복 검사

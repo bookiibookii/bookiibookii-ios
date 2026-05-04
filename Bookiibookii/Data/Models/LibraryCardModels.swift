@@ -41,6 +41,31 @@ struct CardBookmarkResponseDTO: Decodable {
     let bookmarked: Bool
 }
 
+struct CardCreateRequestBody: Encodable {
+    let s3Key: String
+    let page: Int
+    let memo: String?
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(s3Key, forKey: .s3Key)
+        try c.encode(page, forKey: .page)
+        try c.encodeIfPresent(memo, forKey: .memo)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case s3Key, page, memo
+    }
+}
+
+struct CardCreateResponseDTO: Decodable {
+    let cardId: Int?
+    let page: Int?
+    let memo: String?
+    let cardImage: CardImageResponseDTO?
+    let createdAt: String?
+}
+
 struct LibraryCardList: Equatable {
     let groupId: Int
     let topComments: [LibraryTopComment]

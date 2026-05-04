@@ -19,4 +19,5 @@ enum NavigationDestination: Hashable {
     case reportDetail
     case librarySearch
     case libraryCards(book: LibraryBook)
+    case libraryCardAdd(userBookId: Int)
 }

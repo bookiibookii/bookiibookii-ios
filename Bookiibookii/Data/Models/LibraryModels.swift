@@ -69,6 +69,8 @@ struct LibraryBooksResultDTO: Decodable {
 
 struct LibraryBook: Identifiable, Equatable, Hashable {
     let id: Int
+    /// 독서카드 생성 등 `/api/cards/{userBookId}` 에 사용. 서버 미전달 시 `nil`.
+    let userBookId: Int?
     let groupId: Int
     let title: String
     let author: String?
@@ -109,6 +111,7 @@ extension LibraryBookResponseDTO {
     func toDomain() -> LibraryBook {
         LibraryBook(
             id: userBookId ?? groupId ?? Int.random(in: 100_000...999_999),
+            userBookId: userBookId,
             groupId: groupId ?? 0,
             title: bookTitle ?? "-",
             author: author,

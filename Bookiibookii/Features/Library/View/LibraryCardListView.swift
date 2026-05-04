@@ -181,7 +181,9 @@ struct LibraryCardListView: View {
                     .foregroundColor(Color("grey600"))
             }
 
-            Button("독서카드 추가하기") {}
+            Button("독서카드 추가하기") {
+                navigateToCardAddIfPossible()
+            }
                 .font(.pretendard(size: 15, weight: .regular))
                 .foregroundColor(Color("main200"))
                 .frame(maxWidth: .infinity)
@@ -196,13 +198,20 @@ struct LibraryCardListView: View {
     }
 
     private var addCardButton: some View {
-        Button("독서카드 추가하기") {}
+        Button("독서카드 추가하기") {
+            navigateToCardAddIfPossible()
+        }
             .font(.pretendard(size: 18, weight: .medium))
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 72)
             .background(Color("grey900"))
             .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+
+    private func navigateToCardAddIfPossible() {
+        guard let uid = book.userBookId else { return }
+        container.navigationRouter.push(to: .libraryCardAdd(userBookId: uid))
     }
 
     private func sortButton(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
@@ -312,6 +321,7 @@ private struct LibraryReadingCardItem: View {
     LibraryCardListView(
         book: LibraryBook(
             id: 1,
+            userBookId: 1,
             groupId: 1,
             title: "괴테는 모든 것을 말했다",
             author: "스즈키 유이",

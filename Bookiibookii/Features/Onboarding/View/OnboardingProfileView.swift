@@ -1,6 +1,6 @@
-import SwiftUI
-import PhotosUI
 import Combine
+import PhotosUI
+import SwiftUI
 
 struct OnboardingProfileView: View {
     @EnvironmentObject private var container: DIContainer
@@ -42,7 +42,9 @@ struct OnboardingProfileView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .onChange(of: photoPickerItem) { _, item in
-            loadSelectedImage(item)
+            guard item != nil else { return }
+            viewModel.consumePhotosPickerItem(item)
+            photoPickerItem = nil
             showPhotoSheet = false
         }
         .onChange(of: viewModel.readyToAdvance) { _, data in
@@ -54,6 +56,14 @@ struct OnboardingProfileView: View {
                 .presentationDetents([.height(232)])
                 .presentationDragIndicator(.hidden)
                 .presentationCornerRadius(24)
+        }
+        .alert("사진을 불러오지 못했습니다", isPresented: Binding(
+            get: { viewModel.photoImportError != nil },
+            set: { if !$0 { viewModel.photoImportError = nil } }
+        )) {
+            Button("확인", role: .cancel) { viewModel.photoImportError = nil }
+        } message: {
+            Text(viewModel.photoImportError ?? "")
         }
     }
 
@@ -255,17 +265,6 @@ struct OnboardingProfileView: View {
         }
         .padding(24)
         .background(Color.white)
-    }
-
-    // MARK: - 이미지 로드
-    private func loadSelectedImage(_ item: PhotosPickerItem?) {
-        guard let item else { return }
-        Task {
-            if let data = try? await item.loadTransferable(type: Data.self),
-               let image = UIImage(data: data) {
-                await MainActor.run { viewModel.selectedImage = image }
-            }
-        }
     }
 }
 

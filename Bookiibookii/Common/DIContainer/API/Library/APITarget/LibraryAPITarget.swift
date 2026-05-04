@@ -5,6 +5,8 @@ enum LibraryAPITarget: APITargetType {
     case searchBooks(keyword: String)
     case fetchCards(groupId: Int)
     case toggleCardBookmark(cardId: Int)
+    case cardPresignedPutURL(userBookId: Int)
+    case createCard(userBookId: Int, body: CardCreateRequestBody)
 
     var path: String {
         switch self {
@@ -16,6 +18,10 @@ enum LibraryAPITarget: APITargetType {
             return "/api/cards/group/\(groupId)"
         case .toggleCardBookmark(let cardId):
             return "/api/cards/\(cardId)/bookmark"
+        case .cardPresignedPutURL(let userBookId):
+            return "/api/cards/\(userBookId)/presigned-url"
+        case .createCard(let userBookId, _):
+            return "/api/cards/\(userBookId)"
         }
     }
 
@@ -25,6 +31,8 @@ enum LibraryAPITarget: APITargetType {
             return .get
         case .toggleCardBookmark:
             return .patch
+        case .cardPresignedPutURL, .createCard:
+            return .post
         }
     }
 
@@ -34,6 +42,24 @@ enum LibraryAPITarget: APITargetType {
             return [URLQueryItem(name: "keyword", value: keyword)]
         default:
             return []
+        }
+    }
+
+    var body: Data? {
+        switch self {
+        case .createCard(_, let body):
+            return try? JSONEncoder().encode(body)
+        default:
+            return nil
+        }
+    }
+
+    var headers: [String: String] {
+        switch self {
+        case .createCard:
+            return ["Content-Type": "application/json"]
+        default:
+            return [:]
         }
     }
 }
