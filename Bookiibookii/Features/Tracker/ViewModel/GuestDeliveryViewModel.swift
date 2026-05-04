@@ -88,6 +88,13 @@ final class GuestDeliveryViewModel: ObservableObject {
         }
     }
 
+    /// 안드 GuestViewModel.patchConfirmReception 대응.
+    /// 게스트가 호스트의 수령 인증 사진을 확인 후 서버에 isVerified=true로 갱신.
+    /// 다음 진입 시 .returned + isVerified=true → .tradeFinish 시트로 라우팅된다.
+    func confirmReception() async {
+        await runAction { try await self.service.verifyReception(groupId: self.groupId) }
+    }
+
     // MARK: - 자동 시트 매핑 (안드 GuestActivity.createSheetForStatus 대응)
 
     /// 서버 status + 회수확인 여부 → 노출 시트.

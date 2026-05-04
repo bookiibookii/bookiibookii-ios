@@ -1,8 +1,8 @@
 import SwiftUI
 
-// 안드 fragment_guest_shipping_photo_dialog.xml (GuestShippingPhotoDialogFragment) 대응.
-// 등록한 인증 사진을 다시 보여주는 다이얼. 어떤 사진을 보여줄지(발송/수령)는 부모가 결정.
-struct GuestShippingPhotoSheet: View {
+// 안드 fragment_host_shipping_photo_dialog.xml (HostShippingPhotoDialogFragment) 대응.
+// 등록한 배송 인증 사진을 다시 보여주는 다이얼로그.
+struct HostShippingPhotoSheet: View {
     let imageUrl: String?
     let onConfirm: () -> Void
 
@@ -33,7 +33,7 @@ struct GuestShippingPhotoSheet: View {
                         }
                     }
                 } else {
-                    Text("사진을 불러오는 중...")
+                    Text("이미지를 불러오는 중...")
                         .font(.pretendard(size: 14))
                         .foregroundColor(Color("grey500"))
                 }
@@ -62,10 +62,10 @@ struct GuestShippingPhotoSheet: View {
     }
 }
 
-#Preview("GuestShippingPhoto") {
+#Preview("HostShippingPhoto") {
     ZStack {
         Color.black.opacity(0.4).ignoresSafeArea()
-        GuestShippingPhotoSheet(imageUrl: nil, onConfirm: {})
+        HostShippingPhotoSheet(imageUrl: nil, onConfirm: {})
             .padding(20)
     }
 }

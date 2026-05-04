@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct ReportView: View {
     @EnvironmentObject private var container: DIContainer

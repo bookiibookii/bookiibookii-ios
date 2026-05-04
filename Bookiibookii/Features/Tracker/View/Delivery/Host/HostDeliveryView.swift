@@ -11,7 +11,6 @@ struct HostDeliveryView: View {
     @State private var trackingNumber: String = ""
     @State private var pickedItem: PhotosPickerItem?
     @State private var pickedImage: UIImage?
-    @State private var showCourierPicker: Bool = false
     @State private var showPhotoPicker: Bool = false
     @State private var shippingPhotoUrl: String?
     @State private var shippingPhotoSource: ShippingPhotoSource = .delivery
@@ -19,6 +18,7 @@ struct HostDeliveryView: View {
     @State private var receivePickedImage: UIImage?
     @State private var receiveChecked: Bool = false
     @State private var showReceivePhotoPicker: Bool = false
+    @State private var sendConfirmChecked: Bool = false
 
     private enum ShippingPhotoSource {
         case delivery   // host's own shipment photo
@@ -219,7 +219,6 @@ struct HostDeliveryView: View {
                 courierOptions: courierOptions,
                 pickedImage: pickedImage,
                 onClose: { resetShippingForm(); vm.dismissSheet() },
-                onSelectCourier: { showCourierPicker = true },
                 onPickImage: { showPhotoPicker = true },
                 onRegister: {
                     guard !courier.isEmpty, !trackingNumber.isEmpty, let image = pickedImage else { return }
@@ -230,12 +229,6 @@ struct HostDeliveryView: View {
                     }
                 }
             )
-            .confirmationDialog("택배사 선택", isPresented: $showCourierPicker, titleVisibility: .visible) {
-                ForEach(courierOptions, id: \.self) { option in
-                    Button(option) { courier = option }
-                }
-                Button("취소", role: .cancel) {}
-            }
             .photosPicker(isPresented: $showPhotoPicker, selection: $pickedItem, matching: .images)
             .onChange(of: pickedItem) { _, newItem in
                 Task {
@@ -251,6 +244,7 @@ struct HostDeliveryView: View {
                 trackingNumber: vm.detail?.deliveryInfo?.trackingNumber ?? "",
                 onViewShippingPhoto: {
                     shippingPhotoSource = .delivery
+                    shippingPhotoUrl = nil
                     vm.tapStep(.shippingPhoto)
                 },
                 onDoReceiveConfirm: { vm.tapStep(.receiveConfirm) }
@@ -261,8 +255,11 @@ struct HostDeliveryView: View {
                 trackingNumber: vm.detail?.deliveryInfo?.trackingNumber ?? "",
                 isReceived: vm.detail?.deliveryInfo?.isVerified ?? false,
                 onConfirm: {
-                    shippingPhotoSource = .received
-                    vm.tapStep(.shippingPhoto)
+                    // 안드 HostShippingStatusBottomDialog → HostSendConfirmFragment 흐름.
+                    // 게스트가 올린 받음 인증 사진 + 체크박스 + 확인 → 서버 verifyReception patch.
+                    sendConfirmChecked = false
+                    shippingPhotoUrl = nil
+                    vm.tapStep(.sendConfirm)
                 }
             )
         case .shippingPhoto:
@@ -271,15 +268,19 @@ struct HostDeliveryView: View {
                 onConfirm: { shippingPhotoUrl = nil; vm.dismissSheet() }
             )
             .task {
-                shippingPhotoUrl = nil
+                // 이미 fetch된 url이 있으면 재요청하지 않음 (view reappear로 .task가 다시 실행되어
+                // "불러오는 중..."이 깜박이는 것 방지). 새 source로 진입할 때는 부모에서 url을 nil로 리셋.
+                if shippingPhotoUrl != nil { return }
                 do {
                     let url: URL
                     switch shippingPhotoSource {
                     case .delivery: url = try await vm.service.fetchShippingImageURL(groupId: vm.groupId)
                     case .received: url = try await vm.service.fetchReceivedImageURL(groupId: vm.groupId)
                     }
+                    if Task.isCancelled { return }
                     shippingPhotoUrl = url.absoluteString
                 } catch {
+                    if Task.isCancelled { return }
                     vm.toastMessage = "사진을 불러올 수 없어요"
                 }
             }
@@ -319,18 +320,26 @@ struct HostDeliveryView: View {
         case .sendConfirm:
             HostSendConfirmView(
                 imageUrl: shippingPhotoUrl,
-                isChecked: true,
-                onConfirm: { shippingPhotoUrl = nil; vm.dismissSheet() }
+                isChecked: $sendConfirmChecked,
+                onConfirm: {
+                    Task {
+                        await vm.verifyReception()
+                        shippingPhotoUrl = nil
+                        sendConfirmChecked = false
+                        vm.dismissSheet()
+                    }
+                }
             )
             .task {
-                // Same load pattern as .shippingPhoto, defaulting to .delivery source.
-                if shippingPhotoUrl == nil {
-                    do {
-                        let url = try await vm.service.fetchShippingImageURL(groupId: vm.groupId)
-                        shippingPhotoUrl = url.absoluteString
-                    } catch {
-                        vm.toastMessage = "사진을 불러올 수 없어요"
-                    }
+                // 게스트가 올린 받음 인증 사진(/tracker/images/received). 안드 HostSendConfirmFragment.loadCheckImage 대응.
+                if shippingPhotoUrl != nil { return }
+                do {
+                    let url = try await vm.service.fetchReceivedImageURL(groupId: vm.groupId)
+                    if Task.isCancelled { return }
+                    shippingPhotoUrl = url.absoluteString
+                } catch {
+                    if Task.isCancelled { return }
+                    vm.toastMessage = "사진을 불러올 수 없어요"
                 }
             }
         case .photoSelection:
@@ -351,9 +360,7 @@ struct HostDeliveryView: View {
         }
     }
 
-    private var courierOptions: [String] {
-        ["CJ대한통운", "롯데택배", "한진택배", "우체국택배", "로젠택배", "쿠팡로지스틱스"]
-    }
+    private var courierOptions: [String] { CourierOptions.all }
 
     private func resetShippingForm() {
         courier = ""
@@ -371,11 +378,12 @@ struct HostDeliveryView: View {
     /// 시트가 어떤 경로(콜백/swipe-down)로 닫히든 폼 상태 초기화.
     /// SwiftUI .sheet(item:onDismiss:)는 swipe-dismiss에도 호출되므로
     /// 콜백 안의 reset과 중복되더라도 여기서 일괄 정리한다.
+    /// shippingPhotoUrl은 BottomSheet → dialog(.shippingPhoto/.sendConfirm) 전환 중에도 onDismiss가 호출되어
+    /// 방금 fetch한 url을 덮어쓰는 경합이 생기므로 여기서 리셋하지 않음. dialog 자체 onConfirm에서 명시 리셋.
     private func handleSheetDismiss() {
         extendDaysInput = ""
         resetShippingForm()
         resetReceiveForm()
-        shippingPhotoUrl = nil
     }
 
     /// vm.activeSheet 중 BottomSheet인 것만 .sheet(item:)에 전달.
