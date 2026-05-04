@@ -50,7 +50,9 @@ struct LibraryView: View {
                 CircleButton(systemName: "magnifyingglass") {
                     container.navigationRouter.push(to: .librarySearch)
                 }
-                CircleButton(systemName: "bookmark")
+                CircleButton(systemName: "bookmark") {
+                    container.navigationRouter.push(to: .libraryBookmarkedCards)
+                }
             }
         }
         .padding(.horizontal, 24)
@@ -102,7 +104,9 @@ struct LibraryView: View {
             spacing: 24
         ) {
             ForEach(viewModel.filteredBooks) { book in
-                LibraryBookCard(book: book)
+                LibraryBookCard(book: book) {
+                    container.navigationRouter.push(to: .libraryCards(book: book))
+                }
             }
         }
     }

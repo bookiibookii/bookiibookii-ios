@@ -75,6 +75,21 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .libraryBookmarkedCards:
+            LibraryBookmarkedCardsView(libraryService: container.api.library)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .libraryCards(let book):
+            LibraryCardListView(book: book, libraryService: container.api.library)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .libraryCardAdd(let userBookId):
+            CardAddView(userBookId: userBookId, libraryService: container.api.library)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         case .hostDelivery(let groupId):
             HostDeliveryView(
                 groupId: groupId,

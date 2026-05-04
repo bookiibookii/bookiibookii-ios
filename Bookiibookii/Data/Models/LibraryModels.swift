@@ -7,6 +7,9 @@ struct LibraryBookResponseDTO: Decodable {
     let bookImage: String?
     let hostNickname: String?
     let hostNickName: String?
+    let author: String?
+    let startDate: String?
+    let endDate: String?
     let groupStatus: String?
     let rating: Double?
 
@@ -22,6 +25,9 @@ struct LibraryBookResponseDTO: Decodable {
         case hostNickname
         case hostNickName
         case nickname
+        case author
+        case startDate
+        case endDate
         case groupStatus
         case rating
     }
@@ -43,6 +49,9 @@ struct LibraryBookResponseDTO: Decodable {
             ?? container.decodeIfPresent(String.self, forKey: .hostNickName)
             ?? container.decodeIfPresent(String.self, forKey: .nickname)
         hostNickName = try container.decodeIfPresent(String.self, forKey: .hostNickName)
+        author = try container.decodeIfPresent(String.self, forKey: .author)
+        startDate = try container.decodeIfPresent(String.self, forKey: .startDate)
+        endDate = try container.decodeIfPresent(String.self, forKey: .endDate)
         groupStatus = try container.decodeIfPresent(String.self, forKey: .groupStatus)
         rating = try container.decodeIfPresent(Double.self, forKey: .rating)
     }
@@ -58,16 +67,22 @@ struct LibraryBooksResultDTO: Decodable {
     }
 }
 
-struct LibraryBook: Identifiable, Equatable {
+struct LibraryBook: Identifiable, Equatable, Hashable {
     let id: Int
+    /// 독서카드 생성 등 `/api/cards/{userBookId}` 에 사용. 서버 미전달 시 `nil`.
+    let userBookId: Int?
+    let groupId: Int
     let title: String
+    let author: String?
     let coverImageURL: String?
     let hostNickname: String
+    let startDate: String?
+    let endDate: String?
     let status: LibraryGroupStatus
     let rating: Double?
 }
 
-enum LibraryGroupStatus: Equatable {
+enum LibraryGroupStatus: Equatable, Hashable {
     case matched
     case completed
     case unknown(String)
@@ -96,9 +111,14 @@ extension LibraryBookResponseDTO {
     func toDomain() -> LibraryBook {
         LibraryBook(
             id: userBookId ?? groupId ?? Int.random(in: 100_000...999_999),
+            userBookId: userBookId,
+            groupId: groupId ?? 0,
             title: bookTitle ?? "-",
+            author: author,
             coverImageURL: bookImage,
             hostNickname: hostNickname ?? hostNickName ?? "-",
+            startDate: startDate,
+            endDate: endDate,
             status: LibraryGroupStatus(rawValue: groupStatus),
             rating: rating
         )
