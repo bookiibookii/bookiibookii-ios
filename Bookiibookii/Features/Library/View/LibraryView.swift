@@ -79,33 +79,59 @@ struct LibraryView: View {
 
     private var listHeader: some View {
         HStack {
-            HStack(spacing: 4) {
-                Image(systemName: "square.grid.3x2.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color("grey700"))
+            HStack(spacing: 10) {
+                Button {
+                    viewModel.layoutStyle = (viewModel.layoutStyle == .grid) ? .list : .grid
+                } label: {
+                    Image(viewModel.layoutStyle == .grid ? "6square" : "line")
+                        .renderingMode(.template)
+                        .foregroundColor(Color("grey900"))
+                }
+                .buttonStyle(.plain)
+
                 Text(viewModel.bookCountText)
                     .font(.pretendard(size: 14, weight: .regular))
                     .foregroundColor(Color("grey900"))
             }
             Spacer()
-            Image(systemName: "arrow.up.arrow.down")
-                .font(.system(size: 18, weight: .regular))
-                .foregroundColor(Color("grey700"))
+
+            Button {
+                // TODO: 정렬 기능 연결 시 액션 추가
+            } label: {
+                Image("array")
+            }
+            .buttonStyle(.plain)
         }
     }
 
     private var booksGrid: some View {
-        LazyVGrid(
-            columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ],
-            spacing: 24
-        ) {
-            ForEach(viewModel.filteredBooks) { book in
-                LibraryBookCard(book: book) {
-                    container.navigationRouter.push(to: .libraryCards(book: book))
+        Group {
+            if viewModel.layoutStyle == .grid {
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 12),
+                        GridItem(.flexible(), spacing: 12),
+                        GridItem(.flexible(), spacing: 12)
+                    ],
+                    spacing: 24
+                ) {
+                    ForEach(viewModel.filteredBooks) { book in
+                        LibraryBookCard(book: book) {
+                            container.navigationRouter.push(to: .libraryCards(book: book))
+                        }
+                    }
+                }
+            } else {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 32, maximum: 44), spacing: 6, alignment: .bottom)],
+                    alignment: .leading,
+                    spacing: 18
+                ) {
+                    ForEach(viewModel.filteredBooks) { book in
+                        LibraryBookSpine(book: book) {
+                            container.navigationRouter.push(to: .libraryCards(book: book))
+                        }
+                    }
                 }
             }
         }
@@ -126,6 +152,77 @@ struct LibraryView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
+    }
+}
+
+private struct LibraryBookSpine: View {
+    let book: LibraryBook
+    var onTap: (() -> Void)? = nil
+
+    @State private var titleNaturalSize: CGSize = .zero
+
+    private var textColor: Color {
+        book.isCreatedByMe ? Color("main200") : Color("sub200")
+    }
+
+    private var backgroundColor: Color {
+        book.isCreatedByMe ? Color("main105") : Color("sub100")
+    }
+
+    private var spineWidth: CGFloat {
+        max(titleNaturalSize.height + 12, 28)
+    }
+
+    private var spineHeight: CGFloat {
+        max(titleNaturalSize.width + 32, 96)
+    }
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            ZStack {
+                Text(book.title)
+                    .font(.pretendard(size: 15, weight: .medium))
+                    .foregroundColor(textColor)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear.preference(key: SpineTextSizeKey.self, value: geo.size)
+                        }
+                    )
+                    .rotationEffect(.degrees(90))
+            }
+            .frame(width: spineWidth, height: spineHeight)
+            .background(backgroundColor)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            BookSpineTopCap(color: backgroundColor, width: spineWidth)
+                .offset(y: -BookSpineTopCap.capHeight / 2)
+        }
+        .padding(.top, BookSpineTopCap.capHeight / 2)
+        .onPreferenceChange(SpineTextSizeKey.self) { titleNaturalSize = $0 }
+        .contentShape(Rectangle())
+        .onTapGesture { onTap?() }
+    }
+}
+
+private struct BookSpineTopCap: View {
+    static let capHeight: CGFloat = 13
+
+    let color: Color
+    let width: CGFloat
+
+    var body: some View {
+        Ellipse()
+            .fill(color)
+            .frame(width: width, height: Self.capHeight)
+    }
+}
+
+private struct SpineTextSizeKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        value = nextValue()
     }
 }
 

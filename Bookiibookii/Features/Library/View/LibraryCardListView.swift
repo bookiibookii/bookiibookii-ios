@@ -80,16 +80,22 @@ struct LibraryCardListView: View {
     private var groupInfoCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 14) {
-                AsyncImage(url: URL(string: book.coverImageURL ?? "")) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().scaledToFill()
-                    default:
-                        Color("grey300")
-                    }
-                }
-                .frame(width: 92, height: 118)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                Color("grey300")
+                    .frame(width: 92, height: 118)
+                    .overlay(
+                        AsyncImage(url: URL(string: book.coverImageURL ?? "")) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image.resizable().scaledToFill()
+                            case .empty, .failure:
+                                EmptyView()
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    )
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 4) {
@@ -164,6 +170,10 @@ struct LibraryCardListView: View {
                     card: card,
                     onToggleBookmark: {
                         Task { await viewModel.toggleBookmark(cardId: card.id) }
+                    },
+                    onTap: {
+                        guard card.isBookmarkable else { return }
+                        container.navigationRouter.push(to: .libraryCardDetail(cardId: card.id, userBookId: book.userBookId))
                     }
                 )
                 .id("\(card.id)-\(card.isBookmarked)")
@@ -269,7 +279,8 @@ private struct StarRow: View {
             startDate: "2025-12-18",
             endDate: "2026-01-12",
             status: .completed,
-            rating: 3.5
+            rating: 3.5,
+            isCreatedByMe: true
         ),
         libraryService: LibraryService(interceptor: AuthInterceptor(authService: AuthService()))
     )

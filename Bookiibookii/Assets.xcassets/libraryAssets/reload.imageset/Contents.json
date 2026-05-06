@@ -1,15 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "Frame 435 (1).pdf",
+      "filename" : "reload.pdf",
       "idiom" : "universal"
     }
   ],
   "info" : {
     "author" : "xcode",
     "version" : 1
-  },
-  "properties" : {
-    "preserves-vector-representation" : true
   }
 }
