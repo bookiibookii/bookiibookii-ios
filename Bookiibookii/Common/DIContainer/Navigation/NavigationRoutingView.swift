@@ -108,6 +108,24 @@ struct NavigationRoutingView: View {
             .environmentObject(container)
             .toolbar(.hidden, for: .navigationBar)
             .navigationBarBackButtonHidden(true)
+        case .hostDirect(let groupId):
+            HostDirectView(
+                groupId: groupId,
+                service: container.api.tracker,
+                onBack: { container.navigationRouter.pop() }
+            )
+            .environmentObject(container)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationBarBackButtonHidden(true)
+        case .guestDirect(let groupId):
+            GuestDirectView(
+                groupId: groupId,
+                service: container.api.tracker,
+                onBack: { container.navigationRouter.pop() }
+            )
+            .environmentObject(container)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationBarBackButtonHidden(true)
         }
     }
 }

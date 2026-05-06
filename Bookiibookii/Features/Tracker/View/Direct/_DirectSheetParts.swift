@@ -158,9 +158,11 @@ struct DateTimePickerSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // 과거 일시 선택 차단 — 현재 시각 이후만 허용.
             DatePicker(
                 "",
                 selection: $date,
+                in: Date()...,
                 displayedComponents: [.date, .hourAndMinute]
             )
             .datePickerStyle(.graphical)

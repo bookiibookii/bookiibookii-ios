@@ -146,7 +146,10 @@ struct HostDirectView: View {
             HostDirectStartSheet(
                 startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
                 endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
-                onStart: { Task { /* await vm.startReading(); */ vm.dismissSheet() } }
+                onStart: {
+                    vm.dismissSheet()
+                    Task { await vm.startReading() }
+                }
             )
         case .reading:
             HostDirectReadingSheet(
@@ -158,7 +161,10 @@ struct HostDirectView: View {
                         || vm.detail?.trackerStatus == .hostExtension),
                 onWriteCard: vm.dismissSheet,
                 onExtendPeriod: { vm.tapStep(.extendPeriod) },
-                onFinish: { Task { /* await vm.markDone(); */ vm.dismissSheet() } }
+                onFinish: {
+                    vm.dismissSheet()
+                    Task { await vm.markDone() }
+                }
             )
         case .readingStatus:
             HostDirectReadingStatusSheet(
@@ -177,9 +183,11 @@ struct HostDirectView: View {
                 onClose: { extendDaysInput = ""; vm.dismissSheet() },
                 onCancel: { extendDaysInput = ""; vm.dismissSheet() },
                 onApply: {
-                    // TODO: vm.requestExtension(days:) 연결
+                    let days = Int(extendDaysInput) ?? 0
                     extendDaysInput = ""
                     vm.dismissSheet()
+                    guard days > 0 else { return }
+                    Task { await vm.requestExtension(days: days) }
                 }
             )
         case .extendRequest:
@@ -200,16 +208,16 @@ struct HostDirectView: View {
                 onClose: { resetAppointmentForm(); vm.dismissSheet() },
                 onPickDateTime: { showDateTimePicker = true },
                 onSubmit: {
-                    // TODO: vm.makeMeeting(date:place:) 연결
+                    let formInput = appointmentDateTime
+                    let place = appointmentPlace
                     resetAppointmentForm()
                     vm.dismissSheet()
+                    Task { await vm.makeMeeting(formInput: formInput, place: place) }
                 }
             )
             .sheet(isPresented: $showDateTimePicker) {
                 DateTimePickerSheet(date: $appointmentDate) {
-                    appointmentDateTime = DirectMeetingFormatter.formDateTime(
-                        ISO8601DateFormatter().string(from: appointmentDate)
-                    )
+                    appointmentDateTime = DirectMeetingFormatter.formDateTime(date: appointmentDate)
                     showDateTimePicker = false
                 }
             }
@@ -232,16 +240,16 @@ struct HostDirectView: View {
                 onClose: { resetAppointmentForm(); vm.dismissSheet() },
                 onPickDateTime: { showDateTimePicker = true },
                 onSubmit: {
-                    // TODO: vm.makeMeeting(date:place:) 연결
+                    let formInput = appointmentDateTime
+                    let place = appointmentPlace
                     resetAppointmentForm()
                     vm.dismissSheet()
+                    Task { await vm.makeMeeting(formInput: formInput, place: place) }
                 }
             )
             .sheet(isPresented: $showDateTimePicker) {
                 DateTimePickerSheet(date: $appointmentDate) {
-                    appointmentDateTime = DirectMeetingFormatter.formDateTime(
-                        ISO8601DateFormatter().string(from: appointmentDate)
-                    )
+                    appointmentDateTime = DirectMeetingFormatter.formDateTime(date: appointmentDate)
                     showDateTimePicker = false
                 }
             }
@@ -268,14 +276,20 @@ struct HostDirectView: View {
                 appointmentDateTime: DirectMeetingFormatter.cardDateTime(vm.detail?.meetingInfo?.meetingTime),
                 appointmentPlace: vm.detail?.meetingInfo?.meetingPlace ?? "",
                 onNoSend: { vm.tapStep(.meetIssue) },
-                onSend: { Task { /* await vm.completeMeeting(); */ vm.dismissSheet() } }
+                onSend: {
+                    vm.dismissSheet()
+                    Task { await vm.completeMeeting() }
+                }
             )
         case .receive:
             HostDirectReceiveSheet(
                 appointmentDateTime: DirectMeetingFormatter.cardDateTime(vm.detail?.meetingInfo?.meetingTime),
                 appointmentPlace: vm.detail?.meetingInfo?.meetingPlace ?? "",
                 onNoReceive: { vm.tapStep(.receiveIssue) },
-                onReceive: { Task { /* await vm.completeMeeting(); */ vm.dismissSheet() } }
+                onReceive: {
+                    vm.dismissSheet()
+                    Task { await vm.completeMeeting() }
+                }
             )
         case .receiveIssue:
             HostDirectReceiveIssueDialog(

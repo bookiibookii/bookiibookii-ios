@@ -77,6 +77,40 @@ final class TrackerService {
         try await requestImageURL(target: .receivedImage(groupId: groupId))
     }
 
+    // MARK: - 직거래 약속
+
+    /// PATCH /api/groups/{groupId}/tracker/meetings
+    /// 안드 makeMeeting 미러 — 응답 본문 형식이 envelope/raw 혼재라 디코드 회피.
+    /// 2xx 확인 후 fetchDetail 재요청해 갱신된 detail 반환.
+    func makeMeeting(groupId: Int, time: String, place: String) async throws -> TrackerDetailResponse {
+        let body = TrackerMeetingRequest(meetingTime: time, meetingPlace: place)
+        try await requestStatusOnly(target: .makeMeeting(groupId: groupId, body: body))
+        return try await fetchDetail(groupId: groupId)
+    }
+
+    /// GET /api/groups/{groupId}/tracker/meetings
+    /// 안드 getTrackerMeeting 미러. 본 사이클 ViewModel은 사용 안 함 — service에만 노출.
+    func fetchMeeting(groupId: Int) async throws -> MeetingInfoDTO {
+        let (data, http) = try await interceptor.request(
+            TrackerAPITarget.fetchMeeting(groupId: groupId).asURLRequest()
+        )
+        guard (200...299).contains(http.statusCode) else {
+            throw TrackerServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(ApiResponseDTO<MeetingInfoDTO>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw TrackerServiceError.server(response.message)
+        }
+        return result
+    }
+
+    /// PATCH /api/groups/{groupId}/tracker/meetings/completion
+    /// 안드 patchMeetingComplete 미러 — 2xx 확인 후 fetchDetail 재요청.
+    func completeMeeting(groupId: Int) async throws -> TrackerDetailResponse {
+        try await requestStatusOnly(target: .completeMeeting(groupId: groupId))
+        return try await fetchDetail(groupId: groupId)
+    }
+
     // MARK: - 공통 디코딩 헬퍼
 
     private func requestDetail(target: TrackerAPITarget) async throws -> TrackerDetailResponse {
@@ -89,6 +123,15 @@ final class TrackerService {
             throw TrackerServiceError.server(response.message)
         }
         return result
+    }
+
+    /// 응답 본문을 디코딩하지 않고 HTTP 상태 코드만 검증.
+    /// envelope/raw 혼재되거나 응답이 비어있는 액션 API용.
+    private func requestStatusOnly(target: TrackerAPITarget) async throws {
+        let (_, http) = try await interceptor.request(target.asURLRequest())
+        guard (200...299).contains(http.statusCode) else {
+            throw TrackerServiceError.http(http.statusCode)
+        }
     }
 
     private func requestImageURL(target: TrackerAPITarget) async throws -> URL {

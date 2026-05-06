@@ -26,5 +26,7 @@ enum API {
         static func trackerPresignedUrl(groupId: Int)  -> String { "/api/groups/\(groupId)/tracker/images/presigned-url" }
         static func trackerImageDelivery(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/images/delivery" }
         static func trackerImageReceived(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/images/received" }
+        static func trackerMeetings(groupId: Int)          -> String { "/api/groups/\(groupId)/tracker/meetings" }
+        static func trackerMeetingCompletion(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/meetings/completion" }
     }
 }

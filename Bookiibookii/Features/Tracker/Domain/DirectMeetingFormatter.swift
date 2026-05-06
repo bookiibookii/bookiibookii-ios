@@ -22,6 +22,22 @@ enum DirectMeetingFormatter {
         return formFormatter.string(from: date)
     }
 
+    /// 픽커에서 고른 Date → 폼 표시용 문자열.
+    /// raw String 라운드트립 없이 곧장 폼 포맷으로 박음.
+    static func formDateTime(date: Date) -> String {
+        formFormatter.string(from: date)
+    }
+
+    /// 폼 입력 raw → API 포맷 "yyyy-MM-dd'T'HH:mm:ss'Z'".
+    /// 안드 DirectHostSetAppointmentDialogFragment.toApiUtcZ 미러: KST 로컬 시각을 시프트 없이 그대로 박음.
+    /// 파싱 실패 시 nil → ViewModel에서 토스트 노출.
+    static func toApiUtcZ(_ formInput: String) -> String? {
+        let trimmed = formInput.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty,
+              let date = formFormatter.date(from: trimmed) else { return nil }
+        return apiFormatter.string(from: date)
+    }
+
     private static let kstTimeZone: TimeZone = TimeZone(identifier: "Asia/Seoul") ?? .current
 
     private static let titleFormatter: DateFormatter = {
@@ -45,6 +61,15 @@ enum DirectMeetingFormatter {
         f.locale = Locale(identifier: "en_US_POSIX")
         f.timeZone = kstTimeZone
         f.dateFormat = "yyyy. MM. dd. HH:mm"
+        return f
+    }()
+
+    /// 안드 apiFormatterNoShift 미러 — 같은 KST 로 parse/format 하면 wall clock 보존됨.
+    private static let apiFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = kstTimeZone
+        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
         return f
     }()
 }

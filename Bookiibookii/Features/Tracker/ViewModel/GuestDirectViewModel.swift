@@ -75,8 +75,46 @@ final class GuestDirectViewModel: ObservableObject {
         }
     }
 
-    // MARK: - 액션 (다음 세션부터)
-    // TODO: startReading, markDone, requestExtension, makeMeeting, completeMeeting, …
+    // MARK: - 액션 (안드 DirectGuestViewModel 미러)
+
+    func startReading() async {
+        await runAction { try await self.service.startReading(groupId: self.groupId) }
+    }
+
+    func markDone() async {
+        await runAction { try await self.service.markDone(groupId: self.groupId) }
+    }
+
+    func requestExtension(days: Int) async {
+        await runAction {
+            try await self.service.requestExtension(groupId: self.groupId, days: days)
+        }
+    }
+
+    /// 폼 입력값(`yyyy. MM. dd. HH:mm`) + 장소 → 약속 등록.
+    /// 변환 실패 / 빈 장소면 토스트만 띄우고 종료.
+    func makeMeeting(formInput: String, place: String) async {
+        guard let apiTime = DirectMeetingFormatter.toApiUtcZ(formInput) else {
+            toastMessage = "날짜 형식이 올바르지 않아요"
+            return
+        }
+        let trimmedPlace = place.trimmingCharacters(in: .whitespaces)
+        guard !trimmedPlace.isEmpty else {
+            toastMessage = "장소를 입력해주세요"
+            return
+        }
+        await runAction {
+            try await self.service.makeMeeting(
+                groupId: self.groupId,
+                time: apiTime,
+                place: trimmedPlace
+            )
+        }
+    }
+
+    func completeMeeting() async {
+        await runAction { try await self.service.completeMeeting(groupId: self.groupId) }
+    }
 
     // MARK: - 내부
 
@@ -85,17 +123,36 @@ final class GuestDirectViewModel: ObservableObject {
         defer { isLoading = false }
         do {
             let response = try await service.fetchDetail(groupId: groupId)
-            detail = response
-            phase = DirectPhase.from(response.trackerStatus)
-            if autoPresent {
-                autoPresentIfNeeded(
-                    status: response.trackerStatus,
-                    meetingTime: response.meetingInfo?.meetingTime
-                )
-            }
+            handle(response, autoPresent: autoPresent)
         } catch {
             toastMessage = (error as? LocalizedError)?.errorDescription
                 ?? "네트워크 오류, 다시 시도해주세요"
+        }
+    }
+
+    private func runAction(
+        autoPresent: Bool = true,
+        _ block: @escaping () async throws -> TrackerDetailResponse
+    ) async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            let response = try await block()
+            handle(response, autoPresent: autoPresent)
+        } catch {
+            toastMessage = (error as? LocalizedError)?.errorDescription
+                ?? "네트워크 오류, 다시 시도해주세요"
+        }
+    }
+
+    private func handle(_ response: TrackerDetailResponse, autoPresent: Bool) {
+        detail = response
+        phase = DirectPhase.from(response.trackerStatus)
+        if autoPresent {
+            autoPresentIfNeeded(
+                status: response.trackerStatus,
+                meetingTime: response.meetingInfo?.meetingTime
+            )
         }
     }
 
