@@ -29,13 +29,17 @@ struct TrackerView: View {
     }
 
     /// 카드 탭 시 outer NavigationStack(`BookiibookiiApp`)에 push.
-    /// 직거래 / 함께읽기는 이번 사이클 미지원 → 토스트로 안내.
+    /// 함께읽기는 이번 사이클 미지원 → 토스트로 안내.
     private func navigate(to item: TrackerItem) {
         switch (item.role, item.exchangeType) {
         case (.host, .delivery):
             container.navigationRouter.push(to: .hostDelivery(groupId: item.groupId))
         case (.guest, .delivery):
             container.navigationRouter.push(to: .guestDelivery(groupId: item.groupId))
+        case (.host, .direct):
+            container.navigationRouter.push(to: .hostDirect(groupId: item.groupId))
+        case (.guest, .direct):
+            container.navigationRouter.push(to: .guestDirect(groupId: item.groupId))
         default:
             viewModel.toast = "이번 사이클에서 미지원"
         }

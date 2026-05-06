@@ -243,3 +243,11 @@ struct TrackerImageResponse: Decodable {
     /// 안드 TrackerCheckShippingImageResponseDto / TrackerCheckImageResponseDto 의 `presignedGetUrl` 필드.
     let presignedGetUrl: String
 }
+
+// MARK: - 직거래 약속 요청 (안드 TrackerMeetingRequest 대응)
+
+struct TrackerMeetingRequest: Encodable {
+    /// "yyyy-MM-dd'T'HH:mm:ss'Z'" — KST 로컬을 시프트 없이 그대로 박는 안드 컨벤션.
+    let meetingTime: String
+    let meetingPlace: String
+}
