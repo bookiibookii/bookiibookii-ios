@@ -3,19 +3,26 @@ import Foundation
 struct LibraryBookResponseDTO: Decodable {
     let userBookId: Int?
     let groupId: Int?
+    let bookId: Int?
     let bookTitle: String?
     let bookImage: String?
     let hostNickname: String?
     let hostNickName: String?
+    let hostId: Int?
+    let hostProfileImageUrl: String?
+    let groupType: String?
     let author: String?
     let startDate: String?
     let endDate: String?
+    let duration: Int?
     let groupStatus: String?
     let rating: Double?
+    let comment: String?
 
     private enum CodingKeys: String, CodingKey {
         case userBookId
         case groupId
+        case bookId
         case bookTitle
         case title
         case bookImage
@@ -24,18 +31,24 @@ struct LibraryBookResponseDTO: Decodable {
         case imageUrl
         case hostNickname
         case hostNickName
+        case hostId
+        case hostProfileImageUrl
+        case groupType
         case nickname
         case author
         case startDate
         case endDate
+        case duration
         case groupStatus
         case rating
+        case comment
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         userBookId = try container.decodeIfPresent(Int.self, forKey: .userBookId)
         groupId = try container.decodeIfPresent(Int.self, forKey: .groupId)
+        bookId = try container.decodeIfPresent(Int.self, forKey: .bookId)
         bookTitle =
             try container.decodeIfPresent(String.self, forKey: .bookTitle)
             ?? container.decodeIfPresent(String.self, forKey: .title)
@@ -49,11 +62,16 @@ struct LibraryBookResponseDTO: Decodable {
             ?? container.decodeIfPresent(String.self, forKey: .hostNickName)
             ?? container.decodeIfPresent(String.self, forKey: .nickname)
         hostNickName = try container.decodeIfPresent(String.self, forKey: .hostNickName)
+        hostId = try container.decodeIfPresent(Int.self, forKey: .hostId)
+        hostProfileImageUrl = try container.decodeIfPresent(String.self, forKey: .hostProfileImageUrl)
+        groupType = try container.decodeIfPresent(String.self, forKey: .groupType)
         author = try container.decodeIfPresent(String.self, forKey: .author)
         startDate = try container.decodeIfPresent(String.self, forKey: .startDate)
         endDate = try container.decodeIfPresent(String.self, forKey: .endDate)
+        duration = try container.decodeIfPresent(Int.self, forKey: .duration)
         groupStatus = try container.decodeIfPresent(String.self, forKey: .groupStatus)
         rating = try container.decodeIfPresent(Double.self, forKey: .rating)
+        comment = try container.decodeIfPresent(String.self, forKey: .comment)
     }
 }
 
@@ -80,11 +98,13 @@ struct LibraryBook: Identifiable, Equatable, Hashable {
     let endDate: String?
     let status: LibraryGroupStatus
     let rating: Double?
+    let isCreatedByMe: Bool
 }
 
 enum LibraryGroupStatus: Equatable, Hashable {
     case matched
     case completed
+    case deleted
     case unknown(String)
 
     init(rawValue: String?) {
@@ -93,6 +113,8 @@ enum LibraryGroupStatus: Equatable, Hashable {
             self = .matched
         case "completed":
             self = .completed
+        case "deleted":
+            self = .deleted
         default:
             self = .unknown(rawValue ?? "")
         }
@@ -102,6 +124,7 @@ enum LibraryGroupStatus: Equatable, Hashable {
         switch self {
         case .matched: return "진행 중"
         case .completed: return "종료"
+        case .deleted: return "-"
         case .unknown: return "-"
         }
     }
@@ -109,7 +132,10 @@ enum LibraryGroupStatus: Equatable, Hashable {
 
 extension LibraryBookResponseDTO {
     func toDomain() -> LibraryBook {
-        LibraryBook(
+        let currentUserId = TokenManager.shared.userId
+        let createdByMe = (hostId != nil && currentUserId != nil) ? (hostId == currentUserId) : false
+
+        return LibraryBook(
             id: userBookId ?? groupId ?? Int.random(in: 100_000...999_999),
             userBookId: userBookId,
             groupId: groupId ?? 0,
@@ -120,7 +146,8 @@ extension LibraryBookResponseDTO {
             startDate: startDate,
             endDate: endDate,
             status: LibraryGroupStatus(rawValue: groupStatus),
-            rating: rating
+            rating: rating,
+            isCreatedByMe: createdByMe
         )
     }
 }

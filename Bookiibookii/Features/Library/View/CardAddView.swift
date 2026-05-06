@@ -16,8 +16,12 @@ struct CardAddView: View {
     @State private var replacePickerItem: PhotosPickerItem?
     @State private var replaceHadSelection = false
 
+    init(mode: CardAddMode, libraryService: LibraryService) {
+        _viewModel = StateObject(wrappedValue: CardAddViewModel(mode: mode, libraryService: libraryService))
+    }
+
     init(userBookId: Int, libraryService: LibraryService) {
-        _viewModel = StateObject(wrappedValue: CardAddViewModel(userBookId: userBookId, libraryService: libraryService))
+        self.init(mode: .create(userBookId: userBookId), libraryService: libraryService)
     }
 
     var body: some View {
@@ -115,6 +119,9 @@ struct CardAddView: View {
         } message: {
             Text(viewModel.toastMessage ?? "")
         }
+        .task {
+            await viewModel.loadEditInitialStateIfNeeded()
+        }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
     }
@@ -132,7 +139,7 @@ struct CardAddView: View {
             .buttonStyle(.plain)
 
             Spacer()
-            Text("카드 추가")
+            Text(viewModel.navigationTitle)
                 .font(.pretendard(size: 20, weight: .medium))
                 .foregroundColor(Color("grey900"))
             Spacer()
@@ -221,11 +228,12 @@ struct CardAddView: View {
             Task {
                 let ok = await viewModel.submit()
                 if ok {
+                    NotificationCenter.default.post(name: .libraryCardMutationFinished, object: nil)
                     container.navigationRouter.pop()
                 }
             }
         } label: {
-            Text("등록하기")
+            Text(viewModel.submitButtonTitle)
                 .font(.pretendard(size: 18, weight: viewModel.canSubmit ? .medium : .regular))
                 .foregroundColor(viewModel.canSubmit ? Color("grey100") : Color("grey500"))
                 .frame(maxWidth: .infinity)
