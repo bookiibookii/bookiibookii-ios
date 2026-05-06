@@ -78,10 +78,70 @@ final class LibraryService {
         return dto.bookmarked
     }
 
-    /// POST `/api/cards/{userBookId}/presigned-url` — 응답의 `presignedPutUrl`로 이미지 바이너리 PUT (Authorization 없음).
+    func fetchLibraryCardDetail(cardId: Int) async throws -> LibraryCardDetail {
+        let request = LibraryAPITarget.fetchCardDetail(cardId: cardId).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<GroupCardResponseDTO>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess, let result = response.result else {
+            throw LibraryServiceError.server(response.message)
+        }
+
+        return result.toLibraryCardDetail()
+    }
+
+    func fetchLibraryCardComments(cardId: Int) async throws -> LibraryCardCommentList {
+        let request = LibraryAPITarget.fetchCardComments(cardId: cardId).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<CardCommentListResponseDTO>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess, let result = response.result else {
+            throw LibraryServiceError.server(response.message)
+        }
+
+        return result.toDomain()
+    }
+
+    func createLibraryCardComment(cardId: Int, content: String) async throws {
+        let body = CardCommentCreateRequestBody(content: content)
+        let request = LibraryAPITarget.createCardComment(cardId: cardId, body: body).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<CardCommentCreateResponseDTO>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess else {
+            throw LibraryServiceError.server(response.message)
+        }
+    }
+
+    /// POST `/api/cards/{userBookId}/presigned-url` — 신규 카드 등록 전 이미지 업로드. 응답의 `presignedPutUrl`로 PUT (Authorization 없음).
     func requestCardImagePresignedURL(userBookId: Int) async throws -> PresignedUrlResult {
         let request = LibraryAPITarget.cardPresignedPutURL(userBookId: userBookId).asURLRequest()
-        let (data, http) = try await interceptor.request(request)
+        return try await decodePresignedUrlResponse(await interceptor.request(request))
+    }
+
+    /// POST `/api/cards/{cardId}/images/presigned-url` — 기존 카드 이미지 교체 시 (카드 소유자만).
+    func requestCardImagePresignedURLForUpdate(cardId: Int) async throws -> PresignedUrlResult {
+        let request = LibraryAPITarget.cardPresignedPutURLForImageUpdate(cardId: cardId).asURLRequest()
+        return try await decodePresignedUrlResponse(await interceptor.request(request))
+    }
+
+    private func decodePresignedUrlResponse(_ result: (Data, HTTPURLResponse)) throws -> PresignedUrlResult {
+        let (data, http) = result
         guard (200...299).contains(http.statusCode) else {
             throw LibraryServiceError.http(http.statusCode)
         }
@@ -89,10 +149,10 @@ final class LibraryService {
         guard let response = try? JSONDecoder().decode(ApiResponseDTO<PresignedUrlResult>.self, from: data) else {
             throw LibraryServiceError.invalidResponse
         }
-        guard response.isSuccess, let result = response.result else {
+        guard response.isSuccess, let urlResult = response.result else {
             throw LibraryServiceError.server(response.message)
         }
-        return result
+        return urlResult
     }
 
     func uploadCardImageToS3(presignedPutUrl: String, imageData: Data) async throws {
@@ -127,6 +187,23 @@ final class LibraryService {
             throw LibraryServiceError.server(response.message)
         }
         return result
+    }
+
+    /// PATCH `/api/cards/{cardId}` — 본문은 생성과 동일(`s3Key`, `page`, `memo`). 서버 스펙이 다르면 경로·메서드를 맞춰 주세요.
+    func updateLibraryCard(cardId: Int, s3Key: String, page: Int, memo: String?) async throws {
+        let body = CardCreateRequestBody(s3Key: s3Key, page: page, memo: memo)
+        let request = LibraryAPITarget.updateCard(cardId: cardId, body: body).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<GroupCardResponseDTO>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess else {
+            throw LibraryServiceError.server(response.message)
+        }
     }
 
     private func requestBooks(_ request: URLRequest) async throws -> [LibraryBook] {

@@ -8,7 +8,13 @@ final class LibraryViewModel: ObservableObject {
         case completed
     }
 
+    enum LayoutStyle {
+        case grid
+        case list
+    }
+
     @Published var selectedTab: Tab = .inProgress
+    @Published var layoutStyle: LayoutStyle = .grid
     @Published var books: [LibraryBook] = []
     @Published var isLoading = false
 
@@ -19,11 +25,13 @@ final class LibraryViewModel: ObservableObject {
     }
 
     var filteredBooks: [LibraryBook] {
+        let visibleBooks = books.filter { $0.status != .deleted }
+
         switch selectedTab {
         case .inProgress:
-            return books.filter { $0.status == .matched }
+            return visibleBooks.filter { $0.status == .matched }
         case .completed:
-            return books.filter { $0.status == .completed }
+            return visibleBooks.filter { $0.status == .completed }
         }
     }
 

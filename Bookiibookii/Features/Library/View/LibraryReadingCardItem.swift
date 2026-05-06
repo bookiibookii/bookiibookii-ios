@@ -3,6 +3,7 @@ import SwiftUI
 struct LibraryReadingCardItem: View {
     let card: LibraryCard
     let onToggleBookmark: () -> Void
+    var onTap: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -54,19 +55,31 @@ struct LibraryReadingCardItem: View {
                     .foregroundColor(Color("grey400"))
             }
 
-            AsyncImage(url: URL(string: card.imageURL ?? "")) { phase in
-                switch phase {
-                case .success(let image):
-                    image.resizable().scaledToFill()
-                default:
-                    Color("grey200")
-                }
-            }
-            .frame(height: 100)
-            .clipShape(RoundedRectangle(cornerRadius: 5))
+            Color("grey200")
+                .frame(maxWidth: .infinity)
+                .frame(height: 100)
+                .overlay(
+                    AsyncImage(url: URL(string: card.imageURL ?? "")) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable().scaledToFill()
+                        case .empty, .failure:
+                            EmptyView()
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                )
+                .clipped()
+                .clipShape(RoundedRectangle(cornerRadius: 5))
         }
         .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("white"))
         .clipShape(RoundedRectangle(cornerRadius: 15))
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap?()
+        }
     }
 }

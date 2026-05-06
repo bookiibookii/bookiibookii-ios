@@ -66,6 +66,32 @@ struct CardCreateResponseDTO: Decodable {
     let createdAt: String?
 }
 
+struct CardCommentCreateRequestBody: Encodable {
+    let content: String
+}
+
+struct CardCommentCreateResponseDTO: Decodable {
+    let id: Int?
+}
+
+struct CardCommentWriterDTO: Decodable {
+    let userId: Int?
+    let name: String?
+    let profileImageUrl: String?
+}
+
+struct CardCommentResponseDTO: Decodable {
+    let id: Int?
+    let content: String?
+    let writer: CardCommentWriterDTO?
+    let createdAt: String?
+}
+
+struct CardCommentListResponseDTO: Decodable {
+    let totalCount: Int?
+    let comments: [CardCommentResponseDTO]?
+}
+
 struct LibraryCardList: Equatable {
     let groupId: Int
     let topComments: [LibraryTopComment]
@@ -91,6 +117,33 @@ struct LibraryCard: Equatable, Identifiable {
     let messageCount: Int
 }
 
+struct LibraryCardDetail: Equatable {
+    let cardId: Int
+    let page: Int
+    let memo: String
+    let imageURL: String?
+    /// 수정 시 기존 이미지 업로드 키 (변경 없이 저장할 때 필요).
+    let imageS3Key: String?
+    let creatorName: String
+    let bookTitle: String?
+    let isBookmarked: Bool
+    let createdAt: String?
+}
+
+struct LibraryCardComment: Equatable, Identifiable {
+    let id: Int
+    let content: String
+    let writerId: Int?
+    let writerName: String
+    let writerProfileImageURL: String?
+    let createdAt: String?
+}
+
+struct LibraryCardCommentList: Equatable {
+    let totalCount: Int
+    let comments: [LibraryCardComment]
+}
+
 extension GroupCardResponseDTO {
     func toLibraryCard() -> LibraryCard {
         let serverCardId = cardId
@@ -107,6 +160,20 @@ extension GroupCardResponseDTO {
             isBookmarked: isBookmarked ?? false,
             createdAt: createdAt,
             messageCount: 0
+        )
+    }
+
+    func toLibraryCardDetail() -> LibraryCardDetail {
+        LibraryCardDetail(
+            cardId: cardId ?? 0,
+            page: page ?? 0,
+            memo: memo ?? "",
+            imageURL: cardImage?.presignedGetUrl,
+            imageS3Key: cardImage?.s3Key,
+            creatorName: (creatorName ?? "").isEmpty ? "-" : (creatorName ?? ""),
+            bookTitle: (bookTitle ?? "").isEmpty ? nil : bookTitle,
+            isBookmarked: isBookmarked ?? false,
+            createdAt: createdAt
         )
     }
 }
@@ -145,6 +212,29 @@ extension CardListResponseDTO {
             groupId: groupId ?? 0,
             topComments: comments,
             cards: mappedCards
+        )
+    }
+}
+
+extension CardCommentResponseDTO {
+    func toDomain() -> LibraryCardComment {
+        LibraryCardComment(
+            id: id ?? 0,
+            content: content ?? "",
+            writerId: writer?.userId,
+            writerName: (writer?.name ?? "").isEmpty ? "-" : (writer?.name ?? ""),
+            writerProfileImageURL: writer?.profileImageUrl,
+            createdAt: createdAt
+        )
+    }
+}
+
+extension CardCommentListResponseDTO {
+    func toDomain() -> LibraryCardCommentList {
+        let mapped = (comments ?? []).map { $0.toDomain() }
+        return LibraryCardCommentList(
+            totalCount: totalCount ?? mapped.count,
+            comments: mapped
         )
     }
 }
