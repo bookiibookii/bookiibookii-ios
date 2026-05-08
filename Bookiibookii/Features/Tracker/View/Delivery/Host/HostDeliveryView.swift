@@ -5,6 +5,7 @@ import UIKit
 // 안드 HostActivity 대응. ViewModel이 phase / 시트 / 액션을 관리.
 struct HostDeliveryView: View {
     @StateObject private var vm: HostDeliveryViewModel
+    @EnvironmentObject private var container: DIContainer
     private let onBack: () -> Void
     @State private var extendDaysInput: String = ""
     @State private var courier: String = ""
@@ -309,7 +310,10 @@ struct HostDeliveryView: View {
                 }
             }
         case .tradeFinish:
-            HostTradeFinishSheet(onWriteReview: vm.dismissSheet)
+            HostTradeFinishSheet(onWriteReview: {
+                vm.dismissSheet()
+                container.navigationRouter.push(to: .reviewWrite(groupId: vm.groupId))
+            })
         case .groupManage:
             HostGroupManageSheet(
                 isInProgress: vm.phase != .initState && vm.phase != .finished,

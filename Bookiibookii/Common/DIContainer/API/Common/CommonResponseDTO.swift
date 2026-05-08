@@ -11,3 +11,6 @@ struct ApiResponseDTO<T: Decodable>: Decodable {
 struct APIErrorResponseDTO: Decodable {
     let message: String
 }
+
+/// `result` 필드가 없는(또는 무시해도 되는) 응답을 디코딩할 때 사용.
+struct EmptyResult: Decodable {}

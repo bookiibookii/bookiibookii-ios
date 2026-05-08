@@ -4,6 +4,7 @@ import SwiftUI
 // 본 사이클: toolbar + statusCard + sheet 라우팅 스캐폴드. 개별 시트 본문은 다음 세션부터.
 struct HostDirectView: View {
     @StateObject private var vm: HostDirectViewModel
+    @EnvironmentObject private var container: DIContainer
     private let onBack: () -> Void
 
     // 폼 / 입력 상태 (HostDeliveryView와 동일 패턴)
@@ -298,7 +299,10 @@ struct HostDirectView: View {
                 onReschedule: { vm.tapStep(.appointmentEditDialog) }
             )
         case .tradeFinish:
-            HostDirectTradeFinishSheet(onWriteReview: vm.dismissSheet)
+            HostDirectTradeFinishSheet(onWriteReview: {
+                vm.dismissSheet()
+                container.navigationRouter.push(to: .reviewWrite(groupId: vm.groupId))
+            })
         case .groupManage:
             HostGroupManageSheet(
                 isInProgress: vm.phase != .initState && vm.phase != .finished,

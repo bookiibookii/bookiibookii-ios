@@ -16,6 +16,8 @@ enum API {
         static let keywords = "/api/keywords"
         static let trackers = "/api/groups/me/trackers"
         static let library = "/api/library"
+        static let reviews = "/api/reviews"
+        static func relayReview(userBookId: Int) -> String { "/api/reviews/relay/\(userBookId)" }
         static func trackerDetail(groupId: Int)        -> String { "/api/groups/\(groupId)/tracker" }
         static func trackerReading(groupId: Int)       -> String { "/api/groups/\(groupId)/tracker/reading" }
         static func trackerPeriodExtension(groupId: Int) -> String { "/api/groups/\(groupId)/tracker/extension" }

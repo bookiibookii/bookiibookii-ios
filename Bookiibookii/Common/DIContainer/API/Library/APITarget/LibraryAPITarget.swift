@@ -14,6 +14,7 @@ enum LibraryAPITarget: APITargetType {
     case cardPresignedPutURLForImageUpdate(cardId: Int)
     case createCard(userBookId: Int, body: CardCreateRequestBody)
     case updateCard(cardId: Int, body: CardCreateRequestBody)
+    case postRelayReview(userBookId: Int, body: RelayReviewRequestBody)
 
     var path: String {
         switch self {
@@ -39,6 +40,8 @@ enum LibraryAPITarget: APITargetType {
             return "/api/cards/\(userBookId)"
         case .updateCard(let cardId, _):
             return "/api/cards/\(cardId)"
+        case .postRelayReview(let userBookId, _):
+            return API.Path.relayReview(userBookId: userBookId)
         }
     }
 
@@ -48,7 +51,7 @@ enum LibraryAPITarget: APITargetType {
             return .get
         case .toggleCardBookmark, .updateCard:
             return .patch
-        case .createCardComment, .cardPresignedPutURL, .cardPresignedPutURLForImageUpdate, .createCard:
+        case .createCardComment, .cardPresignedPutURL, .cardPresignedPutURLForImageUpdate, .createCard, .postRelayReview:
             return .post
         }
     }
@@ -68,6 +71,8 @@ enum LibraryAPITarget: APITargetType {
             return try? JSONEncoder().encode(body)
         case .createCardComment(_, let body):
             return try? JSONEncoder().encode(body)
+        case .postRelayReview(_, let body):
+            return try? JSONEncoder().encode(body)
         case .toggleCardBookmark:
             return nil
         default:
@@ -77,7 +82,7 @@ enum LibraryAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .createCard, .createCardComment, .updateCard:
+        case .createCard, .createCardComment, .updateCard, .postRelayReview:
             return ["Content-Type": "application/json"]
         default:
             return [:]

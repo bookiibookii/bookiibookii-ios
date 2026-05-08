@@ -130,6 +130,16 @@ enum LibraryGroupStatus: Equatable, Hashable {
     }
 }
 
+// MARK: - 교환독서 후기 (POST /api/reviews/relay/{userBookId})
+
+struct RelayReviewRequestBody: Encodable {
+    let bookRating: Double      // 0.5 단위
+    let bookComment: String
+    let partnerRating: Double   // 0.5 단위
+    let partnerComment: String
+    let badgeCodes: [String]
+}
+
 extension LibraryBookResponseDTO {
     func toDomain() -> LibraryBook {
         let currentUserId = TokenManager.shared.userId

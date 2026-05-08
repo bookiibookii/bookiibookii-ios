@@ -4,6 +4,7 @@ import SwiftUI
 // 본 사이클: toolbar + statusCard + sheet 라우팅 스캐폴드. 개별 시트 본문은 다음 세션부터.
 struct GuestDirectView: View {
     @StateObject private var vm: GuestDirectViewModel
+    @EnvironmentObject private var container: DIContainer
     private let onBack: () -> Void
 
     @State private var extendDaysInput: String = ""
@@ -300,7 +301,10 @@ struct GuestDirectView: View {
                 onReschedule: { vm.tapStep(.appointmentEditDialog) }
             )
         case .tradeFinish:
-            GuestDirectTradeFinishSheet(onWriteReview: vm.dismissSheet)
+            GuestDirectTradeFinishSheet(onWriteReview: {
+                vm.dismissSheet()
+                container.navigationRouter.push(to: .reviewWrite(groupId: vm.groupId))
+            })
         case .groupManage:
             GuestGroupManageSheet(
                 onTapDetail: vm.dismissSheet,
