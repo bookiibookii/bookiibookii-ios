@@ -50,7 +50,7 @@ struct LibraryView: View {
                 CircleButton(systemName: "magnifyingglass") {
                     container.navigationRouter.push(to: .librarySearch)
                 }
-                CircleButton(systemName: "bookmark") {
+                CircleAssetButton(assetName: "ic_bookmark") {
                     container.navigationRouter.push(to: .libraryBookmarkedCards)
                 }
             }
@@ -237,6 +237,29 @@ private struct CircleButton: View {
             Image(systemName: systemName)
                 .font(.system(size: 16, weight: .regular))
                 .foregroundColor(Color("grey700"))
+                .frame(width: 40, height: 40)
+                .overlay(
+                    Circle().stroke(Color("grey200"), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct CircleAssetButton: View {
+    let assetName: String
+    var action: (() -> Void)? = nil
+
+    var body: some View {
+        Button {
+            action?()
+        } label: {
+            Image(assetName)
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .foregroundColor(Color("grey700"))
+                .frame(width: 16, height: 16)
                 .frame(width: 40, height: 40)
                 .overlay(
                     Circle().stroke(Color("grey200"), lineWidth: 1)

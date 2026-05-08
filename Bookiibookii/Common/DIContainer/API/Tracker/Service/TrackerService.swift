@@ -12,6 +12,39 @@ final class TrackerService {
         self.s3 = s3
     }
 
+    /// 함께읽기 그룹의 `myReadingRate / groupReadingRate` 를 groupId로 조회할 수 있는 스냅샷.
+    /// `TrackerCard`가 사용하는 `togetherDetail`을 그대로 활용해, 라이브러리 카드 화면에서도
+    /// 동일한 출처의 값을 표시하기 위해 사용합니다.
+    struct TogetherReadingRateSnapshot {
+        let myReadingRate: Int
+        let groupReadingRate: Int
+    }
+
+    /// GET /api/groups/me/trackers
+    /// 응답에서 함께읽기 그룹만 추려 `groupId → (myRate, groupRate)` 로 반환합니다.
+    func fetchTogetherReadingRates() async throws -> [Int: TogetherReadingRateSnapshot] {
+        let request = TrackerAPITarget.allList.asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw TrackerServiceError.http(http.statusCode)
+        }
+        // host/guest DTO와 필드가 동일하므로 동일 디코더로 파싱합니다.
+        let response = try JSONDecoder().decode(ApiResponseDTO<[HostTrackerListItemDto]>.self, from: data)
+        guard response.isSuccess else {
+            throw TrackerServiceError.server(response.message)
+        }
+        var map: [Int: TogetherReadingRateSnapshot] = [:]
+        for item in response.result ?? [] {
+            guard (item.groupType ?? "").uppercased() == "TOGETHER",
+                  let detail = item.togetherDetail else { continue }
+            map[item.groupId] = TogetherReadingRateSnapshot(
+                myReadingRate: detail.myReadingRate ?? 0,
+                groupReadingRate: detail.groupReadingRate ?? 0
+            )
+        }
+        return map
+    }
+
     /// GET /api/groups/me/trackers/host
     func fetchHostTrackers() async throws -> [TrackerItem] {
         let request = TrackerAPITarget.hostList.asURLRequest()

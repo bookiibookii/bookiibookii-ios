@@ -18,6 +18,10 @@ struct LibraryBookResponseDTO: Decodable {
     let groupStatus: String?
     let rating: Double?
     let comment: String?
+    /// 함께읽기: 서재 책 목록 응답에 포함될 때만 (스펙별 키 별칭은 디코더에서 처리).
+    let myReadingRate: Int?
+    let groupReadingRate: Int?
+    let togetherReadingCompletedAt: String?
 
     private enum CodingKeys: String, CodingKey {
         case userBookId
@@ -42,6 +46,11 @@ struct LibraryBookResponseDTO: Decodable {
         case groupStatus
         case rating
         case comment
+        case myReadingRate
+        case groupReadingRate
+        case togetherReadingCompletedAt
+        case readingCompletedAt
+        case myTogetherReadingCompletedAt
     }
 
     init(from decoder: Decoder) throws {
@@ -72,6 +81,12 @@ struct LibraryBookResponseDTO: Decodable {
         groupStatus = try container.decodeIfPresent(String.self, forKey: .groupStatus)
         rating = try container.decodeIfPresent(Double.self, forKey: .rating)
         comment = try container.decodeIfPresent(String.self, forKey: .comment)
+        myReadingRate = try container.decodeIfPresent(Int.self, forKey: .myReadingRate)
+        groupReadingRate = try container.decodeIfPresent(Int.self, forKey: .groupReadingRate)
+        togetherReadingCompletedAt =
+            try container.decodeIfPresent(String.self, forKey: .togetherReadingCompletedAt)
+            ?? (try container.decodeIfPresent(String.self, forKey: .readingCompletedAt))
+            ?? (try container.decodeIfPresent(String.self, forKey: .myTogetherReadingCompletedAt))
     }
 }
 
@@ -90,6 +105,8 @@ struct LibraryBook: Identifiable, Equatable, Hashable {
     /// 독서카드 생성 등 `/api/cards/{userBookId}` 에 사용. 서버 미전달 시 `nil`.
     let userBookId: Int?
     let groupId: Int
+    /// `/api/library/books` 의 `groupType` (예: `RELAY`, `TOGETHER`).
+    let groupType: String?
     let title: String
     let author: String?
     let coverImageURL: String?
@@ -99,6 +116,10 @@ struct LibraryBook: Identifiable, Equatable, Hashable {
     let status: LibraryGroupStatus
     let rating: Double?
     let isCreatedByMe: Bool
+    /// 함께읽기: `GET /api/library/books`(및 검색)에서만 채워짐.
+    let togetherMyReadingRate: Int?
+    let togetherGroupReadingRate: Int?
+    let togetherReadingCompletedAtISO: String?
 }
 
 enum LibraryGroupStatus: Equatable, Hashable {
@@ -139,6 +160,7 @@ extension LibraryBookResponseDTO {
             id: userBookId ?? groupId ?? Int.random(in: 100_000...999_999),
             userBookId: userBookId,
             groupId: groupId ?? 0,
+            groupType: groupType,
             title: bookTitle ?? "-",
             author: author,
             coverImageURL: bookImage,
@@ -147,7 +169,10 @@ extension LibraryBookResponseDTO {
             endDate: endDate,
             status: LibraryGroupStatus(rawValue: groupStatus),
             rating: rating,
-            isCreatedByMe: createdByMe
+            isCreatedByMe: createdByMe,
+            togetherMyReadingRate: myReadingRate,
+            togetherGroupReadingRate: groupReadingRate,
+            togetherReadingCompletedAtISO: togetherReadingCompletedAt
         )
     }
 }
