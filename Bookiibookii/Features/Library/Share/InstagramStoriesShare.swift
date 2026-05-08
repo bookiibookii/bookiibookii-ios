@@ -6,12 +6,15 @@ enum InstagramStoriesShareError: LocalizedError {
     case notInstalled
     case renderFailed
     case invalidURL
+    case missingFacebookAppID
 
     var errorDescription: String? {
         switch self {
-        case .notInstalled: return "인스타그램이 설치되어 있지 않아요."
-        case .renderFailed: return "공유 이미지를 만들지 못했어요."
-        case .invalidURL:   return "공유 링크가 올바르지 않습니다."
+        case .notInstalled:        return "인스타그램이 설치되어 있지 않아요."
+        case .renderFailed:        return "공유 이미지를 만들지 못했어요."
+        case .invalidURL:          return "공유 링크가 올바르지 않습니다."
+        case .missingFacebookAppID:
+            return "인스타 스토리 공유에 필요한 Facebook App ID 설정이 누락되어 있어요. (Info.plist의 FacebookAppID 값을 확인해주세요.)"
         }
     }
 }
@@ -35,7 +38,12 @@ enum InstagramStoriesShare {
         backgroundBottomColor: UIColor = .white,
         sourceApplication: String? = sourceApplicationFromInfoPlist()
     ) async throws {
-        guard let url = URL(string: urlString(sourceApplication: sourceApplication)) else {
+        // 2020년 후반 이후 Instagram Stories 공유는 source_application(=Facebook App ID)이 필수.
+        // 비어 있으면 "이 앱은 스토리에 공유 기능을 지원하지 않습니다" 가 인스타에서 노출됨.
+        guard let source = sourceApplication, !source.isEmpty else {
+            throw InstagramStoriesShareError.missingFacebookAppID
+        }
+        guard let url = URL(string: urlString(sourceApplication: source)) else {
             throw InstagramStoriesShareError.invalidURL
         }
         guard UIApplication.shared.canOpenURL(url) else {
