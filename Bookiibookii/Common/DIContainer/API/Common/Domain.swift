@@ -13,6 +13,8 @@ enum API {
         static let books = "/api/books"
         static let recommendations = "/api/recommendations"
         static let notifications = "/api/notifications"
+        static let notice = "/api/notice"
+        static let inquiry = "/api/inquiry"
         static let keywords = "/api/keywords"
         static let trackers = "/api/groups/me/trackers"
         static let library = "/api/library"

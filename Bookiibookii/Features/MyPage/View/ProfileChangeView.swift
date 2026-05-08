@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftUI
 
 struct ProfileChangeView: View {
@@ -5,6 +6,7 @@ struct ProfileChangeView: View {
     @StateObject private var viewModel: ProfileChangeViewModel
     @State private var showRegionSearch = false
     @State private var selectedRegion = RegionSelection.all
+    @State private var photoPickerItem: PhotosPickerItem?
 
     init(userService: UserService) {
         _viewModel = StateObject(wrappedValue: ProfileChangeViewModel(userService: userService))
@@ -14,7 +16,7 @@ struct ProfileChangeView: View {
         ZStack(alignment: .bottom) {
             Color("grey100").ignoresSafeArea()
             VStack(spacing: 0) {
-                CustomNavigationBar(title: "프로필 변경", onBack: { container.navigationRouter.pop() }, rightButton: .none)
+                CustomNavigationBar(title: "프로필 설정", onBack: { container.navigationRouter.pop() }, rightButton: .none)
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 32) {
                         profileSection
@@ -27,7 +29,7 @@ struct ProfileChangeView: View {
                 }
             }
 
-            if viewModel.hasChanges && viewModel.hasAnyInput {
+            if viewModel.hasChanges && viewModel.canSubmit {
                 Button {
                     Task { await viewModel.saveChanges() }
                 } label: {
@@ -71,11 +73,66 @@ struct ProfileChangeView: View {
 
     private var profileSection: some View {
         VStack(spacing: 32) {
+            ZStack(alignment: .bottomTrailing) {
+                profileImage
+                    .frame(width: 128, height: 128)
+                    .clipShape(RoundedRectangle(cornerRadius: 38))
+
+                PhotosPicker(selection: $photoPickerItem, matching: .images) {
+                    Image("camera")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 36, height: 36)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .offset(x: 6, y: 6)
+            }
+            .onChange(of: photoPickerItem) { _, newValue in
+                viewModel.consumePhotosPickerItem(newValue)
+                photoPickerItem = nil
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                NicknameField(
+                    text: Binding(
+                        get: { viewModel.nickname },
+                        set: { viewModel.onNicknameChanged($0) }
+                    ),
+                    actionTitle: viewModel.nicknameValidationState == .loading ? "확인중..." : "중복확인",
+                    isActionEnabled: viewModel.nicknameValidationState != .loading && !viewModel.nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                    onActionTap: { viewModel.checkNicknameDuplicated() }
+                )
+
+                if !viewModel.nicknameValidationState.message.isEmpty {
+                    Text(viewModel.nicknameValidationState.message)
+                        .font(.pretendard(size: 12, weight: .regular))
+                        .foregroundColor(viewModel.nicknameValidationState.isAvailable ? Color.green : Color.red)
+                        .padding(.horizontal, 8)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var profileImage: some View {
+        if let selected = viewModel.selectedImage {
+            Image(uiImage: selected)
+                .resizable()
+                .scaledToFill()
+        } else if let url = viewModel.profileImageURL {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image.resizable().scaledToFill()
+                default:
+                    RoundedRectangle(cornerRadius: 38)
+                        .fill(Color("grey300"))
+                }
+            }
+        } else {
             RoundedRectangle(cornerRadius: 38)
                 .fill(Color("grey300"))
-                .frame(width: 128, height: 128)
-
-            NicknameField(text: $viewModel.nickname, actionTitle: "중복확인", isActionEnabled: false)
         }
     }
 
@@ -83,7 +140,13 @@ struct ProfileChangeView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("배송지 정보").font(.pretendard(size: 16, weight: .regular)).foregroundColor(Color("grey900"))
             BasicField(text: $viewModel.name, placeholder: "이름")
-            BasicField(text: $viewModel.phone, placeholder: "연락처")
+            BasicField(
+                text: Binding(
+                    get: { viewModel.phone },
+                    set: { viewModel.updatePhone($0) }
+                ),
+                placeholder: "연락처"
+            )
             SearchField(text: $viewModel.zipCode, placeholder: "우편 번호", actionTitle: "검색하기")
             BasicField(text: $viewModel.address, placeholder: "주소")
             BasicField(text: $viewModel.detailAddress, placeholder: "상세주소")
@@ -121,9 +184,14 @@ private struct BasicField: View {
     var body: some View {
         TextField(placeholder, text: $text)
             .font(.pretendard(size: 15, weight: .regular))
+            .foregroundColor(Color("grey900"))
             .padding(.horizontal, 20)
             .frame(height: 48)
             .background(Color("white"))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color("grey300"), lineWidth: 0.5)
+            )
             .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
@@ -132,19 +200,28 @@ private struct NicknameField: View {
     @Binding var text: String
     let actionTitle: String
     let isActionEnabled: Bool
+    var onActionTap: () -> Void = {}
     var body: some View {
         HStack {
-            TextField("텍스트 입력 전", text: $text).padding(.leading, 20)
-            Button(actionTitle) {}
+            TextField("텍스트 입력 전", text: $text)
+                .font(.pretendard(size: 15, weight: .regular))
+                .foregroundColor(Color("grey900"))
+                .padding(.leading, 20)
+            Button(actionTitle) { onActionTap() }
                 .font(.pretendard(size: 14, weight: .medium))
                 .foregroundColor(Color("grey100"))
                 .frame(width: 100, height: 40)
                 .background(isActionEnabled ? Color("grey900") : Color("grey300"))
                 .clipShape(Capsule())
                 .padding(.trailing, 4)
+                .disabled(!isActionEnabled)
         }
         .frame(height: 48)
         .background(Color("white"))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color("grey300"), lineWidth: 0.5)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
@@ -156,7 +233,10 @@ private struct SearchField: View {
     var onActionTap: () -> Void = {}
     var body: some View {
         HStack {
-            TextField(placeholder, text: $text).padding(.leading, 20)
+            TextField(placeholder, text: $text)
+                .font(.pretendard(size: 15, weight: .regular))
+                .foregroundColor(Color("grey900"))
+                .padding(.leading, 20)
             Button(actionTitle) { onActionTap() }
                 .font(.pretendard(size: 14, weight: .medium))
                 .foregroundColor(Color("grey100"))
@@ -167,6 +247,10 @@ private struct SearchField: View {
         }
         .frame(height: 48)
         .background(Color("white"))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color("grey300"), lineWidth: 0.5)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }

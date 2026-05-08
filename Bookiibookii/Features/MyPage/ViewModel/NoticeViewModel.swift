@@ -5,21 +5,33 @@ import Combine
 final class NoticeViewModel: ObservableObject {
     @Published var notices: [NoticeItem] = []
     @Published var isLoading = false
+    @Published var errorMessage: String?
 
-    private let store: NoticeStore
+    private let noticeService: NoticeService
 
-    init(store: NoticeStore = LocalNoticeStore.shared) {
-        self.store = store
+    init(noticeService: NoticeService) {
+        self.noticeService = noticeService
     }
 
     func load() async {
         isLoading = true
+        errorMessage = nil
         defer { isLoading = false }
 
         do {
-            notices = try await store.fetchNotices()
+            let result = try await noticeService.fetchNoticeList()
+            notices = result
+                .map(NoticeItem.init(dto:))
+                .sorted(by: { $0.createdAt > $1.createdAt })
         } catch {
+            notices = []
+            errorMessage = error.localizedDescription
             print("공지사항 조회 실패: \(error)")
         }
+    }
+
+    func fetchDetail(noticeId: Int) async throws -> NoticeDetailItem {
+        let dto = try await noticeService.fetchNoticeDetail(noticeId: noticeId)
+        return NoticeDetailItem(dto: dto)
     }
 }

@@ -61,8 +61,7 @@ struct MyPageView: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.leading, 24)
-        .padding(.trailing, 24)
+        .padding(.horizontal, 24)
         .frame(height: 68)
         .background(Color("white"))
     }
@@ -71,39 +70,25 @@ struct MyPageView: View {
 
     private var profileCard: some View {
         VStack(spacing: 16) {
-            editableProfileImage
+            profileImage
 
             HStack(spacing: 8) {
                 nicknameText
 
-                Text("37.5°C")
+                Text(formattedManner(viewModel.manner))
                     .font(.pretendard(size: 14, weight: .medium))
                     .foregroundColor(Color("main200"))
-                    .padding(.horizontal, 6)
+                    .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color("main100"))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             }
 
-            HStack(spacing: 10) {
-                CategoryChip(text: "인사이트")
-                CategoryChip(text: "깔끔")
-                CategoryChip(text: "메모환영")
-            }
+            tagChipsRow
 
-            HStack {
-                StatItem(title: "내가 읽은 책", count: "12")
-                Divider().frame(height: 45)
-                StatItem(title: "이어 읽기", count: "5")
-                Divider().frame(height: 45)
-                StatItem(title: "함께 읽기", count: "2")
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
-            .background(Color("grey100"))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            statBox
         }
-        .padding(.horizontal, 45)
+        .padding(.horizontal, 20)
         .padding(.vertical, 32)
         .frame(maxWidth: .infinity)
         .background(Color("white"))
@@ -122,10 +107,6 @@ struct MyPageView: View {
             .padding(.top, 16)
             .padding(.trailing, 16)
         }
-    }
-
-    private var editableProfileImage: some View {
-        profileImage
     }
 
     private var profileImage: some View {
@@ -169,30 +150,50 @@ struct MyPageView: View {
         }
     }
 
+    private var tagChipsRow: some View {
+        HStack(spacing: 10) {
+            ForEach(viewModel.topTags, id: \.self) { code in
+                CategoryChip(text: tagDisplayName(code))
+            }
+        }
+        .frame(minHeight: 22)
+    }
+
+    private var statBox: some View {
+        HStack(spacing: 0) {
+            StatItem(title: "내가 읽은 책", count: "\(viewModel.completeBook)")
+            statDivider
+            StatItem(title: "이어 읽기", count: "\(viewModel.relayGroup)")
+            statDivider
+            StatItem(title: "함께 읽기", count: "\(viewModel.togetherGroup)")
+        }
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
+        .background(Color("grey100"))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private var statDivider: some View {
+        Rectangle()
+            .fill(Color("grey200"))
+            .frame(width: 1, height: 45)
+    }
+
     // MARK: - Review
 
     private var reviewSection: some View {
-        VStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 12) {
             SectionHeader(
                 title: "받은 후기",
-                hasChevron: true,
-                onChevronTap: { container.navigationRouter.push(to: .recievedReview) }
+                trailing: .chevron(action: {
+                    container.navigationRouter.push(to: .recievedReview)
+                })
             )
 
-            LazyVGrid(
-                columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ],
-                spacing: 10
-            ) {
-                ReviewChip(text: "친절하고 매너가 좋아요", count: 8)
-                ReviewChip(text: "글씨가 예뻐요", count: 5)
-                ReviewChip(text: "코멘트가 다정해요", count: 9)
-                ReviewChip(text: "책에 대한 인사이트가 넘쳐요", count: 3)
-                ReviewChip(text: "책을 빠르게 보내줬어요", count: 6)
-                ReviewChip(text: "코멘트가 재미있어요", count: 12)
-                ReviewChip(text: "책을 깨끗하고 깔끔하게 읽어요", count: 3)
+            GroupFilterFlowLayout(spacing: 12, lineSpacing: 8) {
+                ForEach(viewModel.reviewBadges) { badge in
+                    ReviewChip(text: badge.label, count: badge.count)
+                }
             }
         }
     }
@@ -200,12 +201,26 @@ struct MyPageView: View {
     // MARK: - Group
 
     private var groupSection: some View {
-        VStack(spacing: 12) {
-            SectionHeader(title: "나의그룹", hasChevron: true)
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(
+                title: "나의 그룹",
+                trailing: .toggle(
+                    isExpanded: viewModel.isGroupExpanded,
+                    action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            viewModel.toggleGroupSection()
+                        }
+                    }
+                )
+            )
 
-            VStack(spacing: 10) {
-                ProfileGroupCard(status: "모집 중", isOpen: true)
-                ProfileGroupCard(status: "모집완료", isOpen: false)
+            if viewModel.isGroupExpanded {
+                VStack(spacing: 8) {
+                    ForEach(viewModel.groups) { group in
+                        ProfileGroupCard(group: group)
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
@@ -213,15 +228,26 @@ struct MyPageView: View {
     // MARK: - Recent Books
 
     private var recentBooksSection: some View {
-        VStack(spacing: 12) {
-            SectionHeader(title: "최근 읽은 책", hasChevron: false)
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "최근 읽은 책", trailing: .none)
 
-            VStack(spacing: 10) {
-                RecentBookRow()
-                RecentBookRow()
-                RecentBookRow()
+            VStack(spacing: 8) {
+                ForEach(Array(viewModel.recentBooks.enumerated()), id: \.offset) { _, book in
+                    RecentBookRow(book: book)
+                }
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    private func formattedManner(_ value: Double) -> String {
+        let rounded = (value * 10).rounded() / 10
+        return String(format: "%.1f°C", rounded)
+    }
+
+    private func tagDisplayName(_ code: String) -> String {
+        ReadingTag(rawValue: code)?.displayName ?? "#\(code)"
     }
 }
 
@@ -231,16 +257,14 @@ private struct CategoryChip: View {
     let text: String
 
     var body: some View {
-        HStack(spacing: 0) {
-            Text("#")
-            Text(text)
-        }
-        .font(.pretendard(size: 11, weight: .regular))
-        .foregroundColor(Color("sub200"))
+        let display = text.hasPrefix("#") ? text : "#\(text)"
+        Text(display)
+            .font(.pretendard(size: 11, weight: .regular))
+            .foregroundColor(Color("sub200"))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-        .background(Color("sub100"))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(Color("sub100"))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -262,26 +286,44 @@ private struct StatItem: View {
     }
 }
 
+private enum SectionTrailing {
+    case none
+    case chevron(action: () -> Void)
+    case toggle(isExpanded: Bool, action: () -> Void)
+}
+
 private struct SectionHeader: View {
     let title: String
-    let hasChevron: Bool
-    var onChevronTap: (() -> Void)? = nil
+    let trailing: SectionTrailing
 
     var body: some View {
-        HStack {
+        HStack(spacing: 8) {
             Text(title)
                 .font(.pretendard(size: 16, weight: .medium))
                 .foregroundColor(Color("grey900"))
 
             Spacer()
 
-            if hasChevron {
-                Button {
-                    onChevronTap?()
-                } label: {
+            switch trailing {
+            case .none:
+                EmptyView()
+            case .chevron(let action):
+                Button(action: action) {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(Color("grey500"))
+                }
+                .buttonStyle(.plain)
+            case .toggle(let isExpanded, let action):
+                Button(action: action) {
+                    Image("open")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color("grey500"))
+                        .rotationEffect(.degrees(isExpanded ? 0 : -90))
+                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
                 }
                 .buttonStyle(.plain)
             }
@@ -294,7 +336,7 @@ private struct ReviewChip: View {
     let count: Int
 
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: 4) {
             Text(text)
                 .font(.pretendard(size: 12, weight: .regular))
                 .foregroundColor(Color("grey900"))
@@ -311,59 +353,80 @@ private struct ReviewChip: View {
 }
 
 private struct ProfileGroupCard: View {
-    let status: String
-    let isOpen: Bool
+    let group: MypageGroup
 
     var body: some View {
-        HStack(alignment: .top) {
+        HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("괴테는 모든 것을 말했다")
-                    .font(.pretendard(size: 14, weight: .medium))
-                    .foregroundColor(Color("grey900"))
+                bookInfo
 
-                Text("스즈키 유이 (소설)")
-                    .font(.pretendard(size: 12, weight: .regular))
-                    .foregroundColor(Color("grey500"))
-
-                HStack(spacing: 6) {
-                    CategoryChip(text: "메모환영")
-                    CategoryChip(text: "인사이트")
-                    CategoryChip(text: "깔끔")
+                if !(group.groupTags ?? []).isEmpty {
+                    HStack(spacing: 8) {
+                        ForEach(group.groupTags ?? [], id: \.self) { tag in
+                            CategoryChip(text: ReadingTag(rawValue: tag)?.displayName ?? "#\(tag)")
+                        }
+                    }
                 }
             }
 
-            Spacer()
+            Spacer(minLength: 0)
 
-            Text(status)
-                .font(.pretendard(size: 11, weight: isOpen ? .medium : .regular))
-                .foregroundColor(isOpen ? Color("white") : Color("grey500"))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(isOpen ? Color("main200") : Color("grey200"))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            statusChip
         }
         .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("white"))
         .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+
+    private var bookInfo: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(group.bookTitle ?? "")
+                .font(.pretendard(size: 14, weight: .medium))
+                .foregroundColor(Color("grey900"))
+                .lineLimit(1)
+
+            HStack(spacing: 4) {
+                if let author = group.auth, !author.isEmpty {
+                    Text(author)
+                        .font(.pretendard(size: 12, weight: .regular))
+                        .foregroundColor(Color("grey500"))
+                }
+                if let genre = group.genre, !genre.isEmpty {
+                    Text("(\(genre))")
+                        .font(.pretendard(size: 11, weight: .regular))
+                        .foregroundColor(Color("grey500"))
+                }
+            }
+        }
+    }
+
+    private var statusChip: some View {
+        let isRecruiting = (group.groupStatus ?? "").uppercased() == "RECRUITING"
+        let label = isRecruiting ? "모집 중" : "모집완료"
+        return Text(label)
+            .font(.pretendard(size: 11, weight: isRecruiting ? .medium : .regular))
+            .foregroundColor(isRecruiting ? Color("white") : Color("grey500"))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(isRecruiting ? Color("main200") : Color("grey200"))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
 private struct RecentBookRow: View {
+    let book: MypageBook
+
     var body: some View {
         HStack {
-            Text("책 제목")
+            Text(book.bookTitle ?? "")
                 .font(.pretendard(size: 14, weight: .regular))
                 .foregroundColor(Color("grey900"))
+                .lineLimit(1)
 
             Spacer()
 
-            HStack(spacing: 0) {
-                ForEach(0..<5, id: \.self) { index in
-                    Image(systemName: index < 3 ? "star.fill" : "star")
-                        .font(.system(size: 13))
-                        .foregroundColor(index < 3 ? Color("sub200") : Color("grey300"))
-                }
-            }
+            StarRatingView(rating: book.rating ?? 0)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 16)
@@ -374,6 +437,31 @@ private struct RecentBookRow: View {
                 .stroke(Color("grey100"), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+}
+
+private struct StarRatingView: View {
+    let rating: Double
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<5, id: \.self) { index in
+                star(for: index)
+                    .font(.system(size: 14))
+                    .foregroundColor(Color("sub200"))
+            }
+        }
+    }
+
+    private func star(for index: Int) -> Image {
+        let threshold = Double(index)
+        if rating >= threshold + 1 {
+            return Image(systemName: "star.fill")
+        } else if rating >= threshold + 0.5 {
+            return Image(systemName: "star.leadinghalf.filled")
+        } else {
+            return Image(systemName: "star")
+        }
     }
 }
 

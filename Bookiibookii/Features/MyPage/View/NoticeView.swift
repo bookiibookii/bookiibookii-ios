@@ -2,7 +2,11 @@ import SwiftUI
 
 struct NoticeView: View {
     @EnvironmentObject private var container: DIContainer
-    @StateObject private var viewModel = NoticeViewModel()
+    @StateObject private var viewModel: NoticeViewModel
+
+    init(noticeService: NoticeService) {
+        _viewModel = StateObject(wrappedValue: NoticeViewModel(noticeService: noticeService))
+    }
 
     var body: some View {
         ZStack {
@@ -19,15 +23,22 @@ struct NoticeView: View {
                     VStack(spacing: 12) {
                         if viewModel.isLoading {
                             ProgressView().padding(.top, 40)
+                        } else if let message = viewModel.errorMessage {
+                            Text("공지사항을 불러오지 못했어요.\n\(message)")
+                                .font(.pretendard(size: 14, weight: .regular))
+                                .foregroundColor(Color("grey700"))
+                                .multilineTextAlignment(.center)
+                                .padding(.top, 40)
+                        } else if viewModel.notices.isEmpty {
+                            Text("등록된 공지사항이 없어요.")
+                                .font(.pretendard(size: 14, weight: .regular))
+                                .foregroundColor(Color("grey500"))
+                                .padding(.top, 40)
                         } else {
                             ForEach(viewModel.notices) { notice in
                                 Button {
                                     container.navigationRouter.push(
-                                        to: .noticeDetail(
-                                            title: notice.title,
-                                            dateText: notice.detailDateText,
-                                            content: notice.content
-                                        )
+                                        to: .noticeDetail(noticeId: notice.id)
                                     )
                                 } label: {
                                     noticeCard(notice)
@@ -54,12 +65,6 @@ struct NoticeView: View {
                     .font(.pretendard(size: 14, weight: .medium))
                     .foregroundColor(Color("grey900"))
 
-                if notice.isUnread {
-                    Circle()
-                        .fill(Color("main200"))
-                        .frame(width: 8, height: 8)
-                }
-
                 Spacer()
 
                 Image(systemName: "chevron.right")
@@ -67,7 +72,7 @@ struct NoticeView: View {
                     .foregroundColor(Color("grey500"))
             }
 
-            Text(notice.content)
+            Text(notice.summary)
                 .font(.pretendard(size: 14, weight: .regular))
                 .foregroundColor(Color("grey700"))
                 .multilineTextAlignment(.leading)
@@ -85,6 +90,10 @@ struct NoticeView: View {
 }
 
 #Preview {
-    NoticeView()
+    NoticeView(
+        noticeService: NoticeService(
+            interceptor: AuthInterceptor(authService: AuthService())
+        )
+    )
         .environmentObject(DIContainer())
 }

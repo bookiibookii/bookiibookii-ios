@@ -5,6 +5,7 @@ enum UserAPITarget: APITargetType {
     case presignedURL
     case completeOnboarding(OnboardingRequest)
     case mypage
+    case updateMypage(MypageUpdateRequest)
     case profileChangeInfo
     case updateProfileChangeInfo(ProfileChangeUpdateRequest)
 
@@ -16,7 +17,7 @@ enum UserAPITarget: APITargetType {
             return API.Path.users + "/me/image/presigned-url"
         case .completeOnboarding:
             return API.Path.onboarding
-        case .mypage:
+        case .mypage, .updateMypage:
             return API.Path.mypage
         case .profileChangeInfo, .updateProfileChangeInfo:
             return API.Path.users + "/me/profile-change"
@@ -26,6 +27,7 @@ enum UserAPITarget: APITargetType {
     var method: HTTPMethod {
         switch self {
         case .mypage, .profileChangeInfo: return .get
+        case .updateMypage: return .patch
         case .updateProfileChangeInfo: return .put
         case .checkNickname, .presignedURL, .completeOnboarding: return .post
         }
@@ -44,6 +46,8 @@ enum UserAPITarget: APITargetType {
         switch self {
         case .completeOnboarding(let request):
             return try? JSONEncoder().encode(request)
+        case .updateMypage(let request):
+            return try? JSONEncoder().encode(request)
         case .updateProfileChangeInfo(let request):
             return try? JSONEncoder().encode(request)
         default:
@@ -53,7 +57,7 @@ enum UserAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .presignedURL, .completeOnboarding, .updateProfileChangeInfo:
+        case .presignedURL, .completeOnboarding, .updateMypage, .updateProfileChangeInfo:
             return ["Content-Type": "application/json"]
         default:
             return [:]

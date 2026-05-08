@@ -80,6 +80,18 @@ final class UserService {
         return result
     }
 
+    // PATCH /api/mypage
+    func updateMypage(_ body: MypageUpdateRequest) async throws {
+        let target = UserAPITarget.updateMypage(body)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw UserError.profileChangeFailed(response.message)
+        }
+    }
+
     // GET /api/users/me/profile-change
     func getProfileChangeInfo() async throws -> ProfileChangeInfoResult {
         let target = UserAPITarget.profileChangeInfo

@@ -2,8 +2,12 @@ import SwiftUI
 
 struct QustionDetailView: View {
     @EnvironmentObject private var container: DIContainer
-    @StateObject private var viewModel = QustionDetailViewModel()
+    @StateObject private var viewModel: QustionDetailViewModel
     @State private var showFailAlert = false
+
+    init(inquiryService: InquiryService) {
+        _viewModel = StateObject(wrappedValue: QustionDetailViewModel(inquiryService: inquiryService))
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {

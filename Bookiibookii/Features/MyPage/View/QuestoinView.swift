@@ -2,7 +2,11 @@ import SwiftUI
 
 struct QuestoinView: View {
     @EnvironmentObject private var container: DIContainer
-    @StateObject private var viewModel = QuestoinViewModel()
+    @StateObject private var viewModel: QuestoinViewModel
+
+    init(inquiryService: InquiryService) {
+        _viewModel = StateObject(wrappedValue: QuestoinViewModel(inquiryService: inquiryService))
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -13,6 +17,12 @@ struct QuestoinView: View {
                     VStack(spacing: 16) {
                         if viewModel.isLoading {
                             ProgressView().padding(.top, 40)
+                        } else if let message = viewModel.errorMessage {
+                            Text("문의 내역을 불러오지 못했어요.\n\(message)")
+                                .font(.pretendard(size: 14, weight: .regular))
+                                .foregroundColor(Color("grey700"))
+                                .multilineTextAlignment(.center)
+                                .padding(.top, 40)
                         } else if viewModel.isEmpty {
                             emptyCard
                         } else {
