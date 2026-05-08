@@ -216,7 +216,7 @@ final class GroupService {
             }
             throw GroupServiceError.http(http.statusCode)
         }
-        let response = try JSONDecoder().decode(ApiResponseDTO<EmptyDTO>.self, from: data)
+        let response = try JSONDecoder().decode(ApiResponseDTO<EmptyResult>.self, from: data)
         guard response.isSuccess else {
             throw GroupServiceError.server(response.message)
         }
