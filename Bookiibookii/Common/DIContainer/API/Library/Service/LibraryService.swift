@@ -206,6 +206,26 @@ final class LibraryService {
         }
     }
 
+    /// POST `/api/reviews/relay/{userBookId}` — 직접교환/택배교환 종료 후 후기 제출.
+    func submitRelayReview(userBookId: Int, body: RelayReviewRequestBody) async throws {
+        let request = LibraryAPITarget.postRelayReview(userBookId: userBookId, body: body).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let response = try? JSONDecoder().decode(ApiResponseDTO<EmptyResult>.self, from: data),
+               !response.message.isEmpty {
+                throw LibraryServiceError.server(response.message)
+            }
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<EmptyResult>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess else {
+            throw LibraryServiceError.server(response.message)
+        }
+    }
+
     private func requestBooks(_ request: URLRequest) async throws -> [LibraryBook] {
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {

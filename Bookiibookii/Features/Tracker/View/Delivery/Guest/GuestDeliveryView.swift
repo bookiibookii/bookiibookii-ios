@@ -5,6 +5,7 @@ import UIKit
 // 안드 GuestActivity 대응. ViewModel이 phase / 시트 / 액션을 관리.
 struct GuestDeliveryView: View {
     @StateObject private var vm: GuestDeliveryViewModel
+    @EnvironmentObject private var container: DIContainer
     private let onBack: () -> Void
 
     init(groupId: Int, service: TrackerService, onBack: @escaping () -> Void = {}) {
@@ -321,7 +322,10 @@ struct GuestDeliveryView: View {
                 }
             }
         case .tradeFinish:
-            GuestTradeFinishSheet(onWriteReview: vm.dismissSheet)
+            GuestTradeFinishSheet(onWriteReview: {
+                vm.dismissSheet()
+                container.navigationRouter.push(to: .reviewWrite(groupId: vm.groupId))
+            })
         case .groupManage:
             GuestGroupManageSheet(
                 onTapDetail: vm.dismissSheet,

@@ -150,6 +150,15 @@ struct NavigationRoutingView: View {
             .environmentObject(container)
             .toolbar(.hidden, for: .navigationBar)
             .navigationBarBackButtonHidden(true)
+        case .reviewWrite(let groupId):
+            ReviewWriteView(
+                groupId: groupId,
+                groupService: container.api.group,
+                libraryService: container.api.library
+            )
+            .environmentObject(container)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationBarBackButtonHidden(true)
         }
     }
 }

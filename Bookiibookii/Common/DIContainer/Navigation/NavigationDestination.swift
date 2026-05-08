@@ -28,4 +28,5 @@ enum NavigationDestination: Hashable {
     case guestDelivery(groupId: Int)
     case hostDirect(groupId: Int)
     case guestDirect(groupId: Int)
+    case reviewWrite(groupId: Int)
 }
