@@ -2,6 +2,7 @@ import Foundation
 
 // 안드로이드 TrkApi 대응 (택배 교환 포함).
 enum TrackerAPITarget: APITargetType {
+    case allList
     case hostList
     case guestList
 
@@ -18,6 +19,7 @@ enum TrackerAPITarget: APITargetType {
 
     var path: String {
         switch self {
+        case .allList:                             return API.Path.trackers
         case .hostList:                            return API.Path.trackers + "/host"
         case .guestList:                           return API.Path.trackers + "/guest"
         case .detail(let id):                      return API.Path.trackerDetail(groupId: id)
@@ -35,7 +37,7 @@ enum TrackerAPITarget: APITargetType {
 
     var method: HTTPMethod {
         switch self {
-        case .hostList, .guestList,
+        case .allList, .hostList, .guestList,
              .detail, .shippingImage, .receivedImage:
             return .get
         case .startShipping, .presignedUrl:

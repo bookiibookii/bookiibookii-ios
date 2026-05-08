@@ -11,3 +11,6 @@ struct ApiResponseDTO<T: Decodable>: Decodable {
 struct APIErrorResponseDTO: Decodable {
     let message: String
 }
+
+/// `result: null` 또는 빈 객체 응답 디코딩용.
+struct EmptyDTO: Decodable {}

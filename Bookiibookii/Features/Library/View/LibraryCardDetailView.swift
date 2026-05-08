@@ -3,6 +3,7 @@ import SwiftUI
 struct LibraryCardDetailView: View {
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: LibraryCardDetailViewModel
+    @State private var isShareSheetPresented = false
 
     /// 독서카드 수정 화면 진입·presigned 업로드용. 목록에서 넘겨 주며 없으면 수정 버튼을 비활성화합니다.
     private let userBookId: Int?
@@ -45,6 +46,16 @@ struct LibraryCardDetailView: View {
                 .presentationDetents([.height(336)])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $isShareSheetPresented) {
+            if let detail = viewModel.detail {
+                LibraryCardShareSheet(
+                    detail: detail,
+                    onClose: { isShareSheetPresented = false }
+                )
+                .presentationDetents([.large])
+                .presentationDragIndicator(.hidden)
+            }
+        }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
     }
@@ -54,7 +65,10 @@ struct LibraryCardDetailView: View {
             Button {
                 container.navigationRouter.pop()
             } label: {
-                Image(systemName: "chevron.left")
+                Image("ic_back")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(Color("grey900"))
                     .frame(width: 40, height: 40)
@@ -68,14 +82,18 @@ struct LibraryCardDetailView: View {
             Spacer()
 
             Button {
-                // TODO: share action
+                guard viewModel.detail != nil else { return }
+                isShareSheetPresented = true
             } label: {
-                Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(Color("grey900"))
+                Image("share")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
                     .frame(width: 40, height: 40)
             }
             .buttonStyle(.plain)
+            .disabled(viewModel.detail == nil)
+            .opacity(viewModel.detail == nil ? 0.4 : 1)
         }
         .padding(.horizontal, 16)
         .frame(height: 68)
@@ -138,9 +156,12 @@ struct LibraryCardDetailView: View {
             Button {
                 // TODO: bookmark toggle
             } label: {
-                Image(systemName: detail.isBookmarked ? "bookmark.fill" : "bookmark")
-                    .font(.system(size: 14, weight: .regular))
+                Image("ic_bookmark")
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
                     .foregroundColor(detail.isBookmarked ? Color("main200") : Color("grey900"))
+                    .frame(width: 14, height: 14)
                     .frame(width: 32, height: 32)
                     .background(Color("grey100"))
                     .overlay(

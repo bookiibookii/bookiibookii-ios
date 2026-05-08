@@ -184,6 +184,44 @@ final class GroupService {
         guard response.isSuccess else { throw GroupServiceError.server(response.message) }
     }
 
+    /// PATCH /api/groups/{groupId}/together/members/me/complete
+    func completeTogetherReading(groupId: Int) async throws -> TogetherCompleteReadingResultDTO {
+        let request = GroupAPITarget.completeTogetherReading(groupId: groupId).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(ApiResponseDTO<TogetherCompleteReadingResultDTO>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw GroupServiceError.server(response.message)
+        }
+        return result
+    }
+
+    /// POST /api/reviews/together/{userBookId}
+    func createTogetherReview(userBookId: Int, rating: Double, comment: String?) async throws {
+        let trimmed = comment?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let body = TogetherReviewCreateRequest(
+            rating: rating,
+            comment: (trimmed?.isEmpty == true) ? nil : trimmed
+        )
+        let request = GroupAPITarget.createTogetherReview(userBookId: userBookId, body: body).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(ApiResponseDTO<EmptyDTO>.self, from: data)
+        guard response.isSuccess else {
+            throw GroupServiceError.server(response.message)
+        }
+    }
+
     /// DELETE /api/groups/{groupId}
     func deleteGroup(groupId: Int) async throws {
         let request = GroupAPITarget.deleteGroup(groupId: groupId).asURLRequest()

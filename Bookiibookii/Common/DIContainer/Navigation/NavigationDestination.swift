@@ -23,6 +23,7 @@ enum NavigationDestination: Hashable {
     case libraryCardDetail(cardId: Int, userBookId: Int?)
     case libraryCardAdd(userBookId: Int)
     case libraryCardEdit(cardId: Int, userBookId: Int)
+    case togetherReview(userBookId: Int, bookTitle: String)
     case hostDelivery(groupId: Int)
     case guestDelivery(groupId: Int)
 }

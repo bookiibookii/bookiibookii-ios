@@ -45,7 +45,10 @@ struct LibraryBookmarkedCardsView: View {
             Button {
                 container.navigationRouter.pop()
             } label: {
-                Image(systemName: "chevron.left")
+                Image("ic_back")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(Color("grey900"))
                     .frame(width: 40, height: 40)
@@ -108,9 +111,12 @@ struct LibraryBookmarkedCardsView: View {
 
     private var emptyState: some View {
         VStack(spacing: 12) {
-            Image(systemName: "bookmark")
-                .font(.system(size: 36))
+            Image("ic_bookmark")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
                 .foregroundColor(Color("grey300"))
+                .frame(width: 36, height: 36)
             Text("북마크한 독서카드가 없어요")
                 .font(.pretendard(size: 16, weight: .medium))
                 .foregroundColor(Color("grey900"))

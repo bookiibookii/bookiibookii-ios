@@ -32,7 +32,10 @@ struct LibrarySearchView: View {
                 Button {
                     container.navigationRouter.pop()
                 } label: {
-                    Image(systemName: "chevron.left")
+                    Image("ic_back")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(Color("grey900"))
                         .frame(width: 40, height: 40)
