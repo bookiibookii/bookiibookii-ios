@@ -14,7 +14,7 @@ enum NavigationDestination: Hashable {
     case questoin
     case qustionDetail
     case notice
-    case noticeDetail(title: String, dateText: String, content: String)
+    case noticeDetail(noticeId: Int)
     case report
     case reportDetail
     case librarySearch

@@ -46,8 +46,6 @@ enum TrackerAPITarget: APITargetType {
     var method: HTTPMethod {
         switch self {
         case .allList, .hostList, .guestList,
-             .detail, .shippingImage, .receivedImage:
-        case .hostList, .guestList,
              .detail, .shippingImage, .receivedImage,
              .fetchMeeting:
             return .get

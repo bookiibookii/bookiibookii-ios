@@ -60,6 +60,58 @@ struct MypageResult: Decodable {
     let completeBook: Int?
     let relayGroup: Int?
     let togetherGroup: Int?
+    let userBadges: [MypageBadge]?
+    let groups: [MypageGroup]?
+    let books: [MypageBook]?
+    let receiverName: String?
+    let phone: String?
+    let zipCode: String?
+    let address: String?
+    let addressDetail: String?
+    let region: String?
+    let meetPlace: String?
+}
+
+struct MypageBadge: Decodable, Equatable {
+    let userBadge: String
+    let count: Int
+}
+
+struct MypageGroup: Decodable, Equatable, Identifiable {
+    let groupId: Int
+    let bookTitle: String?
+    let auth: String?
+    let genre: String?
+    let groupStatus: String?
+    let groupTags: [String]?
+
+    var id: Int { groupId }
+
+    enum CodingKeys: String, CodingKey {
+        case groupId
+        case bookTitle
+        case auth
+        case genre = "GENRE"
+        case groupStatus = "group_status"
+        case groupTags
+    }
+}
+
+struct MypageBook: Decodable, Equatable {
+    let bookTitle: String?
+    let rating: Double?
+}
+
+struct MypageUpdateRequest: Encodable {
+    let nickname: String
+    let s3Key: String?
+    let receiverName: String
+    let phone: String
+    let zipCode: String
+    let address: String
+    let addressDetail: String
+    let meetPlace: String?
+    let region: String?
 }
 
 // MARK: - 프로필 변경 (배송지/직접 교환 정보)

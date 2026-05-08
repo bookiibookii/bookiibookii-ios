@@ -41,22 +41,22 @@ struct NavigationRoutingView: View {
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
         case .questoin:
-            QuestoinView()
+            QuestoinView(inquiryService: container.api.inquiry)
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
         case .qustionDetail:
-            QustionDetailView()
+            QustionDetailView(inquiryService: container.api.inquiry)
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
         case .notice:
-            NoticeView()
+            NoticeView(noticeService: container.api.notice)
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .noticeDetail(let title, let dateText, let content):
-            NoticeDetailView(title: title, dateText: dateText, content: content)
+        case .noticeDetail(let noticeId):
+            NoticeDetailView(noticeId: noticeId, noticeService: container.api.notice)
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)

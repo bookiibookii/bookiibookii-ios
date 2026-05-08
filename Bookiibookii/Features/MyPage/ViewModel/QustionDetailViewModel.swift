@@ -7,10 +7,10 @@ final class QustionDetailViewModel: ObservableObject {
     @Published var content = ""
     @Published var isSubmitting = false
 
-    private let store: QuestionStore
+    private let inquiryService: InquiryService
 
-    init(store: QuestionStore = LocalQuestionStore.shared) {
-        self.store = store
+    init(inquiryService: InquiryService) {
+        self.inquiryService = inquiryService
     }
 
     var canSubmit: Bool {
@@ -24,7 +24,12 @@ final class QustionDetailViewModel: ObservableObject {
         isSubmitting = true
         defer { isSubmitting = false }
         do {
-            try await store.createQuestion(.init(title: title.trimmingCharacters(in: .whitespacesAndNewlines), content: content.trimmingCharacters(in: .whitespacesAndNewlines)))
+            try await inquiryService.createInquiry(
+                InquiryCreateRequestDto(
+                    title: title.trimmingCharacters(in: .whitespacesAndNewlines),
+                    content: content.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+            )
             return true
         } catch {
             print("문의 등록 실패: \(error)")
