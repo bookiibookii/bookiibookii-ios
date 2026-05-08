@@ -3,13 +3,29 @@ import SwiftUI
 struct LibraryCardListView: View {
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: LibraryCardListViewModel
+    @State private var showTogetherFinishDialog = false
+    @State private var isTogetherCommentsExpanded = false
 
     let book: LibraryBook
 
-    init(book: LibraryBook, libraryService: LibraryService) {
+    private var isTogetherBook: Bool {
+        (book.groupType ?? "").uppercased() == "TOGETHER"
+    }
+
+    init(
+        book: LibraryBook,
+        libraryService: LibraryService,
+        groupService: GroupService,
+        trackerService: TrackerService
+    ) {
         self.book = book
         _viewModel = StateObject(
-            wrappedValue: LibraryCardListViewModel(groupId: book.groupId, libraryService: libraryService)
+            wrappedValue: LibraryCardListViewModel(
+                book: book,
+                libraryService: libraryService,
+                groupService: groupService,
+                trackerService: trackerService
+            )
         )
     }
 
@@ -37,15 +53,36 @@ struct LibraryCardListView: View {
                 }
             }
 
-            if !viewModel.cards.isEmpty {
+            if !viewModel.cards.isEmpty && !viewModel.shouldShowTogetherReviewSummary {
                 addCardButton
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
             }
+
+            if showTogetherFinishDialog {
+                TogetherFinishReadingDialog(
+                    onDismiss: { showTogetherFinishDialog = false },
+                    onConfirmFinish: {
+                        showTogetherFinishDialog = false
+                        Task { await viewModel.confirmTogetherReadingFinished() }
+                    }
+                )
+            }
         }
         .task { await viewModel.load() }
+        .onAppear {
+            Task { await viewModel.load() }
+        }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
+        .alert("안내", isPresented: Binding(
+            get: { viewModel.toastMessage != nil },
+            set: { if !$0 { viewModel.toastMessage = nil } }
+        )) {
+            Button("확인", role: .cancel) { viewModel.toastMessage = nil }
+        } message: {
+            Text(viewModel.toastMessage ?? "")
+        }
     }
 
     private var header: some View {
@@ -53,7 +90,10 @@ struct LibraryCardListView: View {
             Button {
                 container.navigationRouter.pop()
             } label: {
-                Image(systemName: "chevron.left")
+                Image("ic_back")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(Color("grey900"))
                     .frame(width: 40, height: 40)
@@ -115,8 +155,8 @@ struct LibraryCardListView: View {
                             .font(.pretendard(size: 11, weight: .regular))
                             .foregroundColor(Color("grey500"))
                     }
-                    StarRow(rating: book.rating ?? 0)
-                    Text("\(formatDate(book.startDate)) ~ \(formatDate(book.endDate))")
+                    StarRow(rating: viewModel.refreshedBookRating ?? book.rating ?? 0)
+                    Text(periodLineUnderTitle)
                         .font(.pretendard(size: 11, weight: .regular))
                         .foregroundColor(Color("grey400"))
                 }
@@ -124,23 +164,129 @@ struct LibraryCardListView: View {
 
             Divider().overlay(Color("grey100"))
 
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(viewModel.topComments) { comment in
-                    HStack(spacing: 8) {
-                        Text(comment.nickname)
-                            .font(.pretendard(size: 11, weight: .regular))
-                            .foregroundColor(Color("grey600"))
-                        Text("\"\(comment.comment)\"")
-                            .font(.pretendard(size: 11, weight: .regular))
-                            .foregroundColor(Color("grey800"))
-                            .lineLimit(1)
-                    }
+            if isTogetherBook {
+                if viewModel.shouldShowTogetherReviewSummary {
+                    togetherReviewSummarySection
+                } else {
+                    togetherReadingSection
                 }
+            } else {
+                relayCommentsSection
             }
         }
         .padding(16)
         .background(Color("white"))
         .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+
+    private var periodLineUnderTitle: String {
+        if isTogetherBook {
+            let start = formatDateYMD(book.startDate)
+            guard let iso = viewModel.togetherReadingCompletedAtISO, !iso.isEmpty else {
+                return start
+            }
+            return "\(start) ~ \(formatDateYMD(iso))"
+        }
+        return "\(formatDate(book.startDate)) ~ \(formatDate(book.endDate))"
+    }
+
+    private var relayCommentsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(viewModel.topComments) { comment in
+                HStack(spacing: 8) {
+                    Text(comment.nickname)
+                        .font(.pretendard(size: 11, weight: .regular))
+                        .foregroundColor(Color("grey600"))
+                    Text("\"\(comment.comment)\"")
+                        .font(.pretendard(size: 11, weight: .regular))
+                        .foregroundColor(Color("grey800"))
+                        .lineLimit(1)
+                }
+            }
+        }
+    }
+
+    private var togetherReadingSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            TrackerReadingRateBar(
+                myReadingRate: viewModel.togetherMyReadingRate ?? 0,
+                groupReadingRate: viewModel.togetherGroupReadingRate ?? 0
+            )
+            .padding(.top, 4)
+
+            Button {
+                if viewModel.togetherShowsReviewButton {
+                    navigateToTogetherReviewIfPossible()
+                    return
+                }
+                showTogetherFinishDialog = true
+            } label: {
+                Text(viewModel.togetherShowsReviewButton ? "후기 작성하기" : "다 읽었어요")
+                    .font(.pretendard(size: 15, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Color("grey900"))
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 16)
+        }
+    }
+
+    private var togetherReviewSummarySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if let first = primaryTogetherComment {
+                togetherCommentRow(first)
+            }
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isTogetherCommentsExpanded.toggle()
+                }
+            } label: {
+                Image("open")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                    .rotationEffect(.degrees(isTogetherCommentsExpanded ? 180 : 0))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.plain)
+
+            if isTogetherCommentsExpanded {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(expandedTogetherComments) { comment in
+                        togetherCommentRow(comment)
+                    }
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private var primaryTogetherComment: LibraryTopComment? {
+        if let uid = TokenManager.shared.userId {
+            return viewModel.togetherComments.first(where: { $0.id == String(uid) })
+        }
+        return viewModel.togetherComments.first
+    }
+
+    private var expandedTogetherComments: [LibraryTopComment] {
+        guard let primary = primaryTogetherComment else { return viewModel.togetherComments }
+        return viewModel.togetherComments.filter { $0.id != primary.id }
+    }
+
+    private func togetherCommentRow(_ comment: LibraryTopComment) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(comment.nickname)
+                .font(.pretendard(size: 11, weight: .regular))
+                .foregroundColor(Color("grey600"))
+            Text("\"\(comment.comment)\"")
+                .font(.pretendard(size: 11, weight: .regular))
+                .foregroundColor(Color("grey800"))
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     private var listHeader: some View {
@@ -225,6 +371,14 @@ struct LibraryCardListView: View {
         container.navigationRouter.push(to: .libraryCardAdd(userBookId: uid))
     }
 
+    private func navigateToTogetherReviewIfPossible() {
+        guard let userBookId = book.userBookId else {
+            viewModel.toastMessage = "후기를 작성할 수 없습니다."
+            return
+        }
+        container.navigationRouter.push(to: .togetherReview(userBookId: userBookId, bookTitle: book.title))
+    }
+
     private func sortButton(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
@@ -237,6 +391,61 @@ struct LibraryCardListView: View {
     private func formatDate(_ value: String?) -> String {
         guard let value, !value.isEmpty else { return "-" }
         return value.replacingOccurrences(of: "-", with: ". ") + "."
+    }
+
+    /// `yyyy-MM-dd` 또는 ISO8601 앞부분만 사용해 `yyyy. MM. dd.` 형태로 표시합니다.
+    private func formatDateYMD(_ value: String?) -> String {
+        guard let value, !value.isEmpty else { return "-" }
+        let dateOnly = String(value.prefix { $0 != "T" && $0 != " " })
+        return dateOnly.replacingOccurrences(of: "-", with: ". ") + "."
+    }
+}
+
+private struct TogetherFinishReadingDialog: View {
+    let onDismiss: () -> Void
+    let onConfirmFinish: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .onTapGesture(perform: onDismiss)
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text("독서 종료")
+                    .font(.pretendard(size: 20, weight: .medium))
+                    .foregroundColor(Color("grey900"))
+
+                Text("독서를 종료하면 더 이상 독서카드를 추가할 수 없어요. 독서를 종료할까요?")
+                    .font(.pretendard(size: 16, weight: .regular))
+                    .foregroundColor(Color("grey700"))
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 12) {
+                    Button("취소", action: onDismiss)
+                        .font(.pretendard(size: 15, weight: .medium))
+                        .foregroundColor(Color("grey700"))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Color("grey100"))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                    Button("종료", action: onConfirmFinish)
+                        .font(.pretendard(size: 15, weight: .medium))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Color("grey900"))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+                .padding(.top, 8)
+            }
+            .padding(24)
+            .frame(maxWidth: 340)
+            .background(Color("white"))
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .padding(.horizontal, 32)
+        }
     }
 }
 
@@ -256,13 +465,18 @@ private struct StarRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(0..<5, id: \.self) { index in
-                let filled = Double(index + 1) <= rating
-                Image(systemName: filled ? "star.fill" : "star")
+            ForEach(1...5, id: \.self) { idx in
+                Image(systemName: symbolName(for: idx))
                     .font(.system(size: 10))
                     .foregroundColor(Color("main100"))
             }
         }
+    }
+
+    private func symbolName(for idx: Int) -> String {
+        if rating >= Double(idx) { return "star.fill" }
+        if rating >= Double(idx) - 0.5 { return "star.leadinghalf.filled" }
+        return "star"
     }
 }
 
@@ -272,6 +486,7 @@ private struct StarRow: View {
             id: 1,
             userBookId: 1,
             groupId: 1,
+            groupType: nil,
             title: "괴테는 모든 것을 말했다",
             author: "스즈키 유이",
             coverImageURL: nil,
@@ -280,9 +495,14 @@ private struct StarRow: View {
             endDate: "2026-01-12",
             status: .completed,
             rating: 3.5,
-            isCreatedByMe: true
+            isCreatedByMe: true,
+            togetherMyReadingRate: nil,
+            togetherGroupReadingRate: nil,
+            togetherReadingCompletedAtISO: nil
         ),
-        libraryService: LibraryService(interceptor: AuthInterceptor(authService: AuthService()))
+        libraryService: LibraryService(interceptor: AuthInterceptor(authService: AuthService())),
+        groupService: GroupService(interceptor: AuthInterceptor(authService: AuthService())),
+        trackerService: TrackerService(interceptor: AuthInterceptor(authService: AuthService()))
     )
     .environmentObject(DIContainer())
 }

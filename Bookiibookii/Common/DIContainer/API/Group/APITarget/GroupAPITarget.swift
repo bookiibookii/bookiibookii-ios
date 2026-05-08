@@ -13,6 +13,8 @@ enum GroupAPITarget: APITargetType {
     case updateApplicant(applicationId: Int, body: GroupAppStatusRequest)
     case modifyGroup(groupId: Int, body: GroupModifyRequest)
     case deleteGroup(groupId: Int)
+    case completeTogetherReading(groupId: Int)
+    case createTogetherReview(userBookId: Int, body: TogetherReviewCreateRequest)
 
     var path: String {
         switch self {
@@ -32,6 +34,10 @@ enum GroupAPITarget: APITargetType {
             return API.Path.groups + "/\(groupId)/apply"
         case .fetchApplicants(let groupId):
             return API.Path.groups + "/\(groupId)/applylist"
+        case .completeTogetherReading(let groupId):
+            return API.Path.groups + "/\(groupId)/together/members/me/complete"
+        case .createTogetherReview(let userBookId, _):
+            return "/api/reviews/together/\(userBookId)"
         case .updateApplicant(let applicationId, _):
             return API.Path.groups + "/apply/\(applicationId)"
         }
@@ -39,8 +45,8 @@ enum GroupAPITarget: APITargetType {
 
     var method: HTTPMethod {
         switch self {
-        case .createGroup, .applyGroup:         return .post
-        case .modifyGroup, .updateApplicant:    return .patch
+        case .createGroup, .applyGroup, .createTogetherReview: return .post
+        case .modifyGroup, .updateApplicant, .completeTogetherReading: return .patch
         case .cancelApply, .deleteGroup:        return .delete
         default:                                return .get
         }
@@ -83,13 +89,14 @@ enum GroupAPITarget: APITargetType {
         case .applyGroup(_, let body):            return try? JSONEncoder().encode(body)
         case .updateApplicant(_, let body):       return try? JSONEncoder().encode(body)
         case .modifyGroup(_, let body):           return try? JSONEncoder().encode(body)
+        case .createTogetherReview(_, let body):  return try? JSONEncoder().encode(body)
         default:                                   return nil
         }
     }
 
     var headers: [String: String] {
         switch self {
-        case .createGroup, .applyGroup, .updateApplicant, .modifyGroup:
+        case .createGroup, .applyGroup, .updateApplicant, .modifyGroup, .createTogetherReview:
             return ["Content-Type": "application/json"]
         default:
             return [:]

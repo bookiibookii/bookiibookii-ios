@@ -16,9 +16,12 @@ struct LibraryReadingCardItem: View {
                 }
                 Spacer()
                 Button(action: onToggleBookmark) {
-                    Image(systemName: card.isBookmarked ? "bookmark.fill" : "bookmark")
-                        .font(.system(size: 11, weight: .regular))
+                    Image("ic_bookmark")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
                         .foregroundColor(card.isBookmarked ? Color("main200") : Color("grey300"))
+                        .frame(width: 11, height: 11)
                         .frame(width: 20, height: 20)
                         .background(card.isBookmarked ? Color("main100") : Color("grey100"))
                         .clipShape(Circle())

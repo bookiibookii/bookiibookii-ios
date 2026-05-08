@@ -95,6 +95,7 @@ struct CardCommentListResponseDTO: Decodable {
 struct LibraryCardList: Equatable {
     let groupId: Int
     let topComments: [LibraryTopComment]
+    let togetherComments: [LibraryTopComment]
     let cards: [LibraryCard]
 }
 
@@ -102,6 +103,7 @@ struct LibraryTopComment: Equatable, Identifiable {
     let id: String
     let nickname: String
     let comment: String
+    let hasWrittenComment: Bool
 }
 
 struct LibraryCard: Equatable, Identifiable {
@@ -180,7 +182,8 @@ extension GroupCardResponseDTO {
 
 extension CardListResponseDTO {
     func toDomain() -> LibraryCardList {
-        let fallbackComment = "아직 한 줄 평을 남기지 않았어요."
+        let fallbackRelayComment = "아직 한 줄 평을 남기지 않았어요."
+        let fallbackTogetherComment = "아직 후기를 남기지 않았어요!"
         var comments: [LibraryTopComment] = []
 
         if let togetherComments, !togetherComments.isEmpty {
@@ -188,7 +191,8 @@ extension CardListResponseDTO {
                 LibraryTopComment(
                     id: "\($0.userId ?? 0)",
                     nickname: ($0.nickname ?? "").isEmpty ? "-" : ($0.nickname ?? ""),
-                    comment: (($0.comment ?? "").isEmpty ? fallbackComment : ($0.comment ?? ""))
+                    comment: (($0.comment ?? "").isEmpty ? fallbackTogetherComment : ($0.comment ?? "")),
+                    hasWrittenComment: !(($0.comment ?? "").isEmpty)
                 )
             }
         } else {
@@ -196,21 +200,32 @@ extension CardListResponseDTO {
                 LibraryTopComment(
                     id: "my",
                     nickname: "나",
-                    comment: ((myComment ?? "").isEmpty ? fallbackComment : (myComment ?? ""))
+                    comment: ((myComment ?? "").isEmpty ? fallbackRelayComment : (myComment ?? "")),
+                    hasWrittenComment: !(myComment ?? "").isEmpty
                 ),
                 LibraryTopComment(
                     id: "partner",
                     nickname: currentBookOwner?.nickname ?? "파트너",
-                    comment: ((partnerComment ?? "").isEmpty ? fallbackComment : (partnerComment ?? ""))
+                    comment: ((partnerComment ?? "").isEmpty ? fallbackRelayComment : (partnerComment ?? "")),
+                    hasWrittenComment: !(partnerComment ?? "").isEmpty
                 )
             ]
         }
 
+        let allTogetherComments: [LibraryTopComment] = (togetherComments ?? []).map {
+            LibraryTopComment(
+                id: "\($0.userId ?? 0)",
+                nickname: ($0.nickname ?? "").isEmpty ? "-" : ($0.nickname ?? ""),
+                comment: (($0.comment ?? "").isEmpty ? fallbackTogetherComment : ($0.comment ?? "")),
+                hasWrittenComment: !(($0.comment ?? "").isEmpty)
+            )
+        }
         let mappedCards = (cards ?? []).map { $0.toLibraryCard() }
 
         return LibraryCardList(
             groupId: groupId ?? 0,
             topComments: comments,
+            togetherComments: allTogetherComments,
             cards: mappedCards
         )
     }
