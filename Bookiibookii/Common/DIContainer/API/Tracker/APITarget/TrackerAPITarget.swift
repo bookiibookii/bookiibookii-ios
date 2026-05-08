@@ -17,6 +17,11 @@ enum TrackerAPITarget: APITargetType {
     case shippingImage(groupId: Int)
     case receivedImage(groupId: Int)
 
+    // 직거래 약속
+    case makeMeeting(groupId: Int, body: TrackerMeetingRequest)
+    case fetchMeeting(groupId: Int)
+    case completeMeeting(groupId: Int)
+
     var path: String {
         switch self {
         case .allList:                             return API.Path.trackers
@@ -32,6 +37,9 @@ enum TrackerAPITarget: APITargetType {
         case .presignedUrl(let id):                return API.Path.trackerPresignedUrl(groupId: id)
         case .shippingImage(let id):               return API.Path.trackerImageDelivery(groupId: id)
         case .receivedImage(let id):               return API.Path.trackerImageReceived(groupId: id)
+        case .makeMeeting(let id, _):              return API.Path.trackerMeetings(groupId: id)
+        case .fetchMeeting(let id):                return API.Path.trackerMeetings(groupId: id)
+        case .completeMeeting(let id):             return API.Path.trackerMeetingCompletion(groupId: id)
         }
     }
 
@@ -39,11 +47,15 @@ enum TrackerAPITarget: APITargetType {
         switch self {
         case .allList, .hostList, .guestList,
              .detail, .shippingImage, .receivedImage:
+        case .hostList, .guestList,
+             .detail, .shippingImage, .receivedImage,
+             .fetchMeeting:
             return .get
         case .startShipping, .presignedUrl:
             return .post
         case .startReading, .requestExtension, .markDone,
-             .registerReceipt, .verifyReception:
+             .registerReceipt, .verifyReception,
+             .makeMeeting, .completeMeeting:
             return .patch
         }
     }
@@ -63,6 +75,8 @@ enum TrackerAPITarget: APITargetType {
             return try? JSONEncoder().encode(body)
         case .registerReceipt(_, let body):
             return try? JSONEncoder().encode(body)
+        case .makeMeeting(_, let body):
+            return try? JSONEncoder().encode(body)
         default:
             return nil
         }
@@ -70,7 +84,7 @@ enum TrackerAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .startShipping, .registerReceipt:
+        case .startShipping, .registerReceipt, .makeMeeting:
             return ["Content-Type": "application/json"]
         default:
             return [:]

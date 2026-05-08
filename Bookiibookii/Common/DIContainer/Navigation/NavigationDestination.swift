@@ -26,4 +26,6 @@ enum NavigationDestination: Hashable {
     case togetherReview(userBookId: Int, bookTitle: String)
     case hostDelivery(groupId: Int)
     case guestDelivery(groupId: Int)
+    case hostDirect(groupId: Int)
+    case guestDirect(groupId: Int)
 }
