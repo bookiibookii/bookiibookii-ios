@@ -25,6 +25,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>FacebookAppID</key>
+	<string>2094893151237745</string>
 	<key>GIDClientID</key>
 	<string>$(GOOGLE_CLIENT_ID)</string>
 	<key>GOOGLE_SERVER_CLIENT_ID</key>

@@ -6,12 +6,15 @@ enum InstagramStoriesShareError: LocalizedError {
     case notInstalled
     case renderFailed
     case invalidURL
+    case missingFacebookAppID
 
     var errorDescription: String? {
         switch self {
-        case .notInstalled: return "인스타그램이 설치되어 있지 않아요."
-        case .renderFailed: return "공유 이미지를 만들지 못했어요."
-        case .invalidURL:   return "공유 링크가 올바르지 않습니다."
+        case .notInstalled:        return "인스타그램이 설치되어 있지 않아요."
+        case .renderFailed:        return "공유 이미지를 만들지 못했어요."
+        case .invalidURL:          return "공유 링크가 올바르지 않습니다."
+        case .missingFacebookAppID:
+            return "인스타 스토리 공유에 필요한 Facebook App ID 설정이 누락되어 있어요. (Info.plist의 FacebookAppID 값을 확인해주세요.)"
         }
     }
 }
@@ -35,15 +38,36 @@ enum InstagramStoriesShare {
         backgroundBottomColor: UIColor = .white,
         sourceApplication: String? = sourceApplicationFromInfoPlist()
     ) async throws {
-        guard let url = URL(string: urlString(sourceApplication: sourceApplication)) else {
+        debugLog("▶︎ share() invoked. stickerImage size=\(stickerImage.size), scale=\(stickerImage.scale)")
+        debugLog("• Info.plist FacebookAppID(=sourceApplication) = \(sourceApplication ?? "<nil>")")
+
+        // 2020년 후반 이후 Instagram Stories 공유는 source_application(=Facebook App ID)이 필수.
+        // 비어 있으면 "이 앱은 스토리에 공유 기능을 지원하지 않습니다" 가 인스타에서 노출됨.
+        guard let source = sourceApplication, !source.isEmpty else {
+            debugLog("✗ Missing FacebookAppID in Info.plist")
+            throw InstagramStoriesShareError.missingFacebookAppID
+        }
+
+        let finalURLString = urlString(sourceApplication: source)
+        debugLog("• Final URL = \(finalURLString)")
+
+        guard let url = URL(string: finalURLString) else {
+            debugLog("✗ URL(string:) failed")
             throw InstagramStoriesShareError.invalidURL
         }
-        guard UIApplication.shared.canOpenURL(url) else {
+
+        let canOpen = UIApplication.shared.canOpenURL(url)
+        debugLog("• canOpenURL(\(url.scheme ?? "?")://) = \(canOpen)")
+        guard canOpen else {
+            debugLog("✗ Instagram not installed (or LSApplicationQueriesSchemes 누락)")
             throw InstagramStoriesShareError.notInstalled
         }
+
         guard let pngData = stickerImage.pngData() else {
+            debugLog("✗ stickerImage.pngData() == nil")
             throw InstagramStoriesShareError.renderFailed
         }
+        debugLog("• stickerImage PNG size = \(pngData.count) bytes")
 
         let pasteboardItems: [String: Any] = [
             "com.instagram.sharedSticker.stickerImage": pngData,
@@ -54,8 +78,19 @@ enum InstagramStoriesShare {
             .expirationDate: Date().addingTimeInterval(pasteboardExpiration)
         ]
         UIPasteboard.general.setItems([pasteboardItems], options: pasteboardOptions)
+        debugLog("• Pasteboard items set. keys=\(Array(pasteboardItems.keys))")
+        debugLog("• backgroundTop=\(backgroundTopColor.hexRGBString) bottom=\(backgroundBottomColor.hexRGBString)")
 
-        await UIApplication.shared.open(url)
+        let opened = await UIApplication.shared.open(url)
+        debugLog(opened ? "✓ UIApplication.open succeeded" : "✗ UIApplication.open returned false")
+    }
+
+    /// `#if DEBUG`에서만 출력되는 내부 로그.
+    /// 인스타 공유 흐름 전체를 한눈에 따라가도록 통일된 prefix를 사용합니다.
+    private static func debugLog(_ message: @autoclosure () -> String) {
+        #if DEBUG
+        print("[InstagramStoriesShare] \(message())")
+        #endif
     }
 
     /// Info.plist 의 `FacebookAppID` (또는 `FBAppID`) 값을 읽어옵니다.
