@@ -4,6 +4,7 @@ import SwiftUI
 // GUEST_DONE — 게스트가 다 읽었지만 회수 운송장 미등록.
 struct HostReadingDoneSheet: View {
     let onGoCard: () -> Void
+    var isLoadingCard: Bool = false
 
     var body: some View {
         SheetContainer {
@@ -17,7 +18,7 @@ struct HostReadingDoneSheet: View {
                 .foregroundColor(Color("grey700"))
                 .padding(.top, 8)
 
-            PrimarySheetButton(title: "독서카드 확인하러 가기", action: onGoCard)
+            PrimarySheetButton(title: "독서카드 확인하러 가기", action: onGoCard, isDisabled: isLoadingCard)
                 .padding(.top, 18)
         }
     }

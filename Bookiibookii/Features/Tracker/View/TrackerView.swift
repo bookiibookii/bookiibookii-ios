@@ -8,9 +8,13 @@ struct TrackerView: View {
 
     init(
         trackerService: TrackerService,
+        libraryService: LibraryService,
         onNavigateToGroup: @escaping () -> Void
     ) {
-        _viewModel = StateObject(wrappedValue: TrackerViewModel(service: trackerService))
+        _viewModel = StateObject(wrappedValue: TrackerViewModel(
+            service: trackerService,
+            libraryService: libraryService
+        ))
         self.onNavigateToGroup = onNavigateToGroup
     }
 
@@ -26,10 +30,15 @@ struct TrackerView: View {
         }
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)
+        .onChange(of: viewModel.libraryBookToOpen) { _, book in
+            guard let book else { return }
+            container.navigationRouter.push(to: .libraryCards(book: book))
+            viewModel.libraryBookToOpen = nil
+        }
     }
 
     /// 카드 탭 시 outer NavigationStack(`BookiibookiiApp`)에 push.
-    /// 함께읽기는 이번 사이클 미지원 → 토스트로 안내.
+    /// 함께읽기 그룹은 별도 트래커 상세 화면이 없어 `LibraryCardListView`(함께읽기 모드)로 직접 이동한다.
     private func navigate(to item: TrackerItem) {
         switch (item.role, item.exchangeType) {
         case (.host, .delivery):
@@ -40,8 +49,10 @@ struct TrackerView: View {
             container.navigationRouter.push(to: .hostDirect(groupId: item.groupId))
         case (.guest, .direct):
             container.navigationRouter.push(to: .guestDirect(groupId: item.groupId))
-        default:
-            viewModel.toast = "이번 사이클에서 미지원"
+        case (_, .none):
+            // 함께읽기: groupId로 LibraryBook 매칭 후 푸시. 진행 중이면 추가 클릭은 무시.
+            guard !viewModel.isOpeningLibraryCards else { return }
+            Task { await viewModel.openLibraryCards(groupId: item.groupId) }
         }
     }
 

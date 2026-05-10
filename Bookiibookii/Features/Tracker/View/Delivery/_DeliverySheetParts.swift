@@ -106,6 +106,7 @@ struct InfoBannerCard: View {
 struct PrimarySheetButton: View {
     let title: String
     let action: () -> Void
+    var isDisabled: Bool = false
 
     var body: some View {
         Button(action: action) {
@@ -114,10 +115,11 @@ struct PrimarySheetButton: View {
                 .foregroundColor(Color("grey100"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
-                .background(Color("grey900"))
+                .background(isDisabled ? Color("grey400") : Color("grey900"))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
+        .disabled(isDisabled)
     }
 }
 
@@ -126,12 +128,13 @@ struct PrimarySheetButton: View {
 struct OutlineSheetButton: View {
     let title: String
     let action: () -> Void
+    var isDisabled: Bool = false
 
     var body: some View {
         Button(action: action) {
             Text(title)
                 .font(.pretendard(size: 15))
-                .foregroundColor(Color("grey900"))
+                .foregroundColor(isDisabled ? Color("grey400") : Color("grey900"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
                 .background(Color("white"))
@@ -142,6 +145,7 @@ struct OutlineSheetButton: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
+        .disabled(isDisabled)
     }
 }
 

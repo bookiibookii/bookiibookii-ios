@@ -19,11 +19,15 @@ final class TrackerViewModel: ObservableObject {
     @Published private(set) var guestPhase: Phase = .idle
     @Published var selectedTab: TrackerTab = .myGroup
     @Published var toast: String? = nil
+    @Published private(set) var isOpeningLibraryCards: Bool = false
+    @Published var libraryBookToOpen: LibraryBook?
 
     private let service: TrackerService
+    private let libraryService: LibraryService
 
-    init(service: TrackerService) {
+    init(service: TrackerService, libraryService: LibraryService) {
         self.service = service
+        self.libraryService = libraryService
     }
 
     // MARK: - 파생값
@@ -53,6 +57,25 @@ final class TrackerViewModel: ObservableObject {
         guard tab != selectedTab else { return }
         selectedTab = tab
         await loadIfNeeded(tab: tab)
+    }
+
+    /// 함께읽기 그룹 카드 탭 → 안드 `getLibraryBooks()` + groupId 매칭으로 LibraryBook 획득.
+    /// View가 onChange로 push 후 `libraryBookToOpen`을 nil로 리셋한다.
+    func openLibraryCards(groupId: Int) async {
+        guard !isOpeningLibraryCards else { return }
+        isOpeningLibraryCards = true
+        defer { isOpeningLibraryCards = false }
+        do {
+            let books = try await libraryService.fetchLibraryBooks()
+            guard let match = books.first(where: { $0.groupId == groupId }) else {
+                toast = "독서카드 정보를 찾을 수 없습니다."
+                return
+            }
+            libraryBookToOpen = match
+        } catch {
+            toast = (error as? LocalizedError)?.errorDescription
+                ?? "네트워크 오류, 다시 시도해주세요"
+        }
     }
 
     func refresh() async {
