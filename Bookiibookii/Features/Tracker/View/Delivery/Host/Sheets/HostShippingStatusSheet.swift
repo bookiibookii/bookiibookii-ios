@@ -7,6 +7,7 @@ struct HostShippingStatusSheet: View {
     let trackingNumber: String
     let isReceived: Bool          // false → "수령 전", true → "수령 완료"
     let onConfirm: () -> Void
+    var isLoading: Bool = false
 
     var body: some View {
         SheetContainer {
@@ -22,7 +23,7 @@ struct HostShippingStatusSheet: View {
 
             trackingCard.padding(.top, 16)
 
-            PrimarySheetButton(title: "수령 인증 확인하기", action: onConfirm)
+            PrimarySheetButton(title: "수령 인증 확인하기", action: onConfirm, isDisabled: isLoading)
                 .padding(.top, 12)
         }
     }

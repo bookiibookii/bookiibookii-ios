@@ -8,8 +8,17 @@ struct GuestDeliveryView: View {
     @EnvironmentObject private var container: DIContainer
     private let onBack: () -> Void
 
-    init(groupId: Int, service: TrackerService, onBack: @escaping () -> Void = {}) {
-        _vm = StateObject(wrappedValue: GuestDeliveryViewModel(groupId: groupId, service: service))
+    init(
+        groupId: Int,
+        service: TrackerService,
+        libraryService: LibraryService,
+        onBack: @escaping () -> Void = {}
+    ) {
+        _vm = StateObject(wrappedValue: GuestDeliveryViewModel(
+            groupId: groupId,
+            service: service,
+            libraryService: libraryService
+        ))
         self.onBack = onBack
     }
 
@@ -27,6 +36,7 @@ struct GuestDeliveryView: View {
     @State private var shippingPhotoUrl: String?
     @State private var shippingPhotoSource: ShippingPhotoSource = .delivery
     @State private var sendConfirmChecked: Bool = false
+    @State private var isPreparingSendConfirm: Bool = false
 
     private enum ShippingPhotoSource {
         case delivery   // 호스트가 게스트에게 보낸 발송 인증 사진 (.shipped 진입)
@@ -70,6 +80,12 @@ struct GuestDeliveryView: View {
             }
         }
         .toast($vm.toastMessage)
+        .onChange(of: vm.libraryBookToOpen) { _, book in
+            guard let book else { return }
+            vm.dismissSheet()
+            container.navigationRouter.push(to: .libraryCards(book: book))
+            vm.libraryBookToOpen = nil
+        }
     }
 
     private var toolbar: some View {
@@ -176,18 +192,23 @@ struct GuestDeliveryView: View {
                 canExtendPeriod: (vm.detail?.extensionCount ?? 0) < 1
                     && (vm.detail?.trackerStatus == .guestReading
                         || vm.detail?.trackerStatus == .guestExtension),
-                onWriteCard: vm.dismissSheet,
+                onWriteCard: { Task { await vm.openLibraryCards() } },
                 onExtendPeriod: { vm.tapStep(.extendPeriod) },
-                onFinish: { Task { await vm.markDone(); vm.dismissSheet() } }
+                onFinish: { Task { await vm.markDone(); vm.dismissSheet() } },
+                isLoadingCard: vm.isOpeningLibraryCards
             )
         case .readingStatus:
             GuestReadingStatusSheet(
                 startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
                 endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
-                onGoCard: vm.dismissSheet
+                onGoCard: { Task { await vm.openLibraryCards() } },
+                isLoadingCard: vm.isOpeningLibraryCards
             )
         case .readingDone:
-            GuestReadingDoneSheet(onGoCard: vm.dismissSheet)
+            GuestReadingDoneSheet(
+                onGoCard: { Task { await vm.openLibraryCards() } },
+                isLoadingCard: vm.isOpeningLibraryCards
+            )
         case .extendPeriod:
             GuestExtendPeriodSheet(
                 days: $extendDaysInput,
@@ -291,11 +312,33 @@ struct GuestDeliveryView: View {
                 isReceived: vm.detail?.deliveryInfo?.isVerified ?? false,
                 onConfirm: {
                     // 안드 GuestShippingStatusBottomDialog → GuestSendConfirmFragment 흐름.
-                    // 사진 + 체크박스 + 확인 → 서버 verifyReception patch.
-                    sendConfirmChecked = false
-                    shippingPhotoUrl = nil
-                    vm.tapStep(.sendConfirm)
-                }
+                    // iOS에서는 사진을 미리 fetch — 성공 시 sendConfirm 다이얼로그로 진입,
+                    // 실패(=호스트가 아직 인증 사진 미등록) 시 시트를 닫고 토스트만 안내해
+                    // 빈 다이얼로그에 갇히는 이슈를 방지한다.
+                    // 네트워크 hang에 대비해 timeout으로 보호하고, bottom sheet → dialog
+                    // 전환 race를 피하기 위해 명시적으로 시트를 닫고 한 프레임 쉰 뒤 다이얼로그를 띄운다.
+                    guard !isPreparingSendConfirm else { return }
+                    Task {
+                        isPreparingSendConfirm = true
+                        defer { isPreparingSendConfirm = false }
+                        do {
+                            let groupId = vm.groupId
+                            let service = vm.service
+                            let url = try await withTimeout(seconds: 10) {
+                                try await service.fetchReceivedImageURL(groupId: groupId)
+                            }
+                            sendConfirmChecked = false
+                            shippingPhotoUrl = url.absoluteString
+                            vm.dismissSheet()
+                            try? await Task.sleep(nanoseconds: 300_000_000)
+                            vm.tapStep(.sendConfirm)
+                        } catch {
+                            vm.dismissSheet()
+                            vm.toastMessage = "아직 상대방이 수령 인증을 하지 않았습니다"
+                        }
+                    }
+                },
+                isLoading: isPreparingSendConfirm
             )
         case .receiveConfirm:
             GuestReceiveConfirmSheet(
@@ -422,6 +465,7 @@ struct GuestDeliveryView: View {
 #Preview("GuestDelivery") {
     GuestDeliveryView(
         groupId: 1,
-        service: TrackerService(interceptor: AuthInterceptor(authService: AuthService()))
+        service: TrackerService(interceptor: AuthInterceptor(authService: AuthService())),
+        libraryService: LibraryService(interceptor: AuthInterceptor(authService: AuthService()))
     )
 }

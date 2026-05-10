@@ -14,8 +14,17 @@ struct HostDirectView: View {
     @State private var appointmentDate: Date = Date()
     @State private var showDateTimePicker: Bool = false
 
-    init(groupId: Int, service: TrackerService, onBack: @escaping () -> Void = {}) {
-        _vm = StateObject(wrappedValue: HostDirectViewModel(groupId: groupId, service: service))
+    init(
+        groupId: Int,
+        service: TrackerService,
+        libraryService: LibraryService,
+        onBack: @escaping () -> Void = {}
+    ) {
+        _vm = StateObject(wrappedValue: HostDirectViewModel(
+            groupId: groupId,
+            service: service,
+            libraryService: libraryService
+        ))
         self.onBack = onBack
     }
 
@@ -55,6 +64,12 @@ struct HostDirectView: View {
             }
         }
         .toast($vm.toastMessage)
+        .onChange(of: vm.libraryBookToOpen) { _, book in
+            guard let book else { return }
+            vm.dismissSheet()
+            container.navigationRouter.push(to: .libraryCards(book: book))
+            vm.libraryBookToOpen = nil
+        }
     }
 
     // MARK: - 툴바
@@ -160,18 +175,20 @@ struct HostDirectView: View {
                 canExtendPeriod: (vm.detail?.extensionCount ?? 0) < 1
                     && (vm.detail?.trackerStatus == .hostReading
                         || vm.detail?.trackerStatus == .hostExtension),
-                onWriteCard: vm.dismissSheet,
+                onWriteCard: { Task { await vm.openLibraryCards() } },
                 onExtendPeriod: { vm.tapStep(.extendPeriod) },
                 onFinish: {
                     vm.dismissSheet()
                     Task { await vm.markDone() }
-                }
+                },
+                isLoadingCard: vm.isOpeningLibraryCards
             )
         case .readingStatus:
             HostDirectReadingStatusSheet(
                 startDate: TrackerDateFormatter.prettyDate(vm.detail?.startDate),
                 endDate: TrackerDateFormatter.prettyDate(vm.detail?.endDate),
-                onGoCard: vm.dismissSheet
+                onGoCard: { Task { await vm.openLibraryCards() } },
+                isLoadingCard: vm.isOpeningLibraryCards
             )
         case .extendPeriod:
             HostDirectExtendPeriodSheet(
@@ -348,6 +365,7 @@ struct HostDirectView: View {
 #Preview("HostDirect") {
     HostDirectView(
         groupId: 1,
-        service: TrackerService(interceptor: AuthInterceptor(authService: AuthService()))
+        service: TrackerService(interceptor: AuthInterceptor(authService: AuthService())),
+        libraryService: LibraryService(interceptor: AuthInterceptor(authService: AuthService()))
     )
 }

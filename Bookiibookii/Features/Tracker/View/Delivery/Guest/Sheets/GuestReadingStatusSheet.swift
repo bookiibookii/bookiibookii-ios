@@ -6,6 +6,7 @@ struct GuestReadingStatusSheet: View {
     let startDate: String
     let endDate: String
     let onGoCard: () -> Void
+    var isLoadingCard: Bool = false
 
     var body: some View {
         SheetContainer {
@@ -22,7 +23,7 @@ struct GuestReadingStatusSheet: View {
             )
             .padding(.top, 24)
 
-            PrimarySheetButton(title: "독서카드 확인하러 가기", action: onGoCard)
+            PrimarySheetButton(title: "독서카드 확인하러 가기", action: onGoCard, isDisabled: isLoadingCard)
                 .padding(.top, 16)
         }
     }

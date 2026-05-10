@@ -12,6 +12,7 @@ struct HostDirectReadingSheet: View {
     let onWriteCard: () -> Void
     let onExtendPeriod: () -> Void
     let onFinish: () -> Void
+    var isLoadingCard: Bool = false
 
     var body: some View {
         SheetContainer {
@@ -29,7 +30,7 @@ struct HostDirectReadingSheet: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.top, 8)
 
-            OutlineSheetButton(title: "독서 카드 작성", action: onWriteCard)
+            OutlineSheetButton(title: "독서 카드 작성", action: onWriteCard, isDisabled: isLoadingCard)
                 .padding(.top, 12)
             OutlineSheetButton(title: "독서 기간 연장", action: onExtendPeriod)
                 .opacity(canExtendPeriod ? 1.0 : 0.4)

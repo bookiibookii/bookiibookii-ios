@@ -9,15 +9,19 @@ final class GuestDeliveryViewModel: ObservableObject {
     @Published var activeSheet: DeliverySheet?
     @Published private(set) var isLoading: Bool = false
     @Published var toastMessage: String?
+    @Published private(set) var isOpeningLibraryCards: Bool = false
+    @Published var libraryBookToOpen: LibraryBook?
 
     let groupId: Int
     let service: TrackerService
+    private let libraryService: LibraryService
     /// 안드 GuestActivity.showSheetOnceForStatus 트래킹 대응.
     private var presentedStatuses: Set<TrackerStatusDTO> = []
 
-    init(groupId: Int, service: TrackerService) {
+    init(groupId: Int, service: TrackerService, libraryService: LibraryService) {
         self.groupId = groupId
         self.service = service
+        self.libraryService = libraryService
     }
 
     // MARK: - 진입 / 시트 조작
@@ -34,6 +38,24 @@ final class GuestDeliveryViewModel: ObservableObject {
 
     func dismissSheet() {
         activeSheet = nil
+    }
+
+    /// 시트의 "독서카드 확인하러 가기" → 안드 `getLibraryBooks()` + groupId 매칭 패턴.
+    func openLibraryCards() async {
+        guard !isOpeningLibraryCards else { return }
+        isOpeningLibraryCards = true
+        defer { isOpeningLibraryCards = false }
+        do {
+            let books = try await libraryService.fetchLibraryBooks()
+            guard let match = books.first(where: { $0.groupId == groupId }) else {
+                toastMessage = "독서카드 정보를 찾을 수 없습니다."
+                return
+            }
+            libraryBookToOpen = match
+        } catch {
+            toastMessage = (error as? LocalizedError)?.errorDescription
+                ?? "네트워크 오류, 다시 시도해주세요"
+        }
     }
 
     /// row 탭 진입점 — 서버에서 최신 detail을 받아 phase/status 갱신 후 현재 status 시트 노출.

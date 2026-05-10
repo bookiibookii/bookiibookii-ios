@@ -118,6 +118,7 @@ struct NavigationRoutingView: View {
             HostDeliveryView(
                 groupId: groupId,
                 service: container.api.tracker,
+                libraryService: container.api.library,
                 onBack: { container.navigationRouter.pop() }
             )
             .environmentObject(container)
@@ -127,6 +128,7 @@ struct NavigationRoutingView: View {
             GuestDeliveryView(
                 groupId: groupId,
                 service: container.api.tracker,
+                libraryService: container.api.library,
                 onBack: { container.navigationRouter.pop() }
             )
             .environmentObject(container)
@@ -136,6 +138,7 @@ struct NavigationRoutingView: View {
             HostDirectView(
                 groupId: groupId,
                 service: container.api.tracker,
+                libraryService: container.api.library,
                 onBack: { container.navigationRouter.pop() }
             )
             .environmentObject(container)
@@ -145,6 +148,7 @@ struct NavigationRoutingView: View {
             GuestDirectView(
                 groupId: groupId,
                 service: container.api.tracker,
+                libraryService: container.api.library,
                 onBack: { container.navigationRouter.pop() }
             )
             .environmentObject(container)
