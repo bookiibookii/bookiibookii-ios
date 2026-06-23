@@ -46,6 +46,15 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>PretendardVariable.ttf</string>
+		<string>pretendard_regular.ttf</string>
+		<string>pretendard_medium.ttf</string>
+		<string>pretendard_semibold.ttf</string>
+		<string>pretendard_bold.ttf</string>
+		<string>maruburi_extralight.ttf</string>
+		<string>maruburi_light.ttf</string>
+		<string>maruburi_regular.ttf</string>
+		<string>maruburi_semibold.ttf</string>
+		<string>maruburi_bold.ttf</string>
 	</array>
 </dict>
 </plist>
