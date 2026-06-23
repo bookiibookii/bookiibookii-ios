@@ -52,7 +52,7 @@ struct LibraryCardShareSheet: View {
             Spacer()
 
             Button(action: onClose) {
-                Image("ic_close")
+                Image("ic_x")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 32, height: 32)

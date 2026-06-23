@@ -245,7 +245,7 @@ struct LibraryCardListView: View {
                     isTogetherCommentsExpanded.toggle()
                 }
             } label: {
-                Image("open")
+                Image("ic_chevron")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)

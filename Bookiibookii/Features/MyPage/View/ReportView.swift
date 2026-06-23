@@ -200,7 +200,7 @@ private struct ReportCardView: View {
                     .fill(Color("grey100"))
                     .frame(width: 24, height: 24)
                     .overlay(
-                        Image("chat")
+                        Image("ic_message")
                             .renderingMode(.original)
                             .resizable()
                             .scaledToFit()

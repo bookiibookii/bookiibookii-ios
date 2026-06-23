@@ -8,7 +8,7 @@ struct HomeHeaderView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            Image("ic_title")
+            Image("ic_bookii_text")
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()

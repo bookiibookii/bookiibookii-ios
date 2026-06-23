@@ -37,7 +37,7 @@ struct SplashView: View {
     private var logoSection: some View {
         VStack(spacing: 20) {
             // 심볼 로고: ic_bookii_logo_white, 82dp x 82dp
-            Image("ic_splash_logo")
+            Image("ic_logo_symbol")
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
@@ -45,7 +45,7 @@ struct SplashView: View {
                 .foregroundColor(Color("white"))
 
             // 타이틀 이미지: ic_home_logo, 204dp x 21.79dp, tint=white
-            Image("ic_title")
+            Image("ic_bookii_text")
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()

@@ -50,7 +50,7 @@ struct GroupFabMenu: View {
         Button {
             withAnimation(.easeOut(duration: 0.25)) { isOpen.toggle() }
         } label: {
-            Image("ic_fab_plus")
+            Image("ic_plus")
                 .renderingMode(.template)
                 .resizable()
                 .frame(width: 19, height: 19)

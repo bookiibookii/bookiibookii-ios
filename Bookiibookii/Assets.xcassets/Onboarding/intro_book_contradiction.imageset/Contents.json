@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "intro_book_contradiction.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

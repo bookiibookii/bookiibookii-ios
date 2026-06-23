@@ -21,9 +21,9 @@ enum BookiiTabCase: Int, CaseIterable {
     var iconName: String {
         switch self {
         case .home: return "ic_tab_home"
-        case .group: return "ic_tab_group"
-        case .tracker: return "ic_tab_tracker"
-        case .library: return "ic_tab_library"
+        case .group: return "ic_group_32"
+        case .tracker: return "ic_tracker_32"
+        case .library: return "ic_book_32"
         case .myPage: return "ic_tab_mypage"
         }
     }

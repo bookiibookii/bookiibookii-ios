@@ -89,7 +89,7 @@ struct GroupCard: View {
 
     private var metaRow: some View {
         HStack(spacing: 4) {
-            Image("ic_cal")
+            Image("ic_calender")
                 .renderingMode(.template)
                 .resizable()
                 .frame(width: 16, height: 16)
@@ -130,7 +130,7 @@ struct GroupCard: View {
     private var profileRow: some View {
         HStack(spacing: 4) {
             KFImage(item.hostProfileImageUrl.flatMap(URL.init(string:)))
-                .placeholder { Image("img_profile_default").resizable() }
+                .placeholder { Image("ic_profile_placeholder").resizable() }
                 .retry(maxCount: 2)
                 .cancelOnDisappear(true)
                 .resizable()

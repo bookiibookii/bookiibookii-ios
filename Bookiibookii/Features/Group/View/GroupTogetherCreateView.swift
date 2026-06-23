@@ -185,7 +185,7 @@ struct GroupTogetherCreateView: View {
                         .font(.pretendard(size: 14))
                         .foregroundColor(viewModel.startDate == nil ? Color("grey400") : Color("grey900"))
                     Spacer()
-                    Image("ic_cal")
+                    Image("ic_calender")
                         .renderingMode(.template)
                         .resizable()
                         .frame(width: 24, height: 24)

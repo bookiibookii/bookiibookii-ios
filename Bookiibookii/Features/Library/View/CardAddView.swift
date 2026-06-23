@@ -177,7 +177,7 @@ struct CardAddView: View {
                             replaceHadSelection = false
                             showReplacePicker = true
                         } label: {
-                            Image("pencil")
+                            Image("ic_edit")
                                 .renderingMode(.original)
                                 .resizable()
                                 .scaledToFit()

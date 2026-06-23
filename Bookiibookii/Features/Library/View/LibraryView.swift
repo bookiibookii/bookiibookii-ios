@@ -105,7 +105,7 @@ struct LibraryView: View {
             Button {
                 // TODO: 정렬 기능 연결 시 액션 추가
             } label: {
-                Image("array")
+                Image("ic_album")
             }
             .buttonStyle(.plain)
         }

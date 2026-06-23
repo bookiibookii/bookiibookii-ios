@@ -78,7 +78,7 @@ struct SettingView: View {
             sectionTitle("알림")
             card {
                 HStack(spacing: 12) {
-                    iconBadge(iconName: "bell")
+                    iconBadge(iconName: "ic_alert")
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("푸시 알림 받기")
@@ -106,7 +106,7 @@ struct SettingView: View {
                 container.navigationRouter.push(to: .notice)
             } label: {
                 settingRow(
-                    iconName: "bell",
+                    iconName: "ic_alert",
                     title: "공지사항",
                     subtitle: "새로운 소식을 확인하세요!"
                 )
@@ -116,7 +116,7 @@ struct SettingView: View {
                 container.navigationRouter.push(to: .questoin)
             } label: {
                 settingRow(
-                    iconName: "chat",
+                    iconName: "ic_message",
                     title: "문의하기",
                     subtitle: "서비스 관련 문의는 여기서!"
                 )
@@ -126,7 +126,7 @@ struct SettingView: View {
                 container.navigationRouter.push(to: .report)
             } label: {
                 settingRow(
-                    iconName: "info",
+                    iconName: "ic_info",
                     title: "신고하기",
                     subtitle: "악성 유저를 신고해주세요!"
                 )

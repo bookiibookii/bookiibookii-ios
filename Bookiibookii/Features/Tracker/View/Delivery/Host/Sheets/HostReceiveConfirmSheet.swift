@@ -46,7 +46,7 @@ struct HostReceiveConfirmSheet: View {
                 .foregroundColor(Color("grey900"))
             Spacer()
             Button(action: onClose) {
-                Image("ic_fab_close")
+                Image("ic_x")
                     .resizable()
                     .renderingMode(.template)
                     .foregroundColor(Color("grey900"))

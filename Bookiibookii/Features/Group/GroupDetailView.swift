@@ -109,7 +109,7 @@ struct GroupDetailView: View {
                 .buttonStyle(.plain)
                 Spacer()
                 Button { showMoreSheet = true } label: {
-                    Image("ic_more")
+                    Image("ic_meetball")
                         .resizable()
                         .frame(width: 20, height: 20)
                         .frame(width: 40, height: 40)
@@ -166,7 +166,7 @@ struct GroupDetailView: View {
                     }
 
                     HStack(spacing: 4) {
-                        Image("ic_cal")
+                        Image("ic_calender")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 16, height: 16)
@@ -196,7 +196,7 @@ struct GroupDetailView: View {
 
                     HStack(spacing: 4) {
                         KFImage(d.hostProfileImageUrl.flatMap(URL.init(string:)))
-                            .placeholder { Image("img_profile_default").resizable() }
+                            .placeholder { Image("ic_profile_placeholder").resizable() }
                             .retry(maxCount: 2)
                             .cancelOnDisappear(true)
                             .resizable()
@@ -384,7 +384,7 @@ struct GroupDetailView: View {
                     .frame(width: 40, height: 40)
             } else {
                 KFImage(slot.profileImageUrl.flatMap(URL.init(string:)))
-                    .placeholder { Image("img_profile_default").resizable() }
+                    .placeholder { Image("ic_profile_placeholder").resizable() }
                     .retry(maxCount: 2)
                     .cancelOnDisappear(true)
                     .resizable()

@@ -40,7 +40,7 @@ struct HomeMateCard: View {
 
     private var profileImage: some View {
         KFImage(item.profileImageUrl.flatMap(URL.init(string:)))
-            .placeholder { Image("img_profile_default").resizable() }
+            .placeholder { Image("ic_profile_placeholder").resizable() }
             .retry(maxCount: 2)
             .cancelOnDisappear(true)
             .resizable()

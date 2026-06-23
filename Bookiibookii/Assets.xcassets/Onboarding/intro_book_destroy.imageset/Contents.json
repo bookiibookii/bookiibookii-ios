@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "intro_book_destroy.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

@@ -62,9 +62,9 @@ enum StepMethod: CaseIterable, Hashable {
 
     var iconSystemName: String {
         switch self {
-        case .memo:   return "pencil"
+        case .memo:   return "ic_edit"
         case .postit: return "bookmark.fill"
-        case .photo:  return "camera"
+        case .photo:  return "ic_camera"
         case .focus:  return "book.closed"
         }
     }

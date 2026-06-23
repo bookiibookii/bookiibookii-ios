@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "intro_profile_noshel_lib3.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

@@ -79,7 +79,7 @@ struct ProfileChangeView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 38))
 
                 PhotosPicker(selection: $photoPickerItem, matching: .images) {
-                    Image("camera")
+                    Image("ic_camera")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 36, height: 36)

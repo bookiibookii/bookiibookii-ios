@@ -43,7 +43,7 @@ struct LoginIntroView: View {
                     let W = geo.size.width
 
                     // 1. 타이틀 로고 (중앙 → 상단으로 이동)
-                    Image("ic_title")
+                    Image("ic_bookii_text")
                         .renderingMode(.template)
                         .resizable()
                         .scaledToFit()

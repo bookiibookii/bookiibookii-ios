@@ -67,7 +67,7 @@ struct TrackerRelayProgressBar: View {
     }
 
     private var defaultProfile: some View {
-        Image("img_profile_default")
+        Image("ic_profile_placeholder")
             .resizable()
             .scaledToFill()
             .frame(width: profileSize, height: profileSize)

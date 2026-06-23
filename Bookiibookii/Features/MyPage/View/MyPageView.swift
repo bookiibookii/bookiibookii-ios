@@ -54,7 +54,7 @@ struct MyPageView: View {
             Button {
                 container.navigationRouter.push(to: .setting)
             } label: {
-                Image("ic_setting")
+                Image("ic_gear")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
@@ -97,7 +97,7 @@ struct MyPageView: View {
             Button {
                 container.navigationRouter.push(to: .profileChange)
             } label: {
-                Image("pencil")
+                Image("ic_edit")
                     .renderingMode(.original)
                     .resizable()
                     .scaledToFit()
@@ -132,7 +132,7 @@ struct MyPageView: View {
     }
 
     private var defaultProfileIcon: some View {
-        Image("img_profile_default")
+        Image("ic_profile_placeholder")
             .resizable()
             .scaledToFill()
     }
@@ -316,7 +316,7 @@ private struct SectionHeader: View {
                 .buttonStyle(.plain)
             case .toggle(let isExpanded, let action):
                 Button(action: action) {
-                    Image("open")
+                    Image("ic_chevron")
                         .renderingMode(.template)
                         .resizable()
                         .scaledToFit()

@@ -85,7 +85,7 @@ struct LibraryCardDetailView: View {
                 guard viewModel.detail != nil else { return }
                 isShareSheetPresented = true
             } label: {
-                Image("share")
+                Image("ic_share")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 24, height: 24)
@@ -224,7 +224,7 @@ struct LibraryCardDetailView: View {
                     Button {
                         // TODO: delete
                     } label: {
-                        pdfAssetImage("trash", side: 32)
+                        pdfAssetImage("ic_trash", side: 32)
                     }
                     .buttonStyle(.plain)
 
@@ -232,7 +232,7 @@ struct LibraryCardDetailView: View {
                         guard let uid = userBookId else { return }
                         container.navigationRouter.push(to: .libraryCardEdit(cardId: detail.cardId, userBookId: uid))
                     } label: {
-                        pdfAssetImage("pencil", side: 32)
+                        pdfAssetImage("ic_edit", side: 32)
                     }
                     .buttonStyle(.plain)
                     .disabled(userBookId == nil)
@@ -294,7 +294,7 @@ struct LibraryCardDetailView: View {
                 Button {
                     Task { await viewModel.reloadComments() }
                 } label: {
-                    pdfAssetImage("reload", side: 28)
+                    pdfAssetImage("ic_reload", side: 28)
                 }
                 .buttonStyle(.plain)
             }
@@ -342,7 +342,7 @@ struct LibraryCardDetailView: View {
         let canSubmit = !trimmed.isEmpty && !viewModel.isSubmittingComment
 
         return HStack(spacing: 12) {
-            pdfAssetImage("lock", side: 40)
+            pdfAssetImage("ic_lock", side: 40)
 
             TextField("텍스트 입력 전", text: $viewModel.commentInput)
                 .font(.pretendard(size: 15, weight: .regular))
@@ -353,7 +353,7 @@ struct LibraryCardDetailView: View {
             Button {
                 Task { await viewModel.submitComment() }
             } label: {
-                pdfAssetImage("upload", side: 40)
+                pdfAssetImage("ic_upload", side: 40)
             }
             .buttonStyle(.plain)
             .disabled(!canSubmit)

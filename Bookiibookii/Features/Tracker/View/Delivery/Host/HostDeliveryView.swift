@@ -111,7 +111,7 @@ struct HostDeliveryView: View {
                 Spacer()
 
                 Button { vm.tapStep(.groupManage) } label: {
-                    Image("ic_more")
+                    Image("ic_meetball")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 24, height: 24)

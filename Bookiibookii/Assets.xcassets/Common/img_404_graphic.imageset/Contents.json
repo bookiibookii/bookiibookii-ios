@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "img_404_graphic.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

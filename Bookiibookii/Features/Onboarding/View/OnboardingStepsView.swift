@@ -169,7 +169,7 @@ struct OnboardingStepsView: View {
                 action: { viewModel.toggleAllMethods() }
             )
             methodSpecialCard(
-                icon: "questionmark",
+                icon: "ic_question",
                 title: "아직 잘 모르겠어요",
                 isSelected: viewModel.isMethodUnknown,
                 action: { viewModel.toggleMethodUnknown() }

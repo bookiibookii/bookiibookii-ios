@@ -69,7 +69,7 @@ struct OnboardingProfileView: View {
 
     // MARK: - 로고
     private var logoSection: some View {
-        Image("ic_title")
+        Image("ic_bookii_text")
             .renderingMode(.template)
             .resizable()
             .scaledToFit()
@@ -88,7 +88,7 @@ struct OnboardingProfileView: View {
                             .resizable()
                             .scaledToFill()
                     } else {
-                        Image("img_profile_default")
+                        Image("ic_profile_placeholder")
                             .resizable()
                             .scaledToFill()
                     }
