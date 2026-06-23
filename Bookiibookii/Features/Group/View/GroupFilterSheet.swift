@@ -73,7 +73,7 @@ where Item.AllCases == [Item] {
     private var header: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
-                .font(.pretendard(size: 18, weight: .bold))
+                .pretendardText(size: 18, weight: .bold)
                 .foregroundColor(Color("grey900"))
             summaryText
             Spacer()
@@ -85,17 +85,17 @@ where Item.AllCases == [Item] {
         return Group {
             if list.isEmpty {
                 Text("전체")
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("main200"))
             } else if list.count <= 3 {
                 Text(list.joined(separator: " · "))
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("main200"))
             } else {
                 let first3 = list.prefix(3).joined(separator: " · ")
                 (Text(first3).foregroundColor(Color("main200"))
                  + Text(" 외 \(list.count - 3)개").foregroundColor(Color("grey500")))
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
             }
         }
     }
@@ -159,7 +159,7 @@ where Item.AllCases == [Item] {
     private func chip(text: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(text)
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(isSelected ? Color("main200") : Color("grey700"))
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: false)
@@ -186,7 +186,7 @@ where Item.AllCases == [Item] {
                 dismiss()
             } label: {
                 Text("취소")
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("grey900"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
@@ -201,7 +201,7 @@ where Item.AllCases == [Item] {
                 dismiss()
             } label: {
                 Text("확인")
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("white"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)

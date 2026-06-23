@@ -26,7 +26,7 @@ struct HostPhotoSelectionSheet: View {
         Button(action: action) {
             HStack {
                 Text(title)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey700"))
                 Spacer()
                 Image(iconName)

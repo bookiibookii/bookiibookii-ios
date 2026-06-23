@@ -12,12 +12,12 @@ struct GuestShippingStatusSheet: View {
     var body: some View {
         SheetContainer {
             Text("호스트에게 책을 발송했어요!")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 
             Text("호스트가 책을 수령하면 상태가 업데이트됩니다.")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey500"))
                 .padding(.top, 8)
 
@@ -31,10 +31,10 @@ struct GuestShippingStatusSheet: View {
     private var trackingCard: some View {
         HStack(spacing: 8) {
             Text(courier)
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey900"))
             Text(trackingNumber)
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(Color("sub200"))
             Spacer()
             statusPill
@@ -52,7 +52,7 @@ struct GuestShippingStatusSheet: View {
 
     private var statusPill: some View {
         Text(isReceived ? "수령 완료" : "수령 전")
-            .font(.pretendard(size: 12, weight: .medium))
+            .pretendardText(size: 12, weight: .medium)
             .foregroundColor(Color("sub200"))
             .padding(.horizontal, 10)
             .frame(height: 28)

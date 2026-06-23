@@ -16,7 +16,7 @@ struct NotificationCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 titleRow
                 Text(item.message)
-                    .font(.pretendard(size: 12))
+                    .pretendardText(size: 12)
                     .foregroundColor(Color("grey700"))
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 6)
@@ -50,7 +50,7 @@ struct NotificationCard: View {
     private var titleRow: some View {
         HStack(spacing: 6) {
             Text(item.title)
-                .font(.pretendard(size: 14, weight: .bold))
+                .pretendardText(size: 14, weight: .bold)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
@@ -68,14 +68,14 @@ struct NotificationCard: View {
         let hasBook = !bookTitle.isEmpty
         HStack(spacing: 4) {
             Text(timeText)
-                .font(.pretendard(size: 11))
+                .pretendardText(size: 11)
                 .foregroundColor(Color("grey400"))
             if hasBook {
                 Text("·")
-                    .font(.pretendard(size: 11))
+                    .pretendardText(size: 11)
                     .foregroundColor(Color("grey400"))
                 Text(bookTitle)
-                    .font(.pretendard(size: 11))
+                    .pretendardText(size: 11)
                     .foregroundColor(Color("grey400"))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -87,7 +87,7 @@ struct NotificationCard: View {
 struct NotificationEmptyCard: View {
     var body: some View {
         Text("새로운 알림이 없습니다.")
-            .font(.pretendard(size: 14))
+            .pretendardText(size: 14)
             .foregroundColor(Color("grey500"))
             .frame(maxWidth: .infinity)
             .frame(height: 100)

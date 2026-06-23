@@ -47,7 +47,7 @@ struct ReportDetailView: View {
                     .font(.system(size: 16, weight: .regular))
                     .foregroundColor(Color(red: 1, green: 0.42, blue: 0.42))
                 Text(viewModel.cautionTitle)
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("grey700"))
             }
             .padding(.bottom, 8)
@@ -56,7 +56,7 @@ struct ReportDetailView: View {
             }
 
             Text(viewModel.cautionMessage)
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color(red: 1, green: 0.30, blue: 0.30))
         }
         .padding(.horizontal, 16)
@@ -73,7 +73,7 @@ struct ReportDetailView: View {
     private var groupSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(viewModel.groupSectionTitle)
-                .font(.pretendard(size: 16, weight: .medium))
+                .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             selectorField(
@@ -89,7 +89,7 @@ struct ReportDetailView: View {
             if viewModel.isGroupListExpanded {
                 dropdownCard {
                     Text("내 그룹")
-                        .font(.pretendard(size: 11, weight: .regular))
+                        .pretendardText(size: 11, weight: .regular)
                         .foregroundColor(Color("grey400"))
                     ForEach(viewModel.myGroups) { group in
                         dropdownRow(group.displayTitle) {
@@ -98,7 +98,7 @@ struct ReportDetailView: View {
                     }
                     Divider().overlay(Color("grey100"))
                     Text("참여 그룹")
-                        .font(.pretendard(size: 11, weight: .regular))
+                        .pretendardText(size: 11, weight: .regular)
                         .foregroundColor(Color("grey400"))
                     ForEach(viewModel.joinedGroups) { group in
                         dropdownRow(group.displayTitle) {
@@ -113,7 +113,7 @@ struct ReportDetailView: View {
     private var memberSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(viewModel.memberSectionTitle)
-                .font(.pretendard(size: 16, weight: .medium))
+                .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             selectorField(
@@ -129,7 +129,7 @@ struct ReportDetailView: View {
             if viewModel.isMemberListExpanded {
                 dropdownCard {
                     Text(viewModel.selectedGroup?.displayTitle ?? "")
-                        .font(.pretendard(size: 11, weight: .regular))
+                        .pretendardText(size: 11, weight: .regular)
                         .foregroundColor(Color("grey400"))
                     ForEach(viewModel.membersForSelectedGroup) { member in
                         dropdownRow(member.name) {
@@ -144,7 +144,7 @@ struct ReportDetailView: View {
     private var reasonSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(viewModel.reasonSectionTitle)
-                .font(.pretendard(size: 16, weight: .medium))
+                .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             ForEach(ReportReason.allCases, id: \.self) { reason in
@@ -162,7 +162,7 @@ struct ReportDetailView: View {
                             )
 
                         Text(reason.displayText)
-                            .font(.pretendard(size: 15, weight: .regular))
+                            .pretendardText(size: 15, weight: .regular)
                             .foregroundColor(viewModel.selectedReason == reason ? Color("main200") : Color("grey900"))
 
                         Spacer()
@@ -184,13 +184,13 @@ struct ReportDetailView: View {
     private var contentSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(viewModel.contentSectionTitle)
-                .font(.pretendard(size: 16, weight: .medium))
+                .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             ZStack(alignment: .topLeading) {
                 if viewModel.content.isEmpty {
                     Text(viewModel.contentPlaceholder)
-                        .font(.pretendard(size: 15, weight: .regular))
+                        .pretendardText(size: 15, weight: .regular)
                         .foregroundColor(Color("grey500"))
                         .padding(.horizontal, 20)
                         .padding(.vertical, 20)
@@ -198,7 +198,7 @@ struct ReportDetailView: View {
                 }
 
                 TextEditor(text: $viewModel.content)
-                    .font(.pretendard(size: 15, weight: .regular))
+                    .pretendardText(size: 15, weight: .regular)
                     .foregroundColor(Color("grey800"))
                     .scrollContentBackground(.hidden)
                     .padding(.horizontal, 12)
@@ -218,7 +218,7 @@ struct ReportDetailView: View {
             HStack {
                 Spacer()
                 Text("\(viewModel.content.count) / \(ReportDetailViewModel.maxContentLength)")
-                    .font(.pretendard(size: 12, weight: .regular))
+                    .pretendardText(size: 12, weight: .regular)
                     .foregroundColor(Color("grey500"))
             }
         }
@@ -235,7 +235,7 @@ struct ReportDetailView: View {
             container.navigationRouter.pop()
         } label: {
             Text("신고 전송")
-                .font(.pretendard(size: 18, weight: viewModel.canSubmit ? .medium : .regular))
+                .pretendardText(size: 18, weight: viewModel.canSubmit ? .medium : .regular)
                 .foregroundColor(viewModel.canSubmit ? .white : Color("grey500"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 72)
@@ -254,7 +254,7 @@ struct ReportDetailView: View {
         Button(action: onTap) {
             HStack {
                 Text(text)
-                    .font(.pretendard(size: 15, weight: .regular))
+                    .pretendardText(size: 15, weight: .regular)
                     .foregroundColor(isSelected ? Color("grey900") : Color("grey500"))
                     .lineLimit(1)
                 Spacer()
@@ -298,7 +298,7 @@ struct ReportDetailView: View {
     private func dropdownRow(_ text: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(text)
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey700"))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)

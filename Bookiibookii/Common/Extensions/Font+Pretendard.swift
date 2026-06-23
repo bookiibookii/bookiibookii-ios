@@ -28,9 +28,9 @@ extension Font {
 
 #Preview("Pretendard Sample") {
     VStack(alignment: .leading, spacing: 8) {
-        Text("Regular 14").font(.pretendard(size: 14))
-        Text("Medium 14").font(.pretendard(size: 14, weight: .medium))
-        Text("Bold 24").font(.pretendard(size: 24, weight: .bold))
+        Text("Regular 14").pretendardText(size: 14)
+        Text("Medium 14").pretendardText(size: 14, weight: .medium)
+        Text("Bold 24").pretendardText(size: 24, weight: .bold)
     }
     .padding()
 }

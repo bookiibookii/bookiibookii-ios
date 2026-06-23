@@ -43,20 +43,20 @@ struct RecievedReviewView: View {
                 Text("5")
                 Text("개")
             }
-            .font(.pretendard(size: 14, weight: .regular))
+            .pretendardText(size: 14, weight: .regular)
             .foregroundColor(Color("grey700"))
 
             Spacer()
 
             HStack(spacing: 4) {
                 Text("최신순")
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("grey700"))
                 Text("|")
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey500"))
                 Text("과거순")
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey500"))
             }
         }
@@ -76,10 +76,10 @@ private struct ReviewHeaderRow: View {
         HStack {
             HStack(spacing: 4) {
                 Text("noshel")
-                    .font(.pretendard(size: 14, weight: .semibold))
+                    .pretendardText(size: 14, weight: .semibold)
                     .foregroundColor(Color("main200"))
                 Text("님과의 교환독서")
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("grey900"))
             }
 
@@ -117,19 +117,19 @@ private struct BookInfoRow: View {
             VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("괴테는 모든 것을 말했다")
-                        .font(.pretendard(size: 14, weight: .medium))
+                        .pretendardText(size: 14, weight: .medium)
                         .foregroundColor(Color("grey900"))
                     HStack(spacing: 4) {
                         Text("스즈키 유이")
                         Text("(소설)")
-                            .font(.pretendard(size: 11, weight: .regular))
+                            .pretendardText(size: 11, weight: .regular)
                     }
-                    .font(.pretendard(size: 12, weight: .regular))
+                    .pretendardText(size: 12, weight: .regular)
                     .foregroundColor(Color("grey500"))
                 }
 
                 Text("2025. 12. 18. ~ 2026. 01. 12.")
-                    .font(.pretendard(size: 11, weight: .regular))
+                    .pretendardText(size: 11, weight: .regular)
                     .foregroundColor(Color("grey400"))
             }
             Spacer()
@@ -145,7 +145,7 @@ private struct TagChip: View {
             Text("#")
             Text(text)
         }
-        .font(.pretendard(size: 12, weight: .regular))
+        .pretendardText(size: 12, weight: .regular)
         .foregroundColor(Color("sub200"))
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
@@ -162,7 +162,7 @@ private struct PlusChip: View {
             Text("+")
             Text(value)
         }
-        .font(.pretendard(size: 12, weight: .regular))
+        .pretendardText(size: 12, weight: .regular)
         .foregroundColor(Color("sub200"))
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
@@ -196,13 +196,13 @@ private struct ExpandedReviewCard: View {
             BookInfoRow()
 
             Text("도서 후기")
-                .font(.pretendard(size: 12, weight: .medium))
+                .pretendardText(size: 12, weight: .medium)
                 .foregroundColor(Color("grey900"))
             StarRating(value: 3)
             ReviewTextBox(text: "이동진 평론가도 추천한 책이라서 기대했는데 역시 존잼이었어요...")
 
             Text("파트너의 한줄평")
-                .font(.pretendard(size: 12, weight: .medium))
+                .pretendardText(size: 12, weight: .medium)
                 .foregroundColor(Color("grey900"))
             StarRating(value: 3)
 
@@ -242,7 +242,7 @@ private struct ReviewTextBox: View {
 
     var body: some View {
         Text(text)
-            .font(.pretendard(size: 12, weight: .regular))
+            .pretendardText(size: 12, weight: .regular)
             .foregroundColor(Color("grey900"))
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)

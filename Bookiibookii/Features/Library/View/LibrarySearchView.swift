@@ -48,7 +48,7 @@ struct LibrarySearchView: View {
                         .foregroundColor(Color("grey400"))
 
                     TextField("도서명, 저자명, 한 줄 평 검색", text: $viewModel.searchText)
-                        .font(.pretendard(size: 14, weight: .regular))
+                        .pretendardText(size: 14, weight: .regular)
                         .foregroundColor(Color("grey900"))
                         .submitLabel(.search)
                         .onSubmit {
@@ -76,7 +76,7 @@ struct LibrarySearchView: View {
     private var recentKeywordSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("최근 검색어")
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey700"))
 
             FlowLayout(spacing: 4) {
@@ -103,7 +103,7 @@ struct LibrarySearchView: View {
             VStack(spacing: 16) {
                 HStack {
                     Text(viewModel.resultCountText)
-                        .font(.pretendard(size: 14, weight: .regular))
+                        .pretendardText(size: 14, weight: .regular)
                         .foregroundColor(Color("grey900"))
                     Spacer()
                 }
@@ -144,7 +144,7 @@ private struct RecentKeywordChip: View {
         HStack(spacing: 4) {
             Button(action: onTap) {
                 Text(text)
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey500"))
             }
             .buttonStyle(.plain)

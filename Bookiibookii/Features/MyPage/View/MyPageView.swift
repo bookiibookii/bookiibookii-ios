@@ -46,7 +46,7 @@ struct MyPageView: View {
     private var topBar: some View {
         HStack {
             Text("마이페이지")
-                .font(.pretendard(size: 24, weight: .medium))
+                .pretendardText(size: 24, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             Spacer()
@@ -76,7 +76,7 @@ struct MyPageView: View {
                 nicknameText
 
                 Text(formattedManner(viewModel.manner))
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("main200"))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -144,7 +144,7 @@ struct MyPageView: View {
                     .scaleEffect(0.7)
             } else {
                 Text(viewModel.profile?.nickname ?? "-")
-                    .font(.pretendard(size: 20, weight: .regular))
+                    .pretendardText(size: 20, weight: .regular)
                     .foregroundColor(Color("grey900"))
             }
         }
@@ -259,7 +259,7 @@ private struct CategoryChip: View {
     var body: some View {
         let display = text.hasPrefix("#") ? text : "#\(text)"
         Text(display)
-            .font(.pretendard(size: 11, weight: .regular))
+            .pretendardText(size: 11, weight: .regular)
             .foregroundColor(Color("sub200"))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
@@ -275,11 +275,11 @@ private struct StatItem: View {
     var body: some View {
         VStack(spacing: 4) {
             Text(title)
-                .font(.pretendard(size: 10, weight: .regular))
+                .pretendardText(size: 10, weight: .regular)
                 .foregroundColor(Color("grey700"))
 
             Text(count)
-                .font(.pretendard(size: 24, weight: .medium))
+                .pretendardText(size: 24, weight: .medium)
                 .foregroundColor(Color("main200"))
         }
         .frame(maxWidth: .infinity)
@@ -299,7 +299,7 @@ private struct SectionHeader: View {
     var body: some View {
         HStack(spacing: 8) {
             Text(title)
-                .font(.pretendard(size: 16, weight: .medium))
+                .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             Spacer()
@@ -338,11 +338,11 @@ private struct ReviewChip: View {
     var body: some View {
         HStack(spacing: 4) {
             Text(text)
-                .font(.pretendard(size: 12, weight: .regular))
+                .pretendardText(size: 12, weight: .regular)
                 .foregroundColor(Color("grey900"))
 
             Text("\(count)")
-                .font(.pretendard(size: 12, weight: .regular))
+                .pretendardText(size: 12, weight: .regular)
                 .foregroundColor(Color("main200"))
         }
         .padding(.horizontal, 20)
@@ -382,19 +382,19 @@ private struct ProfileGroupCard: View {
     private var bookInfo: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(group.bookTitle ?? "")
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
 
             HStack(spacing: 4) {
                 if let author = group.auth, !author.isEmpty {
                     Text(author)
-                        .font(.pretendard(size: 12, weight: .regular))
+                        .pretendardText(size: 12, weight: .regular)
                         .foregroundColor(Color("grey500"))
                 }
                 if let genre = group.genre, !genre.isEmpty {
                     Text("(\(genre))")
-                        .font(.pretendard(size: 11, weight: .regular))
+                        .pretendardText(size: 11, weight: .regular)
                         .foregroundColor(Color("grey500"))
                 }
             }
@@ -405,7 +405,7 @@ private struct ProfileGroupCard: View {
         let isRecruiting = (group.groupStatus ?? "").uppercased() == "RECRUITING"
         let label = isRecruiting ? "모집 중" : "모집완료"
         return Text(label)
-            .font(.pretendard(size: 11, weight: isRecruiting ? .medium : .regular))
+            .pretendardText(size: 11, weight: isRecruiting ? .medium : .regular)
             .foregroundColor(isRecruiting ? Color("white") : Color("grey500"))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
@@ -420,7 +420,7 @@ private struct RecentBookRow: View {
     var body: some View {
         HStack {
             Text(book.bookTitle ?? "")
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
 

@@ -17,7 +17,7 @@ struct HostGroupManageSheet: View {
                 .padding(.top, 12)
 
             Text("그룹 관리")
-                .font(.pretendard(size: 20))
+                .pretendardText(size: 20)
                 .foregroundColor(Color("grey900"))
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
@@ -54,7 +54,7 @@ struct HostGroupManageSheet: View {
                 .foregroundColor(pointRed)
                 .frame(width: 18, height: 18)
             Text("진행 중인 그룹은 수정할 수 없습니다.")
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(pointRed)
             Spacer(minLength: 0)
         }
@@ -72,7 +72,7 @@ struct HostGroupManageSheet: View {
     private func menuRow(title: String, color: Color, enabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: { if enabled { action() } }) {
             Text(title)
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(color)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 24)

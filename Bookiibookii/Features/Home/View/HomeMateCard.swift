@@ -14,7 +14,7 @@ struct HomeMateCard: View {
             VStack(alignment: .leading, spacing: 6) {
                 titleRow
                 Text(item.displayRecentBook)
-                    .font(.pretendard(size: 12))
+                    .pretendardText(size: 12)
                     .foregroundColor(Color("grey600"))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -52,7 +52,7 @@ struct HomeMateCard: View {
     private var titleRow: some View {
         HStack(spacing: 6) {
             Text(item.nickname)
-                .font(.pretendard(size: 15, weight: .bold))
+                .pretendardText(size: 15, weight: .bold)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
 
@@ -69,7 +69,7 @@ struct HomeMateCard: View {
 
     private func tagChip(_ text: String) -> some View {
         Text(text)
-            .font(.pretendard(size: 11, weight: .medium))
+            .pretendardText(size: 11, weight: .medium)
             .foregroundColor(Color("main200"))
             .padding(.horizontal, 10)
             .padding(.vertical, 4)

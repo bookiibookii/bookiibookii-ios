@@ -49,7 +49,7 @@ struct TrackerCard: View {
     private var info: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(item.bookTitle)
-                .font(.pretendard(size: 16, weight: .medium))
+                .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(Color("grey800"))
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -65,13 +65,13 @@ struct TrackerCard: View {
     private var authorLine: some View {
         HStack(spacing: 4) {
             Text(item.bookAuthor)
-                .font(.pretendard(size: 12))
+                .pretendardText(size: 12)
                 .foregroundColor(Color("grey600"))
                 .lineLimit(1)
             let category = TrackerCategoryMapper.displayKo(item.bookCategory)
             if !category.isEmpty {
                 Text(category)
-                    .font(.pretendard(size: 12))
+                    .pretendardText(size: 12)
                     .foregroundColor(Color("grey600"))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -84,10 +84,10 @@ struct TrackerCard: View {
         if let name = item.withUserName, !name.isEmpty {
             HStack(spacing: 4) {
                 Text("with")
-                    .font(.pretendard(size: 12, weight: .medium))
+                    .pretendardText(size: 12, weight: .medium)
                     .foregroundColor(Color("grey500"))
                 Text(name)
-                    .font(.pretendard(size: 12, weight: .medium))
+                    .pretendardText(size: 12, weight: .medium)
                     .foregroundColor(Color("grey800"))
                     .lineLimit(1)
             }

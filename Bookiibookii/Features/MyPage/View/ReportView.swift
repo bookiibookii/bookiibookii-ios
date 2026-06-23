@@ -73,11 +73,11 @@ struct ReportView: View {
     private var emptyView: some View {
         VStack(spacing: 8) {
             Text("아직 신고 내역이 없어요 😊")
-                .font(.pretendard(size: 16, weight: .medium))
+                .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             Text("모두가 안심하고 대화할 수 있는 독서 공간을 만들어가요")
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey600"))
                 .multilineTextAlignment(.center)
         }
@@ -105,7 +105,7 @@ struct ReportView: View {
             }
         } label: {
             Text("신고하기")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 72)
@@ -181,9 +181,8 @@ private struct ReportCardView: View {
             VStack(alignment: .leading, spacing: 8) {
                 titleRow
                 Text(report.reportContent)
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey700"))
-                    .lineSpacing(2)
             }
 
             statusOrResponseBox
@@ -208,14 +207,14 @@ private struct ReportCardView: View {
                     )
 
                 Text(report.reporterName)
-                    .font(.pretendard(size: 11, weight: .medium))
+                    .pretendardText(size: 11, weight: .medium)
                     .foregroundColor(Color("grey900"))
             }
 
             Spacer()
 
             Text(report.createdDate)
-                .font(.pretendard(size: 11, weight: .regular))
+                .pretendardText(size: 11, weight: .regular)
                 .foregroundColor(Color("grey400"))
         }
     }
@@ -223,11 +222,11 @@ private struct ReportCardView: View {
     private var titleRow: some View {
         HStack(spacing: 4) {
             Text(report.bookTitle)
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             Text("(\(report.reportReason))")
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey900"))
         }
     }
@@ -238,17 +237,16 @@ private struct ReportCardView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text(response.responderName)
-                        .font(.pretendard(size: 12, weight: .regular))
+                        .pretendardText(size: 12, weight: .regular)
                         .foregroundColor(Color("main200"))
                     Spacer()
                     Text(response.createdDate)
-                        .font(.pretendard(size: 11, weight: .regular))
+                        .pretendardText(size: 11, weight: .regular)
                         .foregroundColor(Color("grey400"))
                 }
                 Text(response.content)
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey900"))
-                    .lineSpacing(2)
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -260,7 +258,7 @@ private struct ReportCardView: View {
             .clipShape(RoundedRectangle(cornerRadius: 10))
         } else {
             Text("답변 대기 중입니다")
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey500"))
                 .frame(maxWidth: .infinity)
                 .padding(12)

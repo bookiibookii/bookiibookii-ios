@@ -52,7 +52,7 @@ struct ReviewWriteView: View {
     private var topBar: some View {
         ZStack {
             Text("교환독서 후기")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             HStack {
@@ -102,18 +102,18 @@ struct ReviewWriteView: View {
                         .clipShape(Circle())
 
                     Text(vm.hostNickname)
-                        .font(.pretendard(size: 12, weight: .medium))
+                        .pretendardText(size: 12, weight: .medium)
                         .foregroundColor(Color("grey700"))
                 }
 
                 Text(vm.bookTitle)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey900"))
                     .lineLimit(1)
                     .padding(.top, 11)
 
                 Text(vm.bookAuthor)
-                    .font(.pretendard(size: 12))
+                    .pretendardText(size: 12)
                     .foregroundColor(Color("grey500"))
                     .lineLimit(1)
                     .padding(.top, 4)
@@ -121,7 +121,7 @@ struct ReviewWriteView: View {
                 Spacer(minLength: 0)
 
                 Text(startDateText)
-                    .font(.pretendard(size: 11))
+                    .pretendardText(size: 11)
                     .foregroundColor(Color("grey400"))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -192,7 +192,7 @@ struct ReviewWriteView: View {
             return s
         }()
         return Text(attr)
-            .font(.pretendard(size: 16, weight: .medium))
+            .pretendardText(size: 16, weight: .medium)
             .foregroundColor(Color("grey900"))
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -250,7 +250,7 @@ struct ReviewWriteView: View {
                     vm.toggleBadge(badge)
                 } label: {
                     Text(badge.label)
-                        .font(.pretendard(size: 12))
+                        .pretendardText(size: 12)
                         .foregroundColor(selected ? Color("main200") : Color("grey900"))
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
@@ -271,12 +271,12 @@ struct ReviewWriteView: View {
         ZStack(alignment: .topLeading) {
             if text.wrappedValue.isEmpty {
                 Text(hint)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey500"))
                     .padding(20)
             }
             TextEditor(text: text)
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey900"))
                 .scrollContentBackground(.hidden)
                 .padding(16)
@@ -304,7 +304,7 @@ struct ReviewWriteView: View {
             }
         } label: {
             Text(vm.isSubmitting ? "전송 중..." : "후기 남기기")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(vm.canSubmit ? Color("white") : Color("grey500"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 72)

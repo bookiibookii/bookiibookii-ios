@@ -46,7 +46,7 @@ struct LibraryCardShareSheet: View {
     private var header: some View {
         HStack {
             Text("공유하기")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             Spacer()
@@ -97,7 +97,7 @@ struct LibraryCardShareSheet: View {
                     .scaledToFit()
                     .frame(width: 56, height: 56)
                 Text(label)
-                    .font(.pretendard(size: 12, weight: .regular))
+                    .pretendardText(size: 12, weight: .regular)
                     .foregroundColor(Color("grey900"))
             }
             .frame(maxWidth: .infinity)

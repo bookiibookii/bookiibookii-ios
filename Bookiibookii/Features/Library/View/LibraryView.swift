@@ -41,7 +41,7 @@ struct LibraryView: View {
     private var header: some View {
         HStack {
             Text("내 서재")
-                .font(.pretendard(size: 24, weight: .medium))
+                .pretendardText(size: 24, weight: .medium)
                 .foregroundColor(Color("grey800"))
 
             Spacer()
@@ -97,7 +97,7 @@ struct LibraryView: View {
                 .buttonStyle(.plain)
 
                 Text(viewModel.bookCountText)
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey900"))
             }
             Spacer()
@@ -147,7 +147,7 @@ struct LibraryView: View {
     private func tabButton(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(size: 15, weight: .regular))
+                .pretendardText(size: 15, weight: .regular)
                 .foregroundColor(isSelected ? Color("grey100") : Color("grey900"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
@@ -188,7 +188,7 @@ private struct LibraryBookSpine: View {
         ZStack(alignment: .top) {
             ZStack {
                 Text(book.title)
-                    .font(.pretendard(size: 15, weight: .medium))
+                    .pretendardText(size: 15, weight: .medium)
                     .foregroundColor(textColor)
                     .lineLimit(1)
                     .fixedSize()

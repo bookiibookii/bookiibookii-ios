@@ -19,7 +19,7 @@ struct LibraryBookCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 Text(book.status.badgeText)
-                    .font(.pretendard(size: 12, weight: book.status == .matched ? .medium : .regular))
+                    .pretendardText(size: 12, weight: book.status == .matched ? .medium : .regular)
                     .foregroundColor(book.status == .matched ? .white : Color("grey100"))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -29,7 +29,7 @@ struct LibraryBookCard: View {
             }
 
             Text(book.title)
-                .font(.pretendard(size: 11, weight: .medium))
+                .pretendardText(size: 11, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
 
@@ -42,7 +42,7 @@ struct LibraryBookCard: View {
                     .fill(Color("grey300"))
                     .frame(width: 16, height: 16)
                 Text(book.hostNickname)
-                    .font(.pretendard(size: 11, weight: .medium))
+                    .pretendardText(size: 11, weight: .medium)
                     .foregroundColor(Color("grey700"))
             }
         }

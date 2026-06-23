@@ -55,7 +55,7 @@ struct GroupRegionSheet: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text("지역")
-                .font(.pretendard(size: 18, weight: .bold))
+                .pretendardText(size: 18, weight: .bold)
                 .foregroundColor(Color("grey900"))
             summaryText
             Spacer()
@@ -72,7 +72,7 @@ struct GroupRegionSheet: View {
                     .foregroundColor(Color("main200"))
             }
         }
-        .font(.pretendard(size: 14, weight: .medium))
+        .pretendardText(size: 14, weight: .medium)
     }
 
     // MARK: - 본문 (좌: 시·도 / 우: 구·군)
@@ -114,7 +114,7 @@ struct GroupRegionSheet: View {
                     .fill(isSelected ? Color("main200") : Color.clear)
                     .frame(width: 3, height: 24)
                 Text(city.name)
-                    .font(.pretendard(size: 16, weight: isSelected ? .bold : .regular))
+                    .pretendardText(size: 16, weight: isSelected ? .bold : .regular)
                     .foregroundColor(isSelected ? Color("grey900") : Color("grey500"))
                 Spacer()
             }
@@ -140,7 +140,7 @@ struct GroupRegionSheet: View {
             handleTap(district)
         } label: {
             Text(district)
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(isSelected ? Color("main200") : Color("grey700"))
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: false)
@@ -183,7 +183,7 @@ struct GroupRegionSheet: View {
                 dismiss()
             } label: {
                 Text("취소")
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("grey900"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
@@ -198,7 +198,7 @@ struct GroupRegionSheet: View {
                 dismiss()
             } label: {
                 Text("확인")
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("white"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)

@@ -32,14 +32,13 @@ struct NoticeDetailView: View {
                     } else if let detail {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(detail.detailDateText)
-                                .font(.pretendard(size: 12, weight: .regular))
+                                .pretendardText(size: 12, weight: .regular)
                                 .foregroundColor(Color("grey400"))
 
                             Text(detail.content)
-                                .font(.pretendard(size: 14, weight: .regular))
+                                .pretendardText(size: 14, weight: .regular)
                                 .foregroundColor(Color("grey700"))
                                 .multilineTextAlignment(.leading)
-                                .lineSpacing(2)
                         }
                         .padding(20)
                         .frame(maxWidth: .infinity, alignment: .leading)

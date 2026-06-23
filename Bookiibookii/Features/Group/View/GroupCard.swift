@@ -55,19 +55,19 @@ struct GroupCard: View {
     private var titleAndAuthor: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(item.title)
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("black"))
                 .lineLimit(1)
                 .truncationMode(.tail)
 
             HStack(spacing: 4) {
                 Text(item.displayAuthor)
-                    .font(.pretendard(size: 11))
+                    .pretendardText(size: 11)
                     .foregroundColor(Color("grey500"))
                     .lineLimit(1)
                 if let genre = item.displayGenre {
                     Text(genre)
-                        .font(.pretendard(size: 11))
+                        .pretendardText(size: 11)
                         .foregroundColor(Color("grey500"))
                         .lineLimit(1)
                 }
@@ -80,7 +80,7 @@ struct GroupCard: View {
             ? (Color("grey900"), "함께읽기(\(item.maxCapacity))")
             : (Color("main200"), item.badgeText)
         return Text(text)
-            .font(.pretendard(size: 11, weight: .medium))
+            .pretendardText(size: 11, weight: .medium)
             .foregroundColor(Color("white"))
             .padding(.horizontal, 8)
             .frame(height: 23)
@@ -95,7 +95,7 @@ struct GroupCard: View {
                 .frame(width: 16, height: 16)
                 .foregroundColor(Color("grey500"))
             Text("\(item.readingPeriod)일")
-                .font(.pretendard(size: 11))
+                .pretendardText(size: 11)
                 .foregroundColor(Color("grey500"))
 
             Rectangle()
@@ -109,7 +109,7 @@ struct GroupCard: View {
                 .frame(width: 16, height: 16)
                 .foregroundColor(Color("grey500"))
             Text("\(item.currentCount)명 대기")
-                .font(.pretendard(size: 11))
+                .pretendardText(size: 11)
                 .foregroundColor(Color("grey500"))
 
             if item.isHot { hotBadge }
@@ -118,7 +118,7 @@ struct GroupCard: View {
 
     private var hotBadge: some View {
         Text("HOT")
-            .font(.pretendard(size: 11, weight: .medium))
+            .pretendardText(size: 11, weight: .medium)
             .foregroundColor(Color("main200"))
             .padding(.horizontal, 6)
             .frame(height: 16)
@@ -139,12 +139,12 @@ struct GroupCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
 
             Text(item.displayNickname)
-                .font(.pretendard(size: 12))
+                .pretendardText(size: 12)
                 .foregroundColor(Color("grey700"))
                 .padding(.leading, 4)
 
             Text(item.displayDate)
-                .font(.pretendard(size: 11))
+                .pretendardText(size: 11)
                 .foregroundColor(Color("grey400"))
                 .padding(.leading, 4)
 
@@ -178,7 +178,7 @@ struct GroupCard: View {
 
     private func tagChip(_ text: String) -> some View {
         Text(text)
-            .font(.pretendard(size: 11, weight: .medium))
+            .pretendardText(size: 11, weight: .medium)
             .foregroundColor(Color("sub200"))
             .padding(.horizontal, 10)
             .frame(height: 23)

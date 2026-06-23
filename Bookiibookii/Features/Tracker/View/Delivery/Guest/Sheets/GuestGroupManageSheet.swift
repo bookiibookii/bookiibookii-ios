@@ -15,7 +15,7 @@ struct GuestGroupManageSheet: View {
                 .padding(.top, 12)
 
             Text("그룹 관리")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.horizontal, 24)
                 .padding(.top, 18)
@@ -41,7 +41,7 @@ struct GuestGroupManageSheet: View {
     private func menuRow(title: String, color: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(color)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 24)

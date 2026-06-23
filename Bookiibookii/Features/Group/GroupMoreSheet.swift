@@ -49,7 +49,7 @@ struct GroupMoreSheet: View {
     private var hostContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("그룹 관리")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.bottom, 16)
 
@@ -62,7 +62,7 @@ struct GroupMoreSheet: View {
                         onEdit()
                     } label: {
                         Text("그룹 수정")
-                            .font(.pretendard(size: 18))
+                            .pretendardText(size: 18)
                             .foregroundColor(Color("grey900"))
                     }
                     .buttonStyle(.plain)
@@ -73,7 +73,7 @@ struct GroupMoreSheet: View {
                     onDelete()
                 } label: {
                     Text("그룹 삭제")
-                        .font(.pretendard(size: 18))
+                        .pretendardText(size: 18)
                         .foregroundColor(pointRed)
                 }
                 .buttonStyle(.plain)
@@ -87,7 +87,7 @@ struct GroupMoreSheet: View {
     private var guestContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("그룹 관리")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.bottom, 16)
 
@@ -98,7 +98,7 @@ struct GroupMoreSheet: View {
                 onReport()
             } label: {
                 Text("신고하기")
-                    .font(.pretendard(size: 18))
+                    .pretendardText(size: 18)
                     .foregroundColor(pointRed)
             }
             .buttonStyle(.plain)

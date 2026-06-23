@@ -45,7 +45,7 @@ struct RegionSearchView: View {
                 dismiss()
             } label: {
                 Text("완료")
-                    .font(.pretendard(size: 18, weight: .medium))
+                    .pretendardText(size: 18, weight: .medium)
                     .foregroundColor(Color("white"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 72)
@@ -59,7 +59,7 @@ struct RegionSearchView: View {
 
     private var topBar: some View {
         HStack {
-            Text("지역 검색").font(.pretendard(size: 20, weight: .medium)).foregroundColor(Color("grey900"))
+            Text("지역 검색").pretendardText(size: 20, weight: .medium).foregroundColor(Color("grey900"))
             Spacer()
             Button { onClose?(); dismiss() } label: {
                 Image(systemName: "xmark").foregroundColor(Color("grey500")).frame(width: 40, height: 40)
@@ -83,7 +83,7 @@ struct RegionSearchView: View {
                     } label: {
                         HStack(spacing: 0) {
                             Text(city)
-                                .font(.pretendard(size: 16, weight: isSelected ? .medium : .regular))
+                                .pretendardText(size: 16, weight: isSelected ? .medium : .regular)
                                 .foregroundColor(isSelected ? Color("main200") : Color("grey900"))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.vertical, 12)
@@ -109,7 +109,7 @@ struct RegionSearchView: View {
                         else if selectedDistricts.count < 3 { selectedDistricts.append(district) }
                     } label: {
                         Text(district)
-                            .font(.pretendard(size: 14, weight: .medium))
+                            .pretendardText(size: 14, weight: .medium)
                             .foregroundColor(isSelected ? Color("main200") : Color("grey700"))
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)

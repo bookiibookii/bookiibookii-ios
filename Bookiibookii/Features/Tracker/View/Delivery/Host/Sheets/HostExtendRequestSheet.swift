@@ -10,7 +10,7 @@ struct HostExtendRequestSheet: View {
     var body: some View {
         SheetContainer {
             Text("게스트가 기간 연장을 신청했어요")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 12)
 
@@ -35,11 +35,11 @@ struct HostExtendRequestSheet: View {
                     .frame(minWidth: 130, alignment: .leading)
                     .foregroundColor(Color("grey900"))
                 Text(newEndDate)
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("main200"))
             }
         }
-        .font(.pretendard(size: 14))
+        .pretendardText(size: 14)
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("grey100"))

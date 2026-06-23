@@ -38,7 +38,7 @@ struct LibraryCardSharePreview: View {
                             .scaledToFit()
                             .frame(width: 18, height: 16)
                         Text(detail.bookTitle ?? "")
-                            .font(.pretendard(size: 13, weight: .medium))
+                            .pretendardText(size: 13, weight: .medium)
                             .foregroundColor(Color("main200"))
                             .lineLimit(1)
                     }
@@ -51,15 +51,14 @@ struct LibraryCardSharePreview: View {
 
             VStack(alignment: .leading, spacing: 12) {
                 Text(detail.memo)
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey900"))
-                    .lineSpacing(14 * 0.6)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack(spacing: 8) {
                     Spacer()
                     Text(detail.creatorName)
-                        .font(.pretendard(size: 12, weight: .regular))
+                        .pretendardText(size: 12, weight: .regular)
                         .foregroundColor(Color("grey500"))
                 }
             }
@@ -85,14 +84,13 @@ struct LibraryCardSharePreview: View {
 
             VStack(alignment: .leading, spacing: 12) {
                 Text(detail.bookTitle ?? "")
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("main200"))
                     .lineLimit(1)
 
                 Text(detail.memo)
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color.white)
-                    .lineSpacing(16 * 0.5)
                     .lineLimit(4)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -100,7 +98,7 @@ struct LibraryCardSharePreview: View {
 
                 HStack {
                     Text(detail.creatorName)
-                        .font(.pretendard(size: 12, weight: .regular))
+                        .pretendardText(size: 12, weight: .regular)
                         .foregroundColor(Color.white)
                     Spacer()
                     Image("card_image_icon")

@@ -13,16 +13,16 @@ struct GuestDirectAppointmentEditSheet: View {
         SheetContainer {
             HStack(spacing: 0) {
                 Text(titleDateTime)
-                    .font(.pretendard(size: 20, weight: .medium))
+                    .pretendardText(size: 20, weight: .medium)
                     .foregroundColor(Color("grey900"))
                 Text("약속이 있어요.")
-                    .font(.pretendard(size: 20, weight: .medium))
+                    .pretendardText(size: 20, weight: .medium)
                     .foregroundColor(Color("grey900"))
             }
             .padding(.top, 20)
 
             Text("약속 시간 변경이 필요한 경우 수정해주세요.")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey500"))
                 .padding(.top, 8)
 

@@ -9,7 +9,7 @@ struct GuestShippingPhotoSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("배송 인증")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .frame(maxWidth: .infinity, alignment: .center)
 
@@ -20,13 +20,13 @@ struct GuestShippingPhotoSheet: View {
                         switch phase {
                         case .empty:
                             Text("사진을 불러오는 중...")
-                                .font(.pretendard(size: 14))
+                                .pretendardText(size: 14)
                                 .foregroundColor(Color("grey500"))
                         case .success(let image):
                             image.resizable().scaledToFill()
                         case .failure:
                             Text("사진을 불러올 수 없어요")
-                                .font(.pretendard(size: 14))
+                                .pretendardText(size: 14)
                                 .foregroundColor(Color("grey500"))
                         @unknown default:
                             EmptyView()
@@ -34,7 +34,7 @@ struct GuestShippingPhotoSheet: View {
                     }
                 } else {
                     Text("사진을 불러오는 중...")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey500"))
                 }
             }
@@ -45,7 +45,7 @@ struct GuestShippingPhotoSheet: View {
 
             Button(action: onConfirm) {
                 Text("확인")
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("grey100"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)

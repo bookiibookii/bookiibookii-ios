@@ -42,7 +42,7 @@ struct ReadingPeriodCard: View {
                 .foregroundColor(endColor)
             Spacer(minLength: 0)
         }
-        .font(.pretendard(size: 14))
+        .pretendardText(size: 14)
         .padding(16)
         .frame(maxWidth: .infinity)
         .background(Color("grey100"))
@@ -81,7 +81,7 @@ struct InfoBannerCard: View {
                 .foregroundColor(InfoBannerCard.green200)
                 .frame(width: 20, height: 20)
             Text(message)
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(InfoBannerCard.green200)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
@@ -111,7 +111,7 @@ struct PrimarySheetButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(size: 15))
+                .pretendardText(size: 15)
                 .foregroundColor(Color("grey100"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
@@ -133,7 +133,7 @@ struct OutlineSheetButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(size: 15))
+                .pretendardText(size: 15)
                 .foregroundColor(isDisabled ? Color("grey400") : Color("grey900"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)

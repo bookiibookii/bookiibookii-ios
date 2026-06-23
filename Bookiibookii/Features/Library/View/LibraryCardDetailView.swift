@@ -77,7 +77,7 @@ struct LibraryCardDetailView: View {
 
             Spacer()
             Text("독서카드")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
 
@@ -132,7 +132,7 @@ struct LibraryCardDetailView: View {
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(Color("main200"))
                 Text("댓글 \(viewModel.commentCount)개 보기")
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("grey900"))
                 Spacer(minLength: 0)
             }
@@ -148,7 +148,7 @@ struct LibraryCardDetailView: View {
                 .frame(width: 28, height: 28)
 
             Text(detail.creatorName)
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
 
             Spacer()
@@ -179,19 +179,19 @@ struct LibraryCardDetailView: View {
                 HStack(spacing: 4) {
                     if let title = detail.bookTitle, !title.isEmpty {
                         Text(title)
-                            .font(.pretendard(size: 14, weight: .regular))
+                            .pretendardText(size: 14, weight: .regular)
                             .foregroundColor(Color("grey500"))
                             .lineLimit(1)
                     }
                     Text("p.\(detail.page)")
-                        .font(.pretendard(size: 14, weight: .regular))
+                        .pretendardText(size: 14, weight: .regular)
                         .foregroundColor(Color("grey500"))
                 }
 
                 Spacer()
 
                 Text(formatDate(detail.createdAt))
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey500"))
             }
             .padding(.bottom, 16)
@@ -244,9 +244,8 @@ struct LibraryCardDetailView: View {
 
     private func memoSection(_ detail: LibraryCardDetail) -> some View {
         Text(detail.memo.isEmpty ? "메모가 없어요." : detail.memo)
-            .font(.pretendard(size: 16, weight: .regular))
+            .pretendardText(size: 16, weight: .regular)
             .foregroundColor(Color("grey900"))
-            .lineSpacing(16 * 0.8)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -261,10 +260,10 @@ struct LibraryCardDetailView: View {
 
                 HStack(spacing: 8) {
                     Text("댓글")
-                        .font(.pretendard(size: 20, weight: .medium))
+                        .pretendardText(size: 20, weight: .medium)
                         .foregroundColor(Color("grey900"))
                     Text("\(viewModel.commentCount)")
-                        .font(.pretendard(size: 14, weight: .regular))
+                        .pretendardText(size: 14, weight: .regular)
                         .foregroundColor(Color("main200"))
                     Spacer()
                 }
@@ -285,10 +284,10 @@ struct LibraryCardDetailView: View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
                 Text("댓글")
-                    .font(.pretendard(size: 20, weight: .medium))
+                    .pretendardText(size: 20, weight: .medium)
                     .foregroundColor(Color("grey900"))
                 Text("\(viewModel.commentCount)")
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("main200"))
                 Spacer()
                 Button {
@@ -310,7 +309,7 @@ struct LibraryCardDetailView: View {
                 VStack(spacing: 16) {
                     if viewModel.comments.isEmpty {
                         Text("아직 댓글이 없어요.")
-                            .font(.pretendard(size: 14, weight: .regular))
+                            .pretendardText(size: 14, weight: .regular)
                             .foregroundColor(Color("grey500"))
                             .padding(.top, 40)
                     } else {
@@ -345,7 +344,7 @@ struct LibraryCardDetailView: View {
             pdfAssetImage("ic_lock", side: 40)
 
             TextField("텍스트 입력 전", text: $viewModel.commentInput)
-                .font(.pretendard(size: 15, weight: .regular))
+                .pretendardText(size: 15, weight: .regular)
                 .foregroundColor(Color("grey900"))
                 .textInputAutocapitalization(.never)
                 .frame(maxWidth: .infinity)
@@ -402,15 +401,15 @@ struct LibraryCardDetailView: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     Text(comment.writerName)
-                        .font(.pretendard(size: 13, weight: .medium))
+                        .pretendardText(size: 13, weight: .medium)
                         .foregroundColor(Color("grey900"))
                     Text(formatDate(comment.createdAt))
-                        .font(.pretendard(size: 11, weight: .regular))
+                        .pretendardText(size: 11, weight: .regular)
                         .foregroundColor(Color("grey500"))
                 }
 
                 Text(comment.content)
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey900"))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }

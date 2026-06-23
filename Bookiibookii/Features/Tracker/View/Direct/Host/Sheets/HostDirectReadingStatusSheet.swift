@@ -12,7 +12,7 @@ struct HostDirectReadingStatusSheet: View {
     var body: some View {
         SheetContainer {
             Text("게스트가 책을 읽고 있어요!")
-                .font(.pretendard(size: 20))
+                .pretendardText(size: 20)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 

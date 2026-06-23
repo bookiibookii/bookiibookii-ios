@@ -23,7 +23,7 @@ struct CustomNavigationBar: View {
             Spacer()
 
             Text(title)
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundStyle(Color("grey900"))
 
             Spacer()
@@ -44,7 +44,7 @@ struct CustomNavigationBar: View {
         case .text(let title, let action):
             Button(action: action) {
                 Text(title)
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundStyle(Color("grey900"))
             }
         case .systemImage(let name, let action):

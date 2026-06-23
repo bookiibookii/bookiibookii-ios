@@ -11,7 +11,7 @@ struct LibraryReadingCardItem: View {
                 HStack(spacing: 8) {
                     Circle().fill(Color("grey300")).frame(width: 16, height: 16)
                     Text(card.creatorName)
-                        .font(.pretendard(size: 11, weight: .regular))
+                        .pretendardText(size: 11, weight: .regular)
                         .foregroundColor(Color("grey700"))
                 }
                 Spacer()
@@ -33,13 +33,13 @@ struct LibraryReadingCardItem: View {
 
             if let title = card.bookTitle, !title.isEmpty {
                 Text(title)
-                    .font(.pretendard(size: 10, weight: .medium))
+                    .pretendardText(size: 10, weight: .medium)
                     .foregroundColor(Color("grey500"))
                     .lineLimit(1)
             }
 
             Text(card.memo)
-                .font(.pretendard(size: 11, weight: .medium))
+                .pretendardText(size: 11, weight: .medium)
                 .foregroundColor(Color("grey800"))
                 .lineLimit(3)
 
@@ -49,12 +49,12 @@ struct LibraryReadingCardItem: View {
                         .font(.system(size: 10, weight: .regular))
                         .foregroundColor(Color("main200"))
                     Text("\(card.messageCount)")
-                        .font(.pretendard(size: 10, weight: .regular))
+                        .pretendardText(size: 10, weight: .regular)
                         .foregroundColor(Color("grey600"))
                 }
                 Spacer()
                 Text("\(card.page)pg")
-                    .font(.pretendard(size: 10, weight: .regular))
+                    .pretendardText(size: 10, weight: .regular)
                     .foregroundColor(Color("grey400"))
             }
 

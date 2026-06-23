@@ -9,12 +9,12 @@ struct GuestReadingDoneSheet: View {
     var body: some View {
         SheetContainer {
             Text("호스트가 책을 다 읽었어요!")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 
             Text("호스트가 운송장을 등록하면 상태가 업데이트됩니다.")
-                .font(.pretendard(size: 13))
+                .pretendardText(size: 13)
                 .foregroundColor(Color("grey700"))
                 .padding(.top, 8)
 

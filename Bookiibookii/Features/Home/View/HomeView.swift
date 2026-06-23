@@ -103,9 +103,11 @@ struct HomeView: View {
             (
                 Text("\(exchangePage + 1)")
                     .font(.pretendard(size: 14, weight: .bold))
+                    .tracking(14 * -0.01)
                     .foregroundColor(Color("grey900"))
                 + Text("/\(total)")
                     .font(.pretendard(size: 14))
+                    .tracking(14 * -0.01)
                     .foregroundColor(Color("grey600"))
             )
             arrowButton(direction: .right, enabled: hasNext) {
@@ -170,7 +172,7 @@ struct HomeView: View {
     private var groupSectionHeader: some View {
         HStack(alignment: .center, spacing: 8) {
             Text("이런 그룹은 어떠세요?")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
             if !viewModel.recommendedGroups.isEmpty {
@@ -259,7 +261,7 @@ struct HomeView: View {
     // MARK: - 공통 섹션 제목 (pretendard medium 18)
     private func sectionTitle(_ text: String) -> some View {
         Text(text)
-            .font(.pretendard(size: 18, weight: .medium))
+            .pretendardText(size: 18, weight: .medium)
             .foregroundColor(Color("grey900"))
     }
 }

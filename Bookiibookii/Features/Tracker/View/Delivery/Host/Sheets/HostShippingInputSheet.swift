@@ -26,7 +26,7 @@ struct HostShippingInputSheet: View {
 
             Button(action: onRegister) {
                 Text("등록하기")
-                    .font(.pretendard(size: 15))
+                    .pretendardText(size: 15)
                     .foregroundColor(Color("grey100"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 60)
@@ -55,7 +55,7 @@ struct HostShippingInputSheet: View {
     private var header: some View {
         HStack(alignment: .center, spacing: 0) {
             Text("배송 정보 입력")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
             Button(action: onClose) {
@@ -71,7 +71,7 @@ struct HostShippingInputSheet: View {
 
     private func label(_ text: String) -> some View {
         Text(text)
-            .font(.pretendard(size: 14))
+            .pretendardText(size: 14)
             .foregroundColor(Color("grey700"))
             .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -80,7 +80,7 @@ struct HostShippingInputSheet: View {
         Button(action: { withAnimation(.easeInOut(duration: 0.15)) { isDropdownOpen.toggle() } }) {
             HStack {
                 Text(courier.isEmpty ? "택배사 선택" : courier)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(courier.isEmpty ? Color("grey500") : Color("grey800"))
                 Spacer()
                 Image(systemName: "chevron.down")
@@ -112,7 +112,7 @@ struct HostShippingInputSheet: View {
                     } label: {
                         HStack {
                             Text(option)
-                                .font(.pretendard(size: 14))
+                                .pretendardText(size: 14)
                                 .foregroundColor(Color("grey800"))
                             Spacer(minLength: 0)
                         }
@@ -137,7 +137,7 @@ struct HostShippingInputSheet: View {
 
     private var trackingField: some View {
         TextField("", text: $trackingNumber)
-            .font(.pretendard(size: 15))
+            .pretendardText(size: 15)
             .foregroundColor(Color("grey800"))
             .keyboardType(.numberPad)
             .padding(.horizontal, 16)
@@ -169,7 +169,7 @@ struct HostShippingInputSheet: View {
                             .foregroundColor(Color("grey800"))
                             .frame(width: 32, height: 32)
                         Text("배송 인증 사진을 업로드해주세요")
-                            .font(.pretendard(size: 14))
+                            .pretendardText(size: 14)
                             .foregroundColor(Color("grey800"))
                     }
                     .frame(maxWidth: .infinity)

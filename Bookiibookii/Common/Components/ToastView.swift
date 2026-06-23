@@ -11,7 +11,7 @@ struct ToastView: ViewModifier {
 
             if let message {
                 Text(message)
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("white"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)

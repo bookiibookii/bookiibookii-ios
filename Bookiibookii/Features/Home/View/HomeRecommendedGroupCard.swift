@@ -24,7 +24,7 @@ struct HomeRecommendedGroupCard: View {
                 )
 
             Text(item.displayTitle)
-                .font(.pretendard(size: 12))
+                .pretendardText(size: 12)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
                 .truncationMode(.tail)

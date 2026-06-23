@@ -102,7 +102,7 @@ struct LibraryCardListView: View {
 
             Spacer()
             Text(book.title)
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
             Spacer()
@@ -141,23 +141,23 @@ struct LibraryCardListView: View {
                     HStack(spacing: 4) {
                         Circle().fill(Color("grey300")).frame(width: 20, height: 20)
                         Text(book.hostNickname)
-                            .font(.pretendard(size: 12, weight: .medium))
+                            .pretendardText(size: 12, weight: .medium)
                             .foregroundColor(Color("grey700"))
                     }
                     Text(book.title)
-                        .font(.pretendard(size: 14, weight: .regular))
+                        .pretendardText(size: 14, weight: .regular)
                         .foregroundColor(Color("grey900"))
                     HStack(spacing: 4) {
                         Text(book.author ?? "-")
-                            .font(.pretendard(size: 12, weight: .regular))
+                            .pretendardText(size: 12, weight: .regular)
                             .foregroundColor(Color("grey500"))
                         Text("(소설)")
-                            .font(.pretendard(size: 11, weight: .regular))
+                            .pretendardText(size: 11, weight: .regular)
                             .foregroundColor(Color("grey500"))
                     }
                     StarRow(rating: viewModel.refreshedBookRating ?? book.rating ?? 0)
                     Text(periodLineUnderTitle)
-                        .font(.pretendard(size: 11, weight: .regular))
+                        .pretendardText(size: 11, weight: .regular)
                         .foregroundColor(Color("grey400"))
                 }
             }
@@ -195,10 +195,10 @@ struct LibraryCardListView: View {
             ForEach(viewModel.topComments) { comment in
                 HStack(spacing: 8) {
                     Text(comment.nickname)
-                        .font(.pretendard(size: 11, weight: .regular))
+                        .pretendardText(size: 11, weight: .regular)
                         .foregroundColor(Color("grey600"))
                     Text("\"\(comment.comment)\"")
-                        .font(.pretendard(size: 11, weight: .regular))
+                        .pretendardText(size: 11, weight: .regular)
                         .foregroundColor(Color("grey800"))
                         .lineLimit(1)
                 }
@@ -222,7 +222,7 @@ struct LibraryCardListView: View {
                 showTogetherFinishDialog = true
             } label: {
                 Text(viewModel.togetherShowsReviewButton ? "후기 작성하기" : "다 읽었어요")
-                    .font(.pretendard(size: 15, weight: .medium))
+                    .pretendardText(size: 15, weight: .medium)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
@@ -280,10 +280,10 @@ struct LibraryCardListView: View {
     private func togetherCommentRow(_ comment: LibraryTopComment) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Text(comment.nickname)
-                .font(.pretendard(size: 11, weight: .regular))
+                .pretendardText(size: 11, weight: .regular)
                 .foregroundColor(Color("grey600"))
             Text("\"\(comment.comment)\"")
-                .font(.pretendard(size: 11, weight: .regular))
+                .pretendardText(size: 11, weight: .regular)
                 .foregroundColor(Color("grey800"))
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -292,7 +292,7 @@ struct LibraryCardListView: View {
     private var listHeader: some View {
         HStack {
             Text(viewModel.cardCountText)
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey700"))
             Spacer()
             HStack(spacing: 4) {
@@ -300,7 +300,7 @@ struct LibraryCardListView: View {
                     viewModel.sortType = .latest
                 }
                 Text("|")
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey500"))
                 sortButton(title: "페이지순", selected: viewModel.sortType == .page) {
                     viewModel.sortType = .page
@@ -331,17 +331,17 @@ struct LibraryCardListView: View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
                 Text("아직 독서카드가 없어요")
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("grey900"))
                 Text("마음에 드는 내용을 기록으로 남겨요.")
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey600"))
             }
 
             Button("독서카드 추가하기") {
                 navigateToCardAddIfPossible()
             }
-                .font(.pretendard(size: 15, weight: .regular))
+                .pretendardText(size: 15, weight: .regular)
                 .foregroundColor(Color("main200"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
@@ -358,7 +358,7 @@ struct LibraryCardListView: View {
         Button("독서카드 추가하기") {
             navigateToCardAddIfPossible()
         }
-            .font(.pretendard(size: 18, weight: .medium))
+            .pretendardText(size: 18, weight: .medium)
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 72)
@@ -382,7 +382,7 @@ struct LibraryCardListView: View {
     private func sortButton(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(size: 14, weight: selected ? .medium : .regular))
+                .pretendardText(size: 14, weight: selected ? .medium : .regular)
                 .foregroundColor(selected ? Color("grey700") : Color("grey500"))
         }
         .buttonStyle(.plain)
@@ -413,17 +413,17 @@ private struct TogetherFinishReadingDialog: View {
 
             VStack(alignment: .leading, spacing: 16) {
                 Text("독서 종료")
-                    .font(.pretendard(size: 20, weight: .medium))
+                    .pretendardText(size: 20, weight: .medium)
                     .foregroundColor(Color("grey900"))
 
                 Text("독서를 종료하면 더 이상 독서카드를 추가할 수 없어요. 독서를 종료할까요?")
-                    .font(.pretendard(size: 16, weight: .regular))
+                    .pretendardText(size: 16, weight: .regular)
                     .foregroundColor(Color("grey700"))
                     .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 12) {
                     Button("취소", action: onDismiss)
-                        .font(.pretendard(size: 15, weight: .medium))
+                        .pretendardText(size: 15, weight: .medium)
                         .foregroundColor(Color("grey700"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -431,7 +431,7 @@ private struct TogetherFinishReadingDialog: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14))
 
                     Button("종료", action: onConfirmFinish)
-                        .font(.pretendard(size: 15, weight: .medium))
+                        .pretendardText(size: 15, weight: .medium)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)

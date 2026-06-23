@@ -12,7 +12,7 @@ struct GuestShippingSheet: View {
     var body: some View {
         SheetContainer {
             Text("배송지 정보")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 
@@ -20,9 +20,8 @@ struct GuestShippingSheet: View {
                 Text("아래 주소로 책을 발송해주세요.\n")
                 + Text("책이 파손되지 않도록 포장에 신경써주세요.")
             )
-            .font(.pretendard(size: 14))
+            .pretendardText(size: 14)
             .foregroundColor(Color("grey500"))
-            .lineSpacing(4)
             .padding(.top, 8)
 
             addressCard.padding(.top, 24)
@@ -39,24 +38,24 @@ struct GuestShippingSheet: View {
                 Text("수령인").foregroundColor(Color("grey900"))
                 Text(receiverName).foregroundColor(Color("grey900"))
             }
-            .font(.pretendard(size: 14))
+            .pretendardText(size: 14)
 
             HStack(spacing: 8) {
                 Text("연락처").foregroundColor(Color("grey900"))
                 Text(receiverPhone).foregroundColor(Color("grey900"))
             }
-            .font(.pretendard(size: 14))
+            .pretendardText(size: 14)
             .padding(.top, 4)
 
             VStack(alignment: .trailing, spacing: 0) {
                 Text(address)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey900"))
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button(action: onCopy) {
                     Text("복사")
-                        .font(.pretendard(size: 12))
+                        .pretendardText(size: 12)
                         .foregroundColor(Color("grey700"))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -89,7 +88,7 @@ struct GuestShippingSheet: View {
                 .foregroundColor(InfoBannerCard.green200)
                 .frame(width: 20, height: 20)
             Text("개인정보 보호를 위해 배송 완료 후 자동으로 숨김\n처리됩니다.")
-                .font(.pretendard(size: 13))
+                .pretendardText(size: 13)
                 .foregroundColor(InfoBannerCard.green200)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)

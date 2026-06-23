@@ -9,14 +9,13 @@ struct GuestDirectAppointmentSheet: View {
     var body: some View {
         SheetContainer {
             Text("호스트와 만날 약속을 정해요")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 
             Text("책을 주고 받을 구체적인 일시 및 장소를 댓글로 정하고,\n확정된 약속을 등록해주세요.")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey500"))
-                .lineSpacing(2)
                 .padding(.top, 8)
 
             OutlineSheetButton(title: "댓글 바로가기", action: onGoComment)

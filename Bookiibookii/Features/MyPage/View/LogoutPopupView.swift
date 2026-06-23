@@ -8,18 +8,18 @@ struct LogoutPopupView: View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
                 Text("로그아웃 하시겠어요?")
-                    .font(.pretendard(size: 18, weight: .medium))
+                    .pretendardText(size: 18, weight: .medium)
                     .foregroundColor(Color("grey900"))
 
                 Text("언제든 다시 로그인할 수 있어요.")
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey600"))
             }
             .multilineTextAlignment(.center)
 
             HStack(spacing: 8) {
                 Button("취소") { onCancel() }
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("grey900"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
@@ -27,7 +27,7 @@ struct LogoutPopupView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16))
 
                 Button("로그아웃") { onConfirm() }
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("white"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)

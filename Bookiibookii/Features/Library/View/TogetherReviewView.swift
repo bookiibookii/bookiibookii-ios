@@ -72,7 +72,7 @@ struct TogetherReviewView: View {
 
             Spacer()
             Text("후기 남기기")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
 
@@ -89,7 +89,7 @@ struct TogetherReviewView: View {
     private var ratingSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("'\(bookTitle)'에 대한 평가를 남겨주세요!")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(2)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -109,7 +109,7 @@ struct TogetherReviewView: View {
             .frame(maxWidth: .infinity, alignment: .center)
 
             Text(ratingLabel)
-                .font(.pretendard(size: 13, weight: .regular))
+                .pretendardText(size: 13, weight: .regular)
                 .foregroundColor(Color("grey500"))
                 .frame(maxWidth: .infinity, alignment: .center)
         }
@@ -150,20 +150,20 @@ struct TogetherReviewView: View {
     private var reviewSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("후기")
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(Color("grey800"))
 
             ZStack(alignment: .topLeading) {
                 if reviewText.isEmpty {
                     Text("이번 독서 경험을 자유롭게 남겨주세요.")
-                        .font(.pretendard(size: 14, weight: .regular))
+                        .pretendardText(size: 14, weight: .regular)
                         .foregroundColor(Color("grey400"))
                         .padding(.top, 12)
                         .padding(.leading, 10)
                 }
 
                 TextEditor(text: $reviewText)
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey900"))
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
@@ -178,7 +178,7 @@ struct TogetherReviewView: View {
             .clipShape(RoundedRectangle(cornerRadius: 14))
 
             Text("\(reviewText.count)/500")
-                .font(.pretendard(size: 12, weight: .regular))
+                .pretendardText(size: 12, weight: .regular)
                 .foregroundColor(Color("grey500"))
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
@@ -193,7 +193,7 @@ struct TogetherReviewView: View {
             Task { await submit() }
         } label: {
             Text(isSubmitting ? "등록 중..." : "후기 남기기")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 72)

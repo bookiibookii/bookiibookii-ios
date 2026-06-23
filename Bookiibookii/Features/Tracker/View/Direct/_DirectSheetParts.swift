@@ -15,10 +15,10 @@ struct AppointmentInfoCard: View {
     var body: some View {
         HStack(spacing: 5) {
             Text(dateTime)
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(dateTimeColor)
             Text(place)
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -68,7 +68,7 @@ struct AppointmentFormDialog: View {
     private var header: some View {
         HStack {
             Text(title)
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
             Button(action: onClose) {
@@ -84,7 +84,7 @@ struct AppointmentFormDialog: View {
 
     private func label(_ text: String) -> some View {
         Text(text)
-            .font(.pretendard(size: 14))
+            .pretendardText(size: 14)
             .foregroundColor(Color("grey700"))
     }
 
@@ -93,7 +93,7 @@ struct AppointmentFormDialog: View {
         Button(action: onPickDateTime) {
             HStack {
                 Text(dateTime.isEmpty ? " " : dateTime)
-                    .font(.pretendard(size: 15))
+                    .pretendardText(size: 15)
                     .foregroundColor(Color("grey900"))
                 Spacer()
             }
@@ -113,7 +113,7 @@ struct AppointmentFormDialog: View {
     private var placeField: some View {
         HStack {
             TextField("", text: $place)
-                .font(.pretendard(size: 15))
+                .pretendardText(size: 15)
                 .foregroundColor(Color("grey900"))
         }
         .padding(.horizontal, 16)
@@ -130,7 +130,7 @@ struct AppointmentFormDialog: View {
     private var submitButton: some View {
         Button(action: onSubmit) {
             Text(actionTitle)
-                .font(.pretendard(size: 15))
+                .pretendardText(size: 15)
                 .foregroundColor(canSubmit ? Color("white") : Color("grey500"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 60)
@@ -172,7 +172,7 @@ struct DateTimePickerSheet: View {
 
             Button(action: onConfirm) {
                 Text("선택")
-                    .font(.pretendard(size: 15, weight: .medium))
+                    .pretendardText(size: 15, weight: .medium)
                     .foregroundColor(Color("white"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
@@ -204,9 +204,8 @@ struct DirectIssueDialog: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Text("상대방과 연락하여 약속을 다시 잡거나, 일방적인\n노쇼라면 신고를 진행해 주세요.")
-                .font(.pretendard(size: 16))
+                .pretendardText(size: 16)
                 .foregroundColor(Color("grey700"))
-                .lineSpacing(2)
                 .padding(.top, 16)
             buttons.padding(.top, 24)
         }
@@ -219,7 +218,7 @@ struct DirectIssueDialog: View {
     private var header: some View {
         HStack {
             Text(title)
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
             Button(action: onClose) {
@@ -237,7 +236,7 @@ struct DirectIssueDialog: View {
         HStack(spacing: 12) {
             Button(action: onReport) {
                 Text("신고하기")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey900"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
@@ -248,7 +247,7 @@ struct DirectIssueDialog: View {
 
             Button(action: onReschedule) {
                 Text("약속 다시 잡기")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey100"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)

@@ -17,7 +17,7 @@ struct HostReadingSheet: View {
     var body: some View {
         SheetContainer {
             Text(title)
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 
@@ -25,7 +25,7 @@ struct HostReadingSheet: View {
                 .padding(.top, 24)
 
             Text("원활한 교환독서를 위하여 책이 파손되지 않도록 유의해주세요.")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey500"))
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.top, 8)

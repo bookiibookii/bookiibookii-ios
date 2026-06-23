@@ -11,12 +11,12 @@ struct HostDirectReceiveSheet: View {
     var body: some View {
         SheetContainer {
             Text("게스트에게 책을 받았나요?")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 
             Text("서로 책을 확인하고 상태를 업데이트해주세요.")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey500"))
                 .padding(.top, 8)
 

@@ -50,7 +50,7 @@ struct NotificationView: View {
         .overlay(alignment: .bottom) {
             if let toast {
                 Text(toast)
-                    .font(.pretendard(size: 13))
+                    .pretendardText(size: 13)
                     .foregroundColor(Color("white"))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
@@ -77,7 +77,7 @@ struct NotificationView: View {
 
             Spacer()
             Text("알림")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
 
@@ -115,7 +115,7 @@ struct NotificationView: View {
             selectedTab = category
         } label: {
             Text(title)
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(isSelected ? Color("white") : Color("grey900"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)

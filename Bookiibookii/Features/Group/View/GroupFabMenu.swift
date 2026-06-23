@@ -30,7 +30,7 @@ struct GroupFabMenu: View {
                     .frame(width: 16, height: 16)
                     .foregroundColor(Color("white"))
                 Text(title)
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("white"))
             }
             .frame(width: 108, height: 48)

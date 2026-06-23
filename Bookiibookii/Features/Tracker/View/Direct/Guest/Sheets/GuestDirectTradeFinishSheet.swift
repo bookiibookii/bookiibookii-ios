@@ -8,12 +8,12 @@ struct GuestDirectTradeFinishSheet: View {
     var body: some View {
         SheetContainer {
             Text("교환독서 종료")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 
             Text("교환독서가 종료되었어요. 따뜻한 후기를 남겨볼까요?")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey500"))
                 .padding(.top, 8)
 

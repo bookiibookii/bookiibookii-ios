@@ -36,7 +36,7 @@ struct CardAddView: View {
                         fieldLabel("페이지")
                         TextField("", text: $viewModel.pageText)
                             .keyboardType(.numberPad)
-                            .font(.pretendard(size: 14, weight: .regular))
+                            .pretendardText(size: 14, weight: .regular)
                             .foregroundColor(Color("grey900"))
                             .padding(.horizontal, 20)
                             .frame(height: 48)
@@ -51,13 +51,13 @@ struct CardAddView: View {
                         ZStack(alignment: .topLeading) {
                             if viewModel.memo.isEmpty {
                                 Text("메모를 입력해 주세요 (선택)")
-                                    .font(.pretendard(size: 14, weight: .regular))
+                                    .pretendardText(size: 14, weight: .regular)
                                     .foregroundColor(Color("grey400"))
                                     .padding(.horizontal, 24)
                                     .padding(.vertical, 20)
                             }
                             TextEditor(text: $viewModel.memo)
-                                .font(.pretendard(size: 14, weight: .regular))
+                                .pretendardText(size: 14, weight: .regular)
                                 .foregroundColor(Color("grey900"))
                                 .scrollContentBackground(.hidden)
                                 .padding(.horizontal, 16)
@@ -143,7 +143,7 @@ struct CardAddView: View {
 
             Spacer()
             Text(viewModel.navigationTitle)
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
 
@@ -203,7 +203,7 @@ struct CardAddView: View {
                             .font(.system(size: 24, weight: .regular))
                             .foregroundColor(Color("grey800"))
                         Text("사진 업로드")
-                            .font(.pretendard(size: 14, weight: .regular))
+                            .pretendardText(size: 14, weight: .regular)
                             .foregroundColor(Color("grey800"))
                     }
                     .frame(maxWidth: .infinity)
@@ -222,7 +222,7 @@ struct CardAddView: View {
 
     private func fieldLabel(_ title: String) -> some View {
         Text(title)
-            .font(.pretendard(size: 16, weight: .regular))
+            .pretendardText(size: 16, weight: .regular)
             .foregroundColor(Color("grey900"))
     }
 
@@ -237,7 +237,7 @@ struct CardAddView: View {
             }
         } label: {
             Text(viewModel.submitButtonTitle)
-                .font(.pretendard(size: 18, weight: viewModel.canSubmit ? .medium : .regular))
+                .pretendardText(size: 18, weight: viewModel.canSubmit ? .medium : .regular)
                 .foregroundColor(viewModel.canSubmit ? Color("grey100") : Color("grey500"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 72)

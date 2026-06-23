@@ -49,7 +49,7 @@ struct KeywordSettingView: View {
 
             Spacer()
             Text("키워드 알림 설정")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
 
@@ -65,7 +65,7 @@ struct KeywordSettingView: View {
     private var inputRow: some View {
         HStack(spacing: 8) {
             TextField("알림 받을 키워드를 입력해주세요", text: $input)
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey900"))
                 .focused($inputFocused)
                 .submitLabel(.done)
@@ -126,17 +126,17 @@ struct KeywordSettingView: View {
         HStack {
             HStack(spacing: 0) {
                 Text("\(viewModel.items.count)")
-                    .font(.pretendard(size: 12))
+                    .pretendardText(size: 12)
                     .foregroundColor(Color("grey500"))
                 Text(" / \(KeywordSettingViewModel.maxCount) 개")
-                    .font(.pretendard(size: 12))
+                    .pretendardText(size: 12)
                     .foregroundColor(Color("grey500"))
             }
             Spacer()
             HStack(spacing: 8) {
                 sortButton(title: "최신순", sort: .latest)
                 Text("|")
-                    .font(.pretendard(size: 12))
+                    .pretendardText(size: 12)
                     .foregroundColor(Color("grey300"))
                 sortButton(title: "ㄱ-ㄴ-ㄷ 순", sort: .alphabetical)
             }
@@ -149,7 +149,7 @@ struct KeywordSettingView: View {
             Task { await viewModel.changeSort(sort) }
         } label: {
             Text(title)
-                .font(.pretendard(size: 12, weight: isActive ? .bold : .regular))
+                .pretendardText(size: 12, weight: isActive ? .bold : .regular)
                 .foregroundColor(isActive ? Color("main200") : Color("grey500"))
         }
         .buttonStyle(.plain)
@@ -185,7 +185,7 @@ struct KeywordSettingView: View {
     private var toastOverlay: some View {
         if let message = viewModel.toastMessage {
             Text(message)
-                .font(.pretendard(size: 13))
+                .pretendardText(size: 13)
                 .foregroundColor(Color("white"))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -209,7 +209,7 @@ private struct KeywordRow: View {
     var body: some View {
         HStack(spacing: 10) {
             Text(item.content)
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
                 .truncationMode(.tail)

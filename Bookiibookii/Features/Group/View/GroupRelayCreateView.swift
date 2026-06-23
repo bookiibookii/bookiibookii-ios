@@ -65,7 +65,7 @@ struct GroupRelayCreateView: View {
     private var navBar: some View {
         ZStack {
             Text(viewModel.isEditMode ? "그룹 수정" : "그룹 만들기")
-                .font(.pretendard(size: 20, weight: .bold))
+                .pretendardText(size: 20, weight: .bold)
                 .foregroundColor(Color("grey900"))
             HStack {
                 Button { dismiss() } label: {
@@ -89,7 +89,7 @@ struct GroupRelayCreateView: View {
         VStack(alignment: .leading, spacing: 8) {
             sectionLabel("도서", required: false)
             Text(viewModel.editConfig?.bookTitle ?? "")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey900"))
                 .padding(.horizontal, 16)
                 .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
@@ -110,7 +110,7 @@ struct GroupRelayCreateView: View {
                     .frame(width: 20, height: 20)
                     .foregroundColor(Color("grey400"))
                 TextField("검색하기", text: $viewModel.searchQuery)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey900"))
                     .onChange(of: viewModel.searchQuery) { value in
                         viewModel.onSearchQueryChanged(value)
@@ -137,11 +137,11 @@ struct GroupRelayCreateView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 4))
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(book.title)
-                                        .font(.pretendard(size: 14))
+                                        .pretendardText(size: 14)
                                         .foregroundColor(Color("grey900"))
                                         .lineLimit(1)
                                     Text(book.author)
-                                        .font(.pretendard(size: 12))
+                                        .pretendardText(size: 12)
                                         .foregroundColor(Color("grey500"))
                                         .lineLimit(1)
                                 }
@@ -174,7 +174,7 @@ struct GroupRelayCreateView: View {
                 toggleButton(title: "아니오", isSelected: viewModel.bookHave == false) { viewModel.didTapBookHaveNo() }
             }
             Text("그룹을 생성하려면 실물 책이 필요합니다")
-                .font(.pretendard(size: 12))
+                .pretendardText(size: 12)
                 .foregroundColor(Color("grey500"))
         }
     }
@@ -193,7 +193,7 @@ struct GroupRelayCreateView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         sectionLabel("내 지역", required: true)
                         TextField("시/구", text: $viewModel.preferRegion)
-                            .font(.pretendard(size: 14))
+                            .pretendardText(size: 14)
                             .foregroundColor(Color("grey900"))
                             .padding(.horizontal, 16)
                             .frame(height: 48)
@@ -202,7 +202,7 @@ struct GroupRelayCreateView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         sectionLabel("희망 교환 장소", required: true)
                         TextField("000 경찰서 앞", text: $viewModel.meetPlace)
-                            .font(.pretendard(size: 14))
+                            .pretendardText(size: 14)
                             .foregroundColor(Color("grey900"))
                             .padding(.horizontal, 16)
                             .frame(height: 48)
@@ -221,7 +221,7 @@ struct GroupRelayCreateView: View {
             Button { showDatePicker = true } label: {
                 HStack {
                     Text(viewModel.startDate.map { Self.displayFormatter.string(from: $0) } ?? "날짜 선택")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(viewModel.startDate == nil ? Color("grey400") : Color("grey900"))
                     Spacer()
                     Image("ic_calender")
@@ -236,7 +236,7 @@ struct GroupRelayCreateView: View {
             }
             .buttonStyle(.plain)
             Text("독서를 시작할 날짜를 선택해주세요 (익일부터 선택 가능)")
-                .font(.pretendard(size: 12))
+                .pretendardText(size: 12)
                 .foregroundColor(Color("grey500"))
         }
     }
@@ -248,7 +248,7 @@ struct GroupRelayCreateView: View {
             sectionLabel("독서 기간", required: true)
             ZStack(alignment: .trailing) {
                 TextField("3~30", text: $viewModel.readingPeriod)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey900"))
                     .keyboardType(.numberPad)
                     .padding(.leading, 16)
@@ -256,12 +256,12 @@ struct GroupRelayCreateView: View {
                     .frame(height: 48)
                     .background(RoundedRectangle(cornerRadius: 12).stroke(Color("grey200"), lineWidth: 1))
                 Text("일")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey400"))
                     .padding(.trailing, 16)
             }
             Text("3일에서 30일 사이로 입력해주세요")
-                .font(.pretendard(size: 12))
+                .pretendardText(size: 12)
                 .foregroundColor(Color("grey500"))
         }
     }
@@ -284,7 +284,7 @@ struct GroupRelayCreateView: View {
         let isSelected = viewModel.selectedTags.contains(tag)
         return Button { viewModel.toggleTag(tag) } label: {
             Text(tag.displayName)
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(isSelected ? Color("main200") : Color("grey500"))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
@@ -302,7 +302,7 @@ struct GroupRelayCreateView: View {
 
     private var customTagField: some View {
         TextField("#직접 입력하기", text: $viewModel.customTag)
-            .font(.pretendard(size: 14))
+            .pretendardText(size: 14)
             .foregroundColor(viewModel.customTag.isEmpty ? Color("grey500") : Color("main200"))
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
@@ -330,13 +330,13 @@ struct GroupRelayCreateView: View {
             ZStack(alignment: .topLeading) {
                 if viewModel.groupComment.isEmpty {
                     Text("게스트가 꼭 지켜야 할 규칙을 적어주세요.")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey400"))
                         .padding(12)
                         .allowsHitTesting(false)
                 }
                 TextEditor(text: $viewModel.groupComment)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey900"))
                     .scrollContentBackground(.hidden)
                     .padding(8)
@@ -357,7 +357,7 @@ struct GroupRelayCreateView: View {
                     ProgressView().tint(Color("white"))
                 } else {
                     Text(viewModel.isEditMode ? "수정 완료" : "그룹 만들기")
-                        .font(.pretendard(size: 18, weight: .bold))
+                        .pretendardText(size: 18, weight: .bold)
                         .foregroundColor(viewModel.isFormValid ? Color("white") : Color("grey500"))
                 }
             }
@@ -379,7 +379,7 @@ struct GroupRelayCreateView: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text("책을 먼저 구매하시겠습니까?")
-                        .font(.pretendard(size: 20, weight: .medium))
+                        .pretendardText(size: 20, weight: .medium)
                         .foregroundColor(Color("grey900"))
                     Spacer()
                     Button {
@@ -396,14 +396,14 @@ struct GroupRelayCreateView: View {
                 }
                 if let title = viewModel.selectedBook?.title {
                     Text(title)
-                        .font(.pretendard(size: 16))
+                        .pretendardText(size: 16)
                         .foregroundColor(Color("grey800"))
                         .lineLimit(1)
                 }
             }
 
             Text("그룹을 만들기 위해서는 실물 책이 필요합니다. 알라딘으로 이동할까요?")
-                .font(.pretendard(size: 16))
+                .pretendardText(size: 16)
                 .foregroundColor(Color("grey700"))
 
             HStack(spacing: 12) {
@@ -411,7 +411,7 @@ struct GroupRelayCreateView: View {
                     viewModel.resetBookHave()
                 } label: {
                     Text("취소")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey900"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -425,7 +425,7 @@ struct GroupRelayCreateView: View {
                     viewModel.resetBookHave()
                 } label: {
                     Text("구매하러 가기")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey100"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -458,7 +458,7 @@ struct GroupRelayCreateView: View {
             .padding()
             .environment(\.locale, Locale(identifier: "ko_KR"))
             Button("확인") { showDatePicker = false }
-                .font(.pretendard(size: 16, weight: .semibold))
+                .pretendardText(size: 16, weight: .semibold)
                 .foregroundColor(Color("white"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
@@ -475,11 +475,11 @@ struct GroupRelayCreateView: View {
     private func sectionLabel(_ text: String, required: Bool) -> some View {
         HStack(spacing: 4) {
             Text(text)
-                .font(.pretendard(size: 16, weight: .semibold))
+                .pretendardText(size: 16, weight: .semibold)
                 .foregroundColor(Color("grey900"))
             if required {
                 Text("*")
-                    .font(.pretendard(size: 16))
+                    .pretendardText(size: 16)
                     .foregroundColor(Color("main200"))
             }
         }
@@ -488,7 +488,7 @@ struct GroupRelayCreateView: View {
     private func toggleButton(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(size: 14, weight: isSelected ? .semibold : .regular))
+                .pretendardText(size: 14, weight: isSelected ? .semibold : .regular)
                 .foregroundColor(isSelected ? Color("main200") : Color("grey500"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)

@@ -92,7 +92,7 @@ struct HostDeliveryView: View {
     private var toolbar: some View {
         ZStack {
             Text(vm.detail?.bookTitle ?? "")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(Color("black"))
                 .lineLimit(1)
                 .padding(.horizontal, 60)
@@ -130,10 +130,10 @@ struct HostDeliveryView: View {
     private var statusTitle: some View {
         HStack(spacing: 0) {
             Text(vm.detail?.partnerNickname ?? "")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(Color("main200"))
             Text(" 님과의 현황")
-                .font(.pretendard(size: 18))
+                .pretendardText(size: 18)
                 .foregroundColor(Color("black"))
         }
     }
@@ -493,15 +493,15 @@ struct TradeStatusRow: View {
         HStack(alignment: .top, spacing: 8) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.title)
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("grey900"))
                 Text(item.description)
-                    .font(.pretendard(size: 12))
+                    .pretendardText(size: 12)
                     .foregroundColor(Color("grey500"))
             }
             Spacer()
             Text(item.badge)
-                .font(.pretendard(size: 12))
+                .pretendardText(size: 12)
                 .foregroundColor(Color("grey500"))
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)

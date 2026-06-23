@@ -25,13 +25,13 @@ struct NoticeView: View {
                             ProgressView().padding(.top, 40)
                         } else if let message = viewModel.errorMessage {
                             Text("공지사항을 불러오지 못했어요.\n\(message)")
-                                .font(.pretendard(size: 14, weight: .regular))
+                                .pretendardText(size: 14, weight: .regular)
                                 .foregroundColor(Color("grey700"))
                                 .multilineTextAlignment(.center)
                                 .padding(.top, 40)
                         } else if viewModel.notices.isEmpty {
                             Text("등록된 공지사항이 없어요.")
-                                .font(.pretendard(size: 14, weight: .regular))
+                                .pretendardText(size: 14, weight: .regular)
                                 .foregroundColor(Color("grey500"))
                                 .padding(.top, 40)
                         } else {
@@ -62,7 +62,7 @@ struct NoticeView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center, spacing: 8) {
                 Text(notice.title)
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("grey900"))
 
                 Spacer()
@@ -73,13 +73,13 @@ struct NoticeView: View {
             }
 
             Text(notice.summary)
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey700"))
                 .multilineTextAlignment(.leading)
                 .lineLimit(2)
 
             Text(notice.relativeDateText)
-                .font(.pretendard(size: 12, weight: .regular))
+                .pretendardText(size: 12, weight: .regular)
                 .foregroundColor(Color("grey400"))
         }
         .padding(16)

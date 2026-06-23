@@ -9,14 +9,13 @@ struct HostDirectMeetEmptySheet: View {
     var body: some View {
         SheetContainer {
             Text("게스트와 만날 약속을 정해요")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 
             Text("책을 주고 받을 구체적인 일시 및 장소를 댓글로 정해 주세요.")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey500"))
-                .lineSpacing(2)
                 .padding(.top, 14)
 
             EmptyAppointmentCard().padding(.top, 16)
@@ -42,7 +41,7 @@ struct HostDirectMeetEmptySheet: View {
 struct EmptyAppointmentCard: View {
     var body: some View {
         Text("아직 약속이 정해지지 않았어요")
-            .font(.pretendard(size: 14))
+            .pretendardText(size: 14)
             .foregroundColor(Color("grey500"))
             .frame(maxWidth: .infinity)
             .frame(height: 44)
@@ -63,7 +62,7 @@ struct DisabledSheetButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(size: 15, weight: .medium))
+                .pretendardText(size: 15, weight: .medium)
                 .foregroundColor(Color("grey500"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)

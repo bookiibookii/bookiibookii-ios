@@ -14,7 +14,7 @@ struct GuestDirectExtendPeriodSheet: View {
         VStack(alignment: .leading, spacing: 0) {
             header
             Text("1회에 한하여 최대 7일까지 독서 기간을 연장할 수 있어요.")
-                .font(.pretendard(size: 12))
+                .pretendardText(size: 12)
                 .foregroundColor(Color("grey500"))
                 .padding(.top, 4)
             daysField.padding(.top, 20)
@@ -30,7 +30,7 @@ struct GuestDirectExtendPeriodSheet: View {
     private var header: some View {
         HStack {
             Text("독서 기간 연장 신청")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
             Button(action: onClose) {
@@ -47,7 +47,7 @@ struct GuestDirectExtendPeriodSheet: View {
     private var daysField: some View {
         HStack(spacing: 0) {
             TextField("", text: $days)
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey900"))
                 .keyboardType(.numberPad)
                 .onChange(of: days) { _, newValue in
@@ -55,7 +55,7 @@ struct GuestDirectExtendPeriodSheet: View {
                     days = String(filtered.prefix(1))
                 }
             Text("일")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey600"))
         }
         .padding(.horizontal, 16)
@@ -80,7 +80,7 @@ struct GuestDirectExtendPeriodSheet: View {
                 Text(extendedEndDate).foregroundColor(Color("grey900"))
             }
         }
-        .font(.pretendard(size: 14))
+        .pretendardText(size: 14)
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color("white"))
@@ -95,7 +95,7 @@ struct GuestDirectExtendPeriodSheet: View {
         HStack(spacing: 12) {
             Button(action: onCancel) {
                 Text("취소")
-                    .font(.pretendard(size: 15, weight: .medium))
+                    .pretendardText(size: 15, weight: .medium)
                     .foregroundColor(Color("grey700"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
@@ -106,7 +106,7 @@ struct GuestDirectExtendPeriodSheet: View {
 
             Button(action: onApply) {
                 Text("신청하기")
-                    .font(.pretendard(size: 15, weight: .medium))
+                    .pretendardText(size: 15, weight: .medium)
                     .foregroundColor(canApply ? Color("white") : Color("grey500"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)

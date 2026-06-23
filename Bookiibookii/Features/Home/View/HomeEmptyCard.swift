@@ -17,17 +17,17 @@ struct HomeEmptyCard: View {
     var body: some View {
         VStack(spacing: 0) {
             Text(title)
-                .font(.pretendard(size: 14, weight: .semibold))
+                .pretendardText(size: 14, weight: .semibold)
                 .foregroundColor(Color("grey900"))
 
             Text(description)
-                .font(.pretendard(size: 12))
+                .pretendardText(size: 12)
                 .foregroundColor(Color("grey600"))
                 .padding(.top, 6)
 
             Button(action: onTap) {
                 Text(buttonTitle)
-                    .font(.pretendard(size: 14, weight: .semibold))
+                    .pretendardText(size: 14, weight: .semibold)
                     .foregroundColor(buttonForeground)
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)

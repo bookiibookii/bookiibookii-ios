@@ -57,7 +57,7 @@ struct GroupSearchView: View {
                     .frame(width: 20, height: 20)
                     .foregroundColor(Color("grey500"))
                 TextField("도서명, 저자명, 태그 검색", text: $viewModel.searchText)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey900"))
                     .focused($isSearchFocused)
                     .submitLabel(.search)
@@ -100,7 +100,7 @@ struct GroupSearchView: View {
     private var recentSearchSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("최근 검색어")
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(Color("grey700"))
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -116,7 +116,7 @@ struct GroupSearchView: View {
         HStack(spacing: 6) {
             Button { Task { await viewModel.submitSearch(keyword) } } label: {
                 Text(keyword)
-                    .font(.pretendard(size: 13))
+                    .pretendardText(size: 13)
                     .foregroundColor(Color("grey700"))
             }
             .buttonStyle(.plain)
@@ -140,7 +140,7 @@ struct GroupSearchView: View {
             Button { viewModel.togglePopularExpanded() } label: {
                 HStack {
                     Text("인기 검색어")
-                        .font(.pretendard(size: 16, weight: .medium))
+                        .pretendardText(size: 16, weight: .medium)
                         .foregroundColor(Color("grey900"))
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -170,11 +170,11 @@ struct GroupSearchView: View {
         return Button { Task { await viewModel.submitSearch(keyword) } } label: {
             HStack(spacing: 8) {
                 Text(String(format: "%02d", rank))
-                    .font(.pretendard(size: 14, weight: .semibold))
+                    .pretendardText(size: 14, weight: .semibold)
                     .foregroundColor(top3 ? Color("main200") : Color("grey500"))
                     .frame(width: 20, alignment: .center)
                 Text(keyword)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(top3 ? Color("grey900") : Color("grey500"))
                 Spacer()
             }
@@ -188,17 +188,17 @@ struct GroupSearchView: View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
                 Text("아직 그룹을 만들지 않았어요 😭")
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("grey900"))
                     .multilineTextAlignment(.center)
                 Text("읽고 싶은 책을 골라 그룹을 만들어볼까요?")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey600"))
                     .multilineTextAlignment(.center)
             }
             Button { viewModel.toast = "그룹 만들기는 준비 중입니다" } label: {
                 Text("그룹 만들기")
-                    .font(.pretendard(size: 15))
+                    .pretendardText(size: 15)
                     .foregroundColor(Color("grey100"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
@@ -252,12 +252,12 @@ struct GroupSearchView: View {
     private var resultsHeader: some View {
         HStack {
             Text("그룹 \(viewModel.resultCount)개")
-                .font(.pretendard(size: 13))
+                .pretendardText(size: 13)
                 .foregroundColor(Color("grey500"))
             Spacer()
             sortButton(.latest)
             Text("|")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey400"))
                 .padding(.horizontal, 6)
             sortButton(.popular)
@@ -268,7 +268,7 @@ struct GroupSearchView: View {
         let active = viewModel.resultSort == sort
         return Button { Task { await viewModel.changeResultSort(sort) } } label: {
             Text(sort.displayName)
-                .font(.pretendard(size: 14, weight: active ? .medium : .regular))
+                .pretendardText(size: 14, weight: active ? .medium : .regular)
                 .foregroundColor(active ? Color("main200") : Color("grey500"))
         }
         .buttonStyle(.plain)
@@ -279,15 +279,15 @@ struct GroupSearchView: View {
         if viewModel.loadPhase == .failed {
             VStack(spacing: 16) {
                 Text("검색 결과를 불러오지 못했어요")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey500"))
                 Button("다시 시도") { Task { await viewModel.submitSearch(viewModel.searchText) } }
-                    .font(.pretendard(size: 14, weight: .medium))
+                    .pretendardText(size: 14, weight: .medium)
                     .foregroundColor(Color("main200"))
             }
         } else {
             Text("검색 결과가 없어요")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey500"))
         }
     }

@@ -76,7 +76,7 @@ struct GuestDirectView: View {
     private var toolbar: some View {
         ZStack {
             Text(vm.detail?.bookTitle ?? "")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(Color("black"))
                 .lineLimit(1)
                 .padding(.horizontal, 60)
@@ -114,10 +114,10 @@ struct GuestDirectView: View {
     private var statusTitle: some View {
         HStack(spacing: 0) {
             Text(vm.detail?.partnerNickname ?? "")
-                .font(.pretendard(size: 18, weight: .medium))
+                .pretendardText(size: 18, weight: .medium)
                 .foregroundColor(Color("sub200"))   // 게스트는 파랑
             Text(" 님과의 현황")
-                .font(.pretendard(size: 18))
+                .pretendardText(size: 18)
                 .foregroundColor(Color("black"))
         }
     }

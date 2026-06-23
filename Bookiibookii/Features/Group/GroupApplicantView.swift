@@ -22,7 +22,7 @@ struct GroupApplicantView: View {
                     LazyVStack(spacing: 16) {
                         if viewModel.applicants.isEmpty {
                             Text("신청자가 없습니다")
-                                .font(.pretendard(size: 14))
+                                .pretendardText(size: 14)
                                 .foregroundColor(Color("grey500"))
                                 .padding(.top, 80)
                         } else {
@@ -66,11 +66,11 @@ struct GroupApplicantView: View {
 
             HStack(spacing: 4) {
                 Text("참여 요청 관리")
-                    .font(.pretendard(size: 20, weight: .semibold))
+                    .pretendardText(size: 20, weight: .semibold)
                     .foregroundColor(Color("grey900"))
                 if !viewModel.applicants.isEmpty {
                     Text("(\(viewModel.applicants.count))")
-                        .font(.pretendard(size: 20, weight: .semibold))
+                        .pretendardText(size: 20, weight: .semibold)
                         .foregroundColor(Color("grey900"))
                 }
             }
@@ -91,10 +91,10 @@ struct GroupApplicantView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name)
-                        .font(.pretendard(size: 16))
+                        .pretendardText(size: 16)
                         .foregroundColor(Color("black"))
                     Text(String(item.createdAt.prefix(10)).replacingOccurrences(of: "-", with: "."))
-                        .font(.pretendard(size: 12))
+                        .pretendardText(size: 12)
                         .foregroundColor(Color("grey400"))
                 }
             }
@@ -105,7 +105,7 @@ struct GroupApplicantView: View {
                     HStack(spacing: 8) {
                         ForEach(tags, id: \.self) { tag in
                             Text(tag)
-                                .font(.pretendard(size: 11, weight: .medium))
+                                .pretendardText(size: 11, weight: .medium)
                                 .foregroundColor(Color("sub200"))
                                 .padding(.horizontal, 10)
                                 .frame(height: 23)
@@ -117,7 +117,7 @@ struct GroupApplicantView: View {
             }
 
             Text(item.applyMsg)
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey600"))
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -134,7 +134,7 @@ struct GroupApplicantView: View {
                     )
                 } label: {
                     Text("거절")
-                        .font(.pretendard(size: 15, weight: .medium))
+                        .pretendardText(size: 15, weight: .medium)
                         .foregroundColor(Color("grey900"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -151,7 +151,7 @@ struct GroupApplicantView: View {
                     )
                 } label: {
                     Text("수락")
-                        .font(.pretendard(size: 15, weight: .medium))
+                        .pretendardText(size: 15, weight: .medium)
                         .foregroundColor(Color("grey100"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -181,7 +181,7 @@ struct GroupApplicantView: View {
         return VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(isAccept ? "참여 요청 수락" : "참여 요청 거절")
-                    .font(.pretendard(size: 20, weight: .bold))
+                    .pretendardText(size: 20, weight: .bold)
                     .foregroundColor(Color("grey900"))
                 Spacer()
                 Button { pendingAction = nil } label: {
@@ -197,21 +197,21 @@ struct GroupApplicantView: View {
 
             if !bookTitle.isEmpty {
                 Text(bookTitle)
-                    .font(.pretendard(size: 16))
+                    .pretendardText(size: 16)
                     .foregroundColor(Color("grey800"))
                     .lineLimit(1)
                     .padding(.top, 4)
             }
 
             Text(contentMsg)
-                .font(.pretendard(size: 16))
+                .pretendardText(size: 16)
                 .foregroundColor(Color("grey700"))
                 .padding(.top, 20)
 
             HStack(spacing: 12) {
                 Button { pendingAction = nil } label: {
                     Text("취소")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey900"))
                         .frame(width: 140)
                         .frame(height: 48)
@@ -232,7 +232,7 @@ struct GroupApplicantView: View {
                     }
                 } label: {
                     Text(isAccept ? "수락" : "거절")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(.white)
                         .frame(width: 140)
                         .frame(height: 48)

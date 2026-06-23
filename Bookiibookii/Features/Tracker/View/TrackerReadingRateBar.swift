@@ -14,18 +14,18 @@ struct TrackerReadingRateBar: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(staticMessage)
-                .font(.pretendard(size: 11))
+                .pretendardText(size: 11)
                 .foregroundColor(Color("grey500"))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 12)
 
             HStack {
                 Text("나의 독서율")
-                    .font(.pretendard(size: 11, weight: .medium))
+                    .pretendardText(size: 11, weight: .medium)
                     .foregroundColor(Color("main200"))
                 Spacer()
                 Text("\(clampedMy)%")
-                    .font(.pretendard(size: 11, weight: .medium))
+                    .pretendardText(size: 11, weight: .medium)
                     .foregroundColor(Color("main200"))
             }
             .padding(.top, 4)
@@ -35,11 +35,11 @@ struct TrackerReadingRateBar: View {
 
             HStack {
                 Text("그룹 평균 독서율")
-                    .font(.pretendard(size: 11, weight: .medium))
+                    .pretendardText(size: 11, weight: .medium)
                     .foregroundColor(Color("grey900"))
                 Spacer()
                 Text("\(clampedGroup)%")
-                    .font(.pretendard(size: 11, weight: .medium))
+                    .pretendardText(size: 11, weight: .medium)
                     .foregroundColor(Color("grey900"))
             }
             .padding(.top, 4)

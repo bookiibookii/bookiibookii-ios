@@ -57,7 +57,7 @@ struct LibraryBookmarkedCardsView: View {
 
             Spacer()
             Text("북마크한 독서카드")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
             Spacer()
@@ -75,7 +75,7 @@ struct LibraryBookmarkedCardsView: View {
     private var listHeader: some View {
         HStack {
             Text(viewModel.cardCountText)
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey700"))
             Spacer()
             HStack(spacing: 4) {
@@ -83,7 +83,7 @@ struct LibraryBookmarkedCardsView: View {
                     viewModel.sortType = .latest
                 }
                 Text("|")
-                    .font(.pretendard(size: 14, weight: .regular))
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey500"))
                 sortButton(title: "페이지순", selected: viewModel.sortType == .page) {
                     viewModel.sortType = .page
@@ -118,10 +118,10 @@ struct LibraryBookmarkedCardsView: View {
                 .foregroundColor(Color("grey300"))
                 .frame(width: 36, height: 36)
             Text("북마크한 독서카드가 없어요")
-                .font(.pretendard(size: 16, weight: .medium))
+                .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Text("서재에서 카드 옆 북마크를 눌러 모아보세요.")
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey600"))
                 .multilineTextAlignment(.center)
         }
@@ -134,7 +134,7 @@ struct LibraryBookmarkedCardsView: View {
     private func sortButton(title: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.pretendard(size: 14, weight: selected ? .medium : .regular))
+                .pretendardText(size: 14, weight: selected ? .medium : .regular)
                 .foregroundColor(selected ? Color("grey700") : Color("grey500"))
         }
         .buttonStyle(.plain)

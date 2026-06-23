@@ -103,7 +103,7 @@ struct GroupView: View {
     private var header: some View {
         HStack {
             Text("그룹")
-                .font(.pretendard(size: 24, weight: .bold))
+                .pretendardText(size: 24, weight: .bold)
                 .foregroundColor(Color("grey700"))
             Spacer()
             Button {
@@ -169,7 +169,7 @@ struct GroupView: View {
     private func filterChip(label: String, isActive: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
-                .font(.pretendard(size: 13, weight: isActive ? .medium : .regular))
+                .pretendardText(size: 13, weight: isActive ? .medium : .regular)
                 .foregroundColor(isActive ? Color("white") : Color("grey500"))
                 .padding(.horizontal, 16)
                 .frame(height: 36)
@@ -205,7 +205,7 @@ struct GroupView: View {
             Task { await viewModel.changeSort(sort) }
         } label: {
             Text(sort.displayName)
-                .font(.pretendard(size: 14, weight: isActive ? .medium : .regular))
+                .pretendardText(size: 14, weight: isActive ? .medium : .regular)
                 .foregroundColor(isActive ? Color("main200") : Color("grey500"))
         }
         .buttonStyle(.plain)
@@ -213,7 +213,7 @@ struct GroupView: View {
 
     private var sortDivider: some View {
         Text("|")
-            .font(.pretendard(size: 14))
+            .pretendardText(size: 14)
             .foregroundColor(Color("grey400"))
             .padding(.horizontal, 4)
     }
@@ -256,17 +256,17 @@ struct GroupView: View {
         case .failed:
             VStack(spacing: 16) {
                 Text("불러오기 실패")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey500"))
                 Button("다시 시도") {
                     Task { await viewModel.refresh() }
                 }
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(Color("main200"))
             }
         default:
             Text("조건에 맞는 그룹이 없어요")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey500"))
         }
     }

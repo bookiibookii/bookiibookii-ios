@@ -38,10 +38,10 @@ struct GroupDetailView: View {
             } else if viewModel.phase == .failed {
                 VStack(spacing: 16) {
                     Text("불러오기 실패")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey500"))
                     Button("다시 시도") { Task { await viewModel.fetchDetail() } }
-                        .font(.pretendard(size: 14, weight: .medium))
+                        .pretendardText(size: 14, weight: .medium)
                         .foregroundColor(Color("main200"))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -119,7 +119,7 @@ struct GroupDetailView: View {
             .padding(.horizontal, 24)
 
             Text(viewModel.detail?.title ?? "")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(1)
                 .padding(.horizontal, 64)
@@ -145,17 +145,17 @@ struct GroupDetailView: View {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(d.bookTitle)
-                                .font(.pretendard(size: 14))
+                                .pretendardText(size: 14)
                                 .foregroundColor(Color("black"))
                                 .lineLimit(1)
                             HStack(spacing: 4) {
                                 Text(d.author)
-                                    .font(.pretendard(size: 11))
+                                    .pretendardText(size: 11)
                                     .foregroundColor(Color("grey500"))
                                     .lineLimit(1)
                                 if !d.category.isEmpty {
                                     Text("(\(d.category))")
-                                        .font(.pretendard(size: 11))
+                                        .pretendardText(size: 11)
                                         .foregroundColor(Color("grey500"))
                                         .lineLimit(1)
                                 }
@@ -172,7 +172,7 @@ struct GroupDetailView: View {
                             .frame(width: 16, height: 16)
                             .foregroundColor(Color("grey500"))
                         Text("\(d.readingPeriod)일")
-                            .font(.pretendard(size: 11))
+                            .pretendardText(size: 11)
                             .foregroundColor(Color("grey500"))
                         Rectangle().fill(Color("grey400")).frame(width: 1, height: 10).padding(.horizontal, 2)
                         Image("ic_group")
@@ -181,11 +181,11 @@ struct GroupDetailView: View {
                             .frame(width: 16, height: 16)
                             .foregroundColor(Color("grey500"))
                         Text("\(d.matchedCount)명 대기")
-                            .font(.pretendard(size: 11))
+                            .pretendardText(size: 11)
                             .foregroundColor(Color("grey500"))
                         if d.isHot {
                             Text("HOT")
-                                .font(.pretendard(size: 11, weight: .medium))
+                                .pretendardText(size: 11, weight: .medium)
                                 .foregroundColor(Color("main200"))
                                 .padding(.horizontal, 6)
                                 .frame(height: 16)
@@ -204,10 +204,10 @@ struct GroupDetailView: View {
                             .frame(width: 20, height: 20)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                         Text(d.hostNickname)
-                            .font(.pretendard(size: 12, weight: .medium))
+                            .pretendardText(size: 12, weight: .medium)
                             .foregroundColor(Color("grey700"))
                         Text(d.startDate.replacingOccurrences(of: "-", with: "."))
-                            .font(.pretendard(size: 11))
+                            .pretendardText(size: 11)
                             .foregroundColor(Color("grey400"))
                         Spacer()
                     }
@@ -223,7 +223,7 @@ struct GroupDetailView: View {
                 ) {
                     ForEach(viewModel.displayTags, id: \.self) { tag in
                         Text(tag)
-                            .font(.pretendard(size: 11, weight: .medium))
+                            .pretendardText(size: 11, weight: .medium)
                             .foregroundColor(Color("sub200"))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -250,7 +250,7 @@ struct GroupDetailView: View {
         switch status {
         case "RECRUITING":
             Text("모집 중")
-                .font(.pretendard(size: 11))
+                .pretendardText(size: 11)
                 .foregroundColor(Color("white"))
                 .padding(.horizontal, 8)
                 .frame(height: 23)
@@ -258,7 +258,7 @@ struct GroupDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         case "MATCHED":
             Text("진행 중")
-                .font(.pretendard(size: 11))
+                .pretendardText(size: 11)
                 .foregroundColor(Color("main200"))
                 .padding(.horizontal, 8)
                 .frame(height: 23)
@@ -267,7 +267,7 @@ struct GroupDetailView: View {
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color("main105"), lineWidth: 1))
         case "COMPLETED":
             Text("종료")
-                .font(.pretendard(size: 11))
+                .pretendardText(size: 11)
                 .foregroundColor(Color("grey500"))
                 .padding(.horizontal, 8)
                 .frame(height: 23)
@@ -275,7 +275,7 @@ struct GroupDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         default:
             Text("마감")
-                .font(.pretendard(size: 11))
+                .pretendardText(size: 11)
                 .foregroundColor(Color("grey500"))
                 .padding(.horizontal, 8)
                 .frame(height: 23)
@@ -293,11 +293,11 @@ struct GroupDetailView: View {
             Button { viewModel.handleButtonTap() } label: {
                 HStack(spacing: 4) {
                     Text(viewModel.buttonLabel)
-                        .font(.pretendard(size: 15))
+                        .pretendardText(size: 15)
                         .foregroundColor(isFull ? Color("grey500") : Color("main200"))
                     if d.buttonStatus == "MANAGE" && d.waitingCount > 0 {
                         Text("(\(d.waitingCount))")
-                            .font(.pretendard(size: 15))
+                            .pretendardText(size: 15)
                             .foregroundColor(Color("main200"))
                     }
                 }
@@ -316,24 +316,24 @@ struct GroupDetailView: View {
     private func introSection(_ d: GroupDetailDto) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("그룹 소개")
-                .font(.pretendard(size: 16, weight: .medium))
+                .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.bottom, 12)
             Divider().background(Color("grey200"))
             Text(d.groupComment ?? "소개글이 없습니다.")
-                .font(.pretendard(size: 16))
+                .pretendardText(size: 16)
                 .foregroundColor(Color("grey700"))
                 .padding(.top, 12)
             if let place = d.meetPlace, !place.isEmpty {
                 HStack(spacing: 4) {
                     Text("교환 희망 장소")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey500"))
                         .padding(.horizontal, 6)
                         .background(Color("grey100"))
                         .clipShape(RoundedRectangle(cornerRadius: 30))
                     Text(place)
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey500"))
                 }
                 .padding(.top, 12)
@@ -353,10 +353,10 @@ struct GroupDetailView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 4) {
                 Text("참여 멤버")
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("grey900"))
                 Text("\(d.matchedCount)/\(d.maxCapacity)명")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("main200"))
             }
             .padding(.bottom, 12)
@@ -395,15 +395,15 @@ struct GroupDetailView: View {
             HStack(spacing: 8) {
                 if slot.role == "EMPTY" {
                     Text("대기 중")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey400"))
                 } else {
                     Text(slot.nickname ?? "알 수 없음")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey900"))
                     if slot.role == "HOST" {
                         Text("HOST")
-                            .font(.pretendard(size: 11))
+                            .pretendardText(size: 11)
                             .foregroundColor(Color("main200"))
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -412,7 +412,7 @@ struct GroupDetailView: View {
                     }
                     if slot.isMe {
                         Text("(나)")
-                            .font(.pretendard(size: 12))
+                            .pretendardText(size: 12)
                             .foregroundColor(Color("grey500"))
                     }
                 }
@@ -429,7 +429,7 @@ struct GroupDetailView: View {
             // 헤더
             HStack {
                 Text("그룹 참여 신청")
-                    .font(.pretendard(size: 20, weight: .medium))
+                    .pretendardText(size: 20, weight: .medium)
                     .foregroundColor(Color("grey900"))
                 Spacer()
                 Button {
@@ -450,11 +450,11 @@ struct GroupDetailView: View {
             if let d = viewModel.detail {
                 HStack(spacing: 4) {
                     Text("[\(d.hostNickname)]")
-                        .font(.pretendard(size: 16))
+                        .pretendardText(size: 16)
                         .foregroundColor(Color("grey800"))
                         .lineLimit(1)
                     Text(d.bookTitle)
-                        .font(.pretendard(size: 16))
+                        .pretendardText(size: 16)
                         .foregroundColor(Color("grey800"))
                         .lineLimit(1)
                 }
@@ -464,22 +464,22 @@ struct GroupDetailView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text("신청 한 마디")
-                        .font(.pretendard(size: 14, weight: .medium))
+                        .pretendardText(size: 14, weight: .medium)
                         .foregroundColor(Color("grey900"))
                     Spacer()
                     Text("\(applyMsg.count)/50")
-                        .font(.pretendard(size: 12))
+                        .pretendardText(size: 12)
                         .foregroundColor(Color("grey500"))
                 }
                 ZStack(alignment: .topLeading) {
                     TextEditor(text: $applyMsg)
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey900"))
                         .scrollContentBackground(.hidden)
                         .padding(8)
                     if applyMsg.isEmpty {
                         Text("호스트에게 간단한 소개를 남겨주세요.")
-                            .font(.pretendard(size: 14))
+                            .pretendardText(size: 14)
                             .foregroundColor(Color("grey500"))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 12)
@@ -501,7 +501,7 @@ struct GroupDetailView: View {
                     viewModel.showApplyDialog = false
                 } label: {
                     Text("취소")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey900"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -520,7 +520,7 @@ struct GroupDetailView: View {
                     applyMsg = ""
                 } label: {
                     Text("신청하기")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey100"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -542,7 +542,7 @@ struct GroupDetailView: View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
                 Text("그룹 삭제")
-                    .font(.pretendard(size: 20, weight: .medium))
+                    .pretendardText(size: 20, weight: .medium)
                     .foregroundColor(Color("grey900"))
                 Spacer()
                 Button {
@@ -559,7 +559,7 @@ struct GroupDetailView: View {
             }
 
             Text("그룹을 정말 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")
-                .font(.pretendard(size: 16))
+                .pretendardText(size: 16)
                 .foregroundColor(Color("grey700"))
 
             HStack(spacing: 12) {
@@ -567,7 +567,7 @@ struct GroupDetailView: View {
                     viewModel.showDeleteConfirm = false
                 } label: {
                     Text("취소")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey900"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -581,7 +581,7 @@ struct GroupDetailView: View {
                     Task { await viewModel.deleteGroup() }
                 } label: {
                     Text("삭제")
-                        .font(.pretendard(size: 14))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("white"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)

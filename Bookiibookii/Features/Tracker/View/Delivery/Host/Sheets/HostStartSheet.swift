@@ -10,7 +10,7 @@ struct HostStartSheet: View {
     var body: some View {
         SheetContainer {
             Text("책 읽기 시작")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 

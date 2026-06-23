@@ -17,13 +17,13 @@ struct HostReceiveConfirmSheet: View {
             checkRow.padding(.top, 18)
 
             Text("파손, 훼손, 낙서 등이 있다면 즉시 상대방에게 댓글로 알려주세요.")
-                .font(.pretendard(size: 11))
+                .pretendardText(size: 11)
                 .foregroundColor(Color("grey600"))
                 .padding(.top, 8)
 
             Button(action: onFinish) {
                 Text("수령 완료")
-                    .font(.pretendard(size: 16))
+                    .pretendardText(size: 16)
                     .foregroundColor(Color("grey100"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
@@ -42,7 +42,7 @@ struct HostReceiveConfirmSheet: View {
     private var header: some View {
         HStack {
             Text("수령 인증")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
             Spacer()
             Button(action: onClose) {
@@ -74,7 +74,7 @@ struct HostReceiveConfirmSheet: View {
                             .foregroundColor(Color("grey800"))
                             .frame(width: 28, height: 28)
                         Text("받은 책 사진을 업로드해주세요")
-                            .font(.pretendard(size: 14))
+                            .pretendardText(size: 14)
                             .foregroundColor(Color("grey800"))
                     }
                     .frame(maxWidth: .infinity)
@@ -107,7 +107,7 @@ struct HostReceiveConfirmSheet: View {
                     }
                 }
                 Text("책의 상태를 확인했습니다")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey900"))
                 Spacer()
             }

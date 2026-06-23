@@ -82,10 +82,10 @@ struct SettingView: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("푸시 알림 받기")
-                            .font(.pretendard(size: 15, weight: .medium))
+                            .pretendardText(size: 15, weight: .medium)
                             .foregroundColor(Color("grey900"))
                         Text("서비스 알림을 받습니다.")
-                            .font(.pretendard(size: 12, weight: .regular))
+                            .pretendardText(size: 12, weight: .regular)
                             .foregroundColor(Color("grey600"))
                     }
 
@@ -173,7 +173,7 @@ struct SettingView: View {
 
     private func sectionTitle(_ text: String) -> some View {
         Text(text)
-            .font(.pretendard(size: 16, weight: .medium))
+            .pretendardText(size: 16, weight: .medium)
             .foregroundColor(Color("grey900"))
     }
 
@@ -209,10 +209,10 @@ struct SettingView: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.pretendard(size: 15, weight: .medium))
+                        .pretendardText(size: 15, weight: .medium)
                         .foregroundColor(Color("grey900"))
                     Text(subtitle)
-                        .font(.pretendard(size: 12, weight: .regular))
+                        .pretendardText(size: 12, weight: .regular)
                         .foregroundColor(Color("grey600"))
                 }
 
@@ -228,7 +228,7 @@ struct SettingView: View {
     private func plainRow(_ text: String) -> some View {
         card {
             Text(text)
-                .font(.pretendard(size: 15, weight: .regular))
+                .pretendardText(size: 15, weight: .regular)
                 .foregroundColor(Color("grey600"))
         }
     }
@@ -236,7 +236,7 @@ struct SettingView: View {
     private func actionRow(_ text: String, color: Color) -> some View {
         card {
             Text(text)
-                .font(.pretendard(size: 15, weight: .medium))
+                .pretendardText(size: 15, weight: .medium)
                 .foregroundColor(color)
         }
     }

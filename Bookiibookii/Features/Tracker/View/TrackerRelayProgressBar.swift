@@ -115,7 +115,7 @@ struct TrackerRelayProgressBar: View {
             ZStack(alignment: .topLeading) {
                 ForEach(0..<4, id: \.self) { i in
                     Text(labels[i])
-                        .font(.pretendard(size: 11, weight: .medium))
+                        .pretendardText(size: 11, weight: .medium)
                         .foregroundColor(i == clampedStep ? Color("main200") : Color("grey400"))
                         .fixedSize()
                         .position(x: centers[i], y: 7)
@@ -133,7 +133,7 @@ struct TrackerRelayProgressBar: View {
             ZStack(alignment: .topLeading) {
                 ForEach(0..<4, id: \.self) { i in
                     Text(formatStepDate(stepDates.indices.contains(i) ? stepDates[i] : nil))
-                        .font(.pretendard(size: 11, weight: .medium))
+                        .pretendardText(size: 11, weight: .medium)
                         .foregroundColor(Color("grey900"))
                         .fixedSize()
                         .position(x: centers[i], y: 7)

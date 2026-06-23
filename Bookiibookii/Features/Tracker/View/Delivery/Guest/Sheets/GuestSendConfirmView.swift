@@ -12,7 +12,7 @@ struct GuestSendConfirmView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("수령 인증")
-                .font(.pretendard(size: 20))
+                .pretendardText(size: 20)
                 .foregroundColor(Color("grey900"))
                 .frame(maxWidth: .infinity, alignment: .center)
 
@@ -21,7 +21,7 @@ struct GuestSendConfirmView: View {
 
             Button(action: { if isEnabled { onConfirm() } }) {
                 Text("확인")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(isEnabled ? Color("grey100") : Color("grey600"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
@@ -55,11 +55,11 @@ struct GuestSendConfirmView: View {
                         image.resizable().scaledToFill()
                     case .empty:
                         Text("사진을 불러오는 중…")
-                            .font(.pretendard(size: 14))
+                            .pretendardText(size: 14)
                             .foregroundColor(Color("grey600"))
                     case .failure:
                         Text("사진을 불러올 수 없어요")
-                            .font(.pretendard(size: 14))
+                            .pretendardText(size: 14)
                             .foregroundColor(Color("grey600"))
                     @unknown default:
                         EmptyView()
@@ -67,7 +67,7 @@ struct GuestSendConfirmView: View {
                 }
             } else {
                 Text("사진을 불러오는 중…")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey600"))
             }
         }
@@ -90,7 +90,7 @@ struct GuestSendConfirmView: View {
                     }
                 }
                 Text("책의 상태를 확인했습니다")
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey900"))
                 Spacer()
             }

@@ -34,7 +34,7 @@ struct ProfileChangeView: View {
                     Task { await viewModel.saveChanges() }
                 } label: {
                     Text("수정하기")
-                        .font(.pretendard(size: 18, weight: .medium))
+                        .pretendardText(size: 18, weight: .medium)
                         .foregroundColor(Color("white"))
                         .frame(maxWidth: .infinity)
                         .frame(height: 72)
@@ -106,7 +106,7 @@ struct ProfileChangeView: View {
 
                 if !viewModel.nicknameValidationState.message.isEmpty {
                     Text(viewModel.nicknameValidationState.message)
-                        .font(.pretendard(size: 12, weight: .regular))
+                        .pretendardText(size: 12, weight: .regular)
                         .foregroundColor(viewModel.nicknameValidationState.isAvailable ? Color.green : Color.red)
                         .padding(.horizontal, 8)
                 }
@@ -138,7 +138,7 @@ struct ProfileChangeView: View {
 
     private var addressSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("배송지 정보").font(.pretendard(size: 16, weight: .regular)).foregroundColor(Color("grey900"))
+            Text("배송지 정보").pretendardText(size: 16, weight: .regular).foregroundColor(Color("grey900"))
             BasicField(text: $viewModel.name, placeholder: "이름")
             BasicField(
                 text: Binding(
@@ -155,7 +155,7 @@ struct ProfileChangeView: View {
 
     private var exchangeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("직접 교환 정보").font(.pretendard(size: 16, weight: .regular)).foregroundColor(Color("grey900"))
+            Text("직접 교환 정보").pretendardText(size: 16, weight: .regular).foregroundColor(Color("grey900"))
             SearchField(text: $viewModel.exchangeRegion, placeholder: "시/도 시/군/구", actionTitle: "검색하기", onActionTap: { showRegionSearch = true })
         }
     }
@@ -183,7 +183,7 @@ private struct BasicField: View {
     let placeholder: String
     var body: some View {
         TextField(placeholder, text: $text)
-            .font(.pretendard(size: 15, weight: .regular))
+            .pretendardText(size: 15, weight: .regular)
             .foregroundColor(Color("grey900"))
             .padding(.horizontal, 20)
             .frame(height: 48)
@@ -204,11 +204,11 @@ private struct NicknameField: View {
     var body: some View {
         HStack {
             TextField("텍스트 입력 전", text: $text)
-                .font(.pretendard(size: 15, weight: .regular))
+                .pretendardText(size: 15, weight: .regular)
                 .foregroundColor(Color("grey900"))
                 .padding(.leading, 20)
             Button(actionTitle) { onActionTap() }
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(Color("grey100"))
                 .frame(width: 100, height: 40)
                 .background(isActionEnabled ? Color("grey900") : Color("grey300"))
@@ -234,11 +234,11 @@ private struct SearchField: View {
     var body: some View {
         HStack {
             TextField(placeholder, text: $text)
-                .font(.pretendard(size: 15, weight: .regular))
+                .pretendardText(size: 15, weight: .regular)
                 .foregroundColor(Color("grey900"))
                 .padding(.leading, 20)
             Button(actionTitle) { onActionTap() }
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(Color("grey100"))
                 .frame(width: 100, height: 40)
                 .background(Color("grey900"))

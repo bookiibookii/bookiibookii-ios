@@ -61,7 +61,7 @@ struct TrackerView: View {
     private var header: some View {
         HStack {
             Text("북 트래커")
-                .font(.pretendard(size: 24, weight: .medium))
+                .pretendardText(size: 24, weight: .medium)
                 .foregroundColor(Color("grey800"))
             Spacer()
         }
@@ -95,7 +95,7 @@ struct TrackerView: View {
             Task { await viewModel.selectTab(tab) }
         } label: {
             Text(tab.title)
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(isSelected ? Color("white") : Color("grey900"))
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
@@ -136,12 +136,12 @@ struct TrackerView: View {
                 case .failed(let message):
                     VStack(spacing: 16) {
                         Text(message)
-                            .font(.pretendard(size: 14))
+                            .pretendardText(size: 14)
                             .foregroundColor(Color("grey500"))
                         Button("다시 시도") {
                             Task { await viewModel.refresh() }
                         }
-                        .font(.pretendard(size: 14, weight: .medium))
+                        .pretendardText(size: 14, weight: .medium)
                         .foregroundColor(Color("main200"))
                     }
                     .padding(.top, 80)

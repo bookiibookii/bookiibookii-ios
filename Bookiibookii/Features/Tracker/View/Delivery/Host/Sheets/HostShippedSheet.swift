@@ -11,12 +11,12 @@ struct HostShippedSheet: View {
     var body: some View {
         SheetContainer {
             Text("게스트가 책을 발송했어요!")
-                .font(.pretendard(size: 20, weight: .medium))
+                .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .padding(.top, 20)
 
             Text("책을 받은 후 수령 인증을 진행해주세요.")
-                .font(.pretendard(size: 14))
+                .pretendardText(size: 14)
                 .foregroundColor(Color("grey500"))
                 .padding(.top, 8)
 
@@ -34,11 +34,11 @@ struct HostShippedSheet: View {
             Text(courier)
                 .foregroundColor(Color("grey900"))
             Text(trackingNumber)
-                .font(.pretendard(size: 14, weight: .medium))
+                .pretendardText(size: 14, weight: .medium)
                 .foregroundColor(Color("main200"))
             Spacer()
         }
-        .font(.pretendard(size: 14))
+        .pretendardText(size: 14)
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .frame(maxWidth: .infinity)

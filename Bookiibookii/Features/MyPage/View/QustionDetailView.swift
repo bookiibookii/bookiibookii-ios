@@ -29,7 +29,7 @@ struct QustionDetailView: View {
                         ZStack(alignment: .topLeading) {
                             if viewModel.content.isEmpty {
                                 Text("문의 내용을 입력해주세요.")
-                                    .font(.pretendard(size: 15, weight: .regular))
+                                    .pretendardText(size: 15, weight: .regular)
                                     .foregroundColor(Color("grey500"))
                                     .padding(.horizontal, 20)
                                     .padding(.top, 20)
@@ -59,7 +59,7 @@ struct QustionDetailView: View {
                 }
             } label: {
                 Text(viewModel.isSubmitting ? "전송 중..." : "문의 전송")
-                    .font(.pretendard(size: 18, weight: .medium))
+                    .pretendardText(size: 18, weight: .medium)
                     .foregroundColor(Color("white"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 72)
@@ -81,7 +81,7 @@ struct QustionDetailView: View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
             Text("부키부키 팀에서 문의사항을 확인한 후, 통상 7일 내에 답변 드립니다.")
-                .font(.pretendard(size: 14, weight: .regular))
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(.green)
         }
         .padding(16)
@@ -91,6 +91,6 @@ struct QustionDetailView: View {
     }
 
     private func fieldTitle(_ text: String) -> some View {
-        Text(text).font(.pretendard(size: 16, weight: .medium)).foregroundColor(Color("grey900"))
+        Text(text).pretendardText(size: 16, weight: .medium).foregroundColor(Color("grey900"))
     }
 }

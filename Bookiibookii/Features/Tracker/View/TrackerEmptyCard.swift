@@ -10,12 +10,12 @@ struct TrackerEmptyCard: View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
                 Text(tab.emptyTitle)
-                    .font(.pretendard(size: 16, weight: .medium))
+                    .pretendardText(size: 16, weight: .medium)
                     .foregroundColor(Color("grey900"))
                     .multilineTextAlignment(.center)
 
                 Text(tab.emptyDescription)
-                    .font(.pretendard(size: 14))
+                    .pretendardText(size: 14)
                     .foregroundColor(Color("grey600"))
                     .multilineTextAlignment(.center)
             }
@@ -23,7 +23,7 @@ struct TrackerEmptyCard: View {
 
             Button(action: onNavigateToGroup) {
                 Text("그룹 둘러보기")
-                    .font(.pretendard(size: 15))
+                    .pretendardText(size: 15)
                     .foregroundColor(Color("grey100"))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
