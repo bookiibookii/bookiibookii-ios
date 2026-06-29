@@ -47,6 +47,16 @@ enum RecordMethod: CaseIterable, Hashable {
         }
     }
 
+    /// 에셋 아이콘 이름 (안드로이드 RecordMethod.iconRes 대응)
+    var iconAsset: String {
+        switch self {
+        case .memo:   return "ic_edit"
+        case .postit: return "ic_bookmark"
+        case .photo:  return "ic_camera"
+        case .any:    return "ic_book"
+        }
+    }
+
     var serverValue: String {
         switch self {
         case .memo:   return "MEMO"

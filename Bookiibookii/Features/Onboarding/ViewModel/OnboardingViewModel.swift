@@ -204,6 +204,31 @@ final class OnboardingViewModel: ObservableObject {
         lifeBooks[slot] = book
     }
 
+    /// 안드로이드 setLifeBook 대응 — 빈 슬롯을 누르면 위치와 무관하게 첫 빈 칸을 채우고,
+    /// 채워진 슬롯(수정)이면 해당 슬롯을 교체한다.
+    func setLifeBook(_ book: BookItem, at slotIndex: Int) {
+        guard lifeBooks.indices.contains(slotIndex) else { return }
+        // 이미 선택된 책 중복 방지
+        guard !lifeBooks.compactMap({ $0?.isbn13 }).contains(book.isbn13) else { return }
+        var books = lifeBooks
+        let target: Int
+        if books[slotIndex] == nil {
+            target = books.firstIndex(where: { $0 == nil }) ?? slotIndex
+        } else {
+            target = slotIndex
+        }
+        books[target] = book
+        lifeBooks = books
+    }
+
+    /// 검색 다이얼로그 열 때 초기화
+    func clearBookSearch() {
+        searchTask?.cancel()
+        searchQuery = ""
+        searchResults = []
+        isSearching = false
+    }
+
     func removeBook(at slot: Int) {
         guard lifeBooks.indices.contains(slot) else { return }
         lifeBooks[slot] = nil
