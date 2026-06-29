@@ -17,11 +17,11 @@ struct BookiiTopBar<Trailing: View>: View {
 
             HStack(spacing: 0) {
                 Button(action: onProfileTap) {
-                    Image("ic_person")
+                    Image("ic_person2")
                         .renderingMode(.template)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 32, height: 32)
+                        .frame(width: 28, height: 28)
                         .foregroundColor(Color("grey900"))
                         .frame(width: 40, height: 40)
                         .contentShape(Rectangle())

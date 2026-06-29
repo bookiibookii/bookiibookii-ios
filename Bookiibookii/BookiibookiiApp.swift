@@ -17,19 +17,12 @@ struct BookiibookiiApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack(path: $container.navigationRouter.destinations) {
-                SplashView(showsIntro: !TokenManager.shared.hasAccessToken) {
-                    if TokenManager.shared.hasAccessToken {
-                        let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboarding
-                        container.navigationRouter.hardReset(to: destination)
-                    } else {
-                        container.navigationRouter.hardReset(to: .login)
+                rootContent
+                    .environmentObject(container)
+                    .navigationDestination(for: NavigationDestination.self) { destination in
+                        NavigationRoutingView(destination: destination)
+                            .environmentObject(container)
                     }
-                }
-                .environmentObject(container)
-                .navigationDestination(for: NavigationDestination.self) { destination in
-                    NavigationRoutingView(destination: destination)
-                        .environmentObject(container)
-                }
             }
             // 카카오 로그인 콜백 URL 처리 (안드로이드 onNewIntent 대응)
             .onReceive(NotificationCenter.default.publisher(for: .authTokenExpired)) { _ in
@@ -40,6 +33,25 @@ struct BookiibookiiApp: App {
                     _ = AuthController.handleOpenUrl(url: url)
                 } else {
                     GIDSignIn.sharedInstance.handle(url)
+                }
+            }
+        }
+    }
+
+    // 안드로이드 기준: 온보딩 완료(completed) 상태면 스플래시를 건너뛰고 바로 메인으로,
+    // 그 외(미로그인 또는 온보딩 미완료)에는 스플래시를 노출한다.
+    @ViewBuilder
+    private var rootContent: some View {
+        if TokenManager.shared.isOnboardingDone {
+            Color("uiBg")
+                .ignoresSafeArea()
+                .onAppear { container.navigationRouter.hardReset(to: .mainTab) }
+        } else {
+            SplashView(showsIntro: !TokenManager.shared.hasAccessToken) {
+                if TokenManager.shared.hasAccessToken {
+                    container.navigationRouter.hardReset(to: .onboarding)
+                } else {
+                    container.navigationRouter.hardReset(to: .login)
                 }
             }
         }

@@ -40,21 +40,16 @@ struct LibraryView: View {
 
     private var header: some View {
         BookiiTopBar(title: "서재", onProfileTap: { container.navigationRouter.push(to: .myPage) }) {
-            HStack(spacing: 8) {
-                CircleButton(systemName: "magnifyingglass") {
-                    container.navigationRouter.push(to: .librarySearch)
-                }
-                Button {
-                    container.navigationRouter.push(to: .libraryBookmarkedCards)
-                } label: {
-                    Image("ic_bookmark")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 40)
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
+            Button {
+                container.navigationRouter.push(to: .libraryBookmarkedCards)
+            } label: {
+                Image("ic_bookmark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+                    .contentShape(Circle())
             }
+            .buttonStyle(.plain)
         }
     }
 
