@@ -59,22 +59,12 @@ struct TrackerView: View {
     // MARK: - 헤더
 
     private var header: some View {
-        HStack {
-            Text("북 트래커")
-                .pretendardText(size: 24, weight: .medium)
-                .foregroundColor(Color("grey800"))
-            Spacer()
-        }
-        .padding(.horizontal, 24)
-        .padding(.top, 20)
-        .padding(.bottom, 17)
-        .frame(maxWidth: .infinity)
-        .background(Color("white"))
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(Color("grey200"))
-                .frame(height: 1)
-        }
+        BookiiTopBar(
+            title: "트래커",
+            hasNotificationBadge: false,
+            onProfileTap: { container.navigationRouter.push(to: .myPage) },
+            onNotificationTap: { container.navigationRouter.push(to: .notification) }
+        )
     }
 
     // MARK: - 탭 세그먼트

@@ -45,6 +45,16 @@ struct MyPageView: View {
 
     private var topBar: some View {
         HStack {
+            Button {
+                container.navigationRouter.pop()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(Color("grey900"))
+                    .frame(width: 40, height: 40)
+            }
+            .buttonStyle(.plain)
+
             Text("마이페이지")
                 .pretendardText(size: 24, weight: .medium)
                 .foregroundColor(Color("grey900"))
