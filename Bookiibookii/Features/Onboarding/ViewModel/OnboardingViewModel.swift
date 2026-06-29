@@ -153,6 +153,12 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Step 1: 프로필 사진 (카메라 촬영 결과)
+    func setCapturedImage(_ image: UIImage) {
+        selectedImage = image
+        photoImportError = nil
+    }
+
     // MARK: - Step 1: 프로필 사진 (PhotosPicker)
     func consumePhotosPickerItem(_ item: PhotosPickerItem?) {
         guard let item else { return }

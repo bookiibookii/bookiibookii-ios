@@ -9,6 +9,7 @@ struct OnboardingView: View {
 
     @State private var photoPickerItem: PhotosPickerItem?
     @State private var showPhotoSheet = false
+    @State private var showCamera = false
     @State private var showDateSheet = false
     @State private var bookSearchSlot: BookSlot?
 
@@ -60,7 +61,7 @@ struct OnboardingView: View {
         }
         .sheet(isPresented: $showPhotoSheet) {
             photoBottomSheet
-                .presentationDetents([.height(232)])
+                .presentationDetents([.height(296)])
                 .presentationDragIndicator(.hidden)
                 .presentationCornerRadius(24)
         }
@@ -81,6 +82,9 @@ struct OnboardingView: View {
             Button("확인", role: .cancel) { viewModel.photoImportError = nil }
         } message: {
             Text(viewModel.photoImportError ?? "")
+        }
+        .cameraPicker(isPresented: $showCamera) { image in
+            viewModel.setCapturedImage(image)
         }
     }
 
@@ -530,21 +534,42 @@ struct OnboardingView: View {
                 .font(.system(size: 20, weight: .medium))
                 .foregroundColor(Color("grey900"))
 
-            PhotosPicker(selection: $photoPickerItem, matching: .images) {
-                HStack(spacing: 10) {
-                    Image("ic_album")
-                        .renderingMode(.template).resizable().scaledToFit()
-                        .frame(width: 24, height: 24).foregroundColor(Color("grey900"))
-                    Text("앨범에서 선택")
-                        .font(.system(size: 15)).foregroundColor(Color("grey900"))
+            VStack(spacing: 12) {
+                // 사진 촬영 (카메라)
+                Button(action: {
+                    showPhotoSheet = false
+                    // 바텀시트 닫힘과 카메라 표시 충돌 방지
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { showCamera = true }
+                }) {
+                    HStack(spacing: 10) {
+                        Image("ic_camera")
+                            .renderingMode(.template).resizable().scaledToFit()
+                            .frame(width: 24, height: 24).foregroundColor(Color("grey100"))
+                        Text("사진 촬영")
+                            .font(.system(size: 15)).foregroundColor(Color("grey100"))
+                    }
+                    .frame(maxWidth: .infinity).frame(height: 56)
+                    .background(Color("grey900"))
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
-                .frame(maxWidth: .infinity).frame(height: 56)
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .strokeBorder(Color("grey200"), lineWidth: 1)
-                )
+
+                // 앨범에서 선택
+                PhotosPicker(selection: $photoPickerItem, matching: .images) {
+                    HStack(spacing: 10) {
+                        Image("ic_album")
+                            .renderingMode(.template).resizable().scaledToFit()
+                            .frame(width: 24, height: 24).foregroundColor(Color("grey900"))
+                        Text("앨범에서 선택")
+                            .font(.system(size: 15)).foregroundColor(Color("grey900"))
+                    }
+                    .frame(maxWidth: .infinity).frame(height: 56)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .strokeBorder(Color("grey200"), lineWidth: 1)
+                    )
+                }
             }
         }
         .padding(24)
