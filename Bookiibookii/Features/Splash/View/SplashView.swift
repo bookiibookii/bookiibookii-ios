@@ -52,10 +52,10 @@ struct SplashView: View {
         case 0: frame1
         case 1: introTextFrame(title: "읽고, 교환하고, 기록해요.", emphasis: "부키부키")
         case 2: introTextFrame(title: "부키부키에서", emphasis: "교환독서 파트너를 찾아보세요!")
-        case 3: featureFrame(heading: "오늘은 누구와\n어떤 책으로 만나볼까요?", placeholder: "그룹 미리보기")
-        case 4: featureFrame(heading: "책을 교환하는 모든 순간을\n단계별로 관리해요.", placeholder: "트래커 미리보기")
-        case 5: featureFrame(heading: "서로의 문장을 공유하며\n넓어지는 우리만의 서재", placeholder: "서재 미리보기")
-        case 6: featureFrame(heading: "지금 부키부키에서\n나와 꼭 맞는 독서 파트너를 찾아보세요!", placeholder: "리뷰 미리보기", showsStart: true)
+        case 3: featureFrame(heading: "오늘은 누구와\n어떤 책으로 만나볼까요?") { GroupPreviewCard() }
+        case 4: featureFrame(heading: "책을 교환하는 모든 순간을\n단계별로 관리해요.") { TrackerPreviewCard() }
+        case 5: featureFrame(heading: "서로의 문장을 공유하며\n넓어지는 우리만의 서재") { LibraryPreviewCard() }
+        case 6: featureFrame(heading: "지금 부키부키에서\n나와 꼭 맞는 독서 파트너를 찾아보세요!", showsStart: true) { ReviewPreviewCard() }
         default: EmptyView()
         }
     }
@@ -82,12 +82,10 @@ struct SplashView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - 프레임 2~3: 상단 워드마크 + 중앙 주황 태그라인
+    // MARK: - 프레임 2~3: 상단 워드마크 + 화면 정중앙 주황 태그라인
     private func introTextFrame(title: String, emphasis: String) -> some View {
-        VStack(spacing: 0) {
-            wordmarkHeader
-                .padding(.top, 54)
-            Spacer()
+        ZStack {
+            // 태그라인은 화면 정중앙 (피그마 top 1/2)
             VStack(spacing: 4) {
                 Text(title)
                     .font(.pretendard(size: 24, weight: .medium))
@@ -97,39 +95,37 @@ struct SplashView: View {
             .foregroundColor(Color("main200"))
             .tracking(-0.24)
             .multilineTextAlignment(.center)
-            Spacer()
-            Spacer()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            // 워드마크는 상단 헤더
+            VStack(spacing: 0) {
+                wordmarkHeader
+                Spacer()
+            }
         }
     }
 
-    // MARK: - 프레임 4~7: 상단 워드마크 + 검정 헤드라인 + 기능 미리보기(추후 SwiftUI 목업으로 교체)
-    private func featureFrame(heading: String, placeholder: String, showsStart: Bool = false) -> some View {
+    // MARK: - 프레임 4~7: 상단 워드마크 + 검정 헤드라인 + 기능 미리보기 카드
+    private func featureFrame<Preview: View>(
+        heading: String,
+        showsStart: Bool = false,
+        @ViewBuilder preview: () -> Preview
+    ) -> some View {
         VStack(spacing: 0) {
             wordmarkHeader
-                .padding(.top, 54)
 
             Text(heading)
-                .font(.pretendard(size: 22, weight: .bold))
+                .font(.pretendard(size: 20, weight: .semibold))
                 .foregroundColor(Color("grey900"))
-                .tracking(-0.22)
+                .tracking(-0.2)
                 .multilineTextAlignment(.center)
-                .padding(.top, 24)
+                .padding(.top, 40)
 
-            // TODO: 기능 미리보기 카드 — 다음 단계에서 피그마 기준 SwiftUI 목업으로 교체
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.white)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .strokeBorder(Color("grey200"), lineWidth: 1)
-                )
-                .overlay(
-                    Text(placeholder)
-                        .font(.pretendard(size: 14))
-                        .foregroundColor(Color("grey400"))
-                )
-                .padding(.horizontal, 24)
-                .padding(.top, 24)
-                .padding(.bottom, showsStart ? 8 : 40)
+            Spacer(minLength: 24)
+
+            preview()
+
+            Spacer(minLength: showsStart ? 8 : 40)
 
             if showsStart {
                 Button(action: onFinish) {
