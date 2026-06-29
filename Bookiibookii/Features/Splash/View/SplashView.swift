@@ -1,7 +1,6 @@
 import SwiftUI
 
-// 피그마 스플래시+인트로 7프레임 시퀀스 (node 3834-85662 …)
-// 자동 전환 + 수동 스와이프(안드로이드 인트로처럼 앞뒤 이동 가능).
+// 처음엔 자동 전환만(수동 스와이프 금지), 마지막 프레임 도달 후엔 자동 전환을 멈추고 수동 스와이프 허용.
 // 프레임 1~3 = 스플래시(모두 노출), 4~7 = 인트로(미로그인 시에만, 마지막 "시작" → onFinish).
 struct SplashView: View {
     /// 인트로(4~7)까지 보여줄지 여부. 보통 `!TokenManager.shared.hasAccessToken`.
@@ -9,6 +8,9 @@ struct SplashView: View {
     let onFinish: () -> Void
 
     @State private var page = 0
+    /// 자동 시퀀스가 마지막 프레임까지 끝났는지. 끝나기 전엔 수동 스와이프 금지(자동 전환만),
+    /// 끝난 뒤엔 자동 전환을 멈추고 수동 스와이프(앞뒤 이동)를 허용한다.
+    @State private var autoCompleted = false
 
     private var frameCount: Int { showsIntro ? 7 : 3 }
     private var lastIndex: Int { frameCount - 1 }
@@ -24,10 +26,17 @@ struct SplashView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
+            // 자동 시퀀스가 끝나기 전엔 스와이프 차단(자동 전환만), 끝난 뒤엔 수동 스와이프 허용
+            .disabled(!autoCompleted)
         }
-        // page가 바뀔 때마다(자동/수동 모두) 타이머 재시작
         .task(id: page) {
-            guard let duration = autoAdvanceDuration(for: page) else { return }
+            // 자동 시퀀스 종료 후엔 더 이상 자동 전환하지 않음(수동 전환만)
+            guard !autoCompleted else { return }
+            guard let duration = autoAdvanceDuration(for: page) else {
+                // 자동 전환 없는 프레임(인트로 마지막) 도달 = 자동 시퀀스 종료 → 수동 전환 허용
+                autoCompleted = true
+                return
+            }
             try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
             guard !Task.isCancelled else { return }
             if page < lastIndex {
@@ -111,44 +120,45 @@ struct SplashView: View {
         showsStart: Bool = false,
         @ViewBuilder preview: () -> Preview
     ) -> some View {
-        ZStack(alignment: .top) {
-            // 콘텐츠: 상단 정렬 → 카드가 아래로 길게 뻗어 화면 하단에서 잘림(크롭)
-            VStack(spacing: 0) {
-                wordmarkHeader
+        // 화면 크기 베이스 + overlay(.top)로 콘텐츠 상단을 확실히 고정한다.
+        // (ZStack/frame은 화면보다 큰 콘텐츠를 가운데 정렬해 헤더를 위로 밀어 잘리게 함)
+        Color("uiBg")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // 콘텐츠: 상단 고정 → 카드가 길면 화면 하단에서만 잘림(크롭)
+            .overlay(alignment: .top) {
+                VStack(spacing: 0) {
+                    wordmarkHeader
 
-                Text(heading)
-                    .font(.pretendard(size: 20, weight: .semibold))
-                    .foregroundColor(Color("grey900"))
-                    .tracking(-0.2)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)   // 카드가 길어도 헤드라인 압축 방지
-                    .padding(.top, 32)
+                    Text(heading)
+                        .font(.pretendard(size: 20, weight: .semibold))
+                        .foregroundColor(Color("grey900"))
+                        .tracking(-0.2)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)   // 카드가 길어도 헤드라인 압축 방지
+                        .padding(.top, 32)
 
-                Spacer().frame(height: 28)
+                    Spacer().frame(height: 28)
 
-                preview()
-
-                Spacer(minLength: 0)
+                    preview()
+                }
+                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .clipped()
-
             // 하단 영역을 배경색으로 덮어 카드를 깔끔히 크롭 (피그마 footer 대응)
-            VStack(spacing: 0) {
-                Spacer()
+            .overlay(alignment: .bottom) {
                 if showsStart {
                     // 프레임 7: 하단 고정 "시작" 버튼
                     FooterButton(text: "시작", style: .dark, action: onFinish)
                         .padding(.horizontal, 16)
                         .padding(.top, 12)
                         .padding(.bottom, 16)
+                        .frame(maxWidth: .infinity)
                         .background(Color("uiBg"))
                 } else {
                     // 프레임 4~6: 카드 하단을 가리는 배경 푸터 (프레임7 "시작" 버튼 영역과 동일 높이: 72+12+16)
-                    Color("uiBg").frame(height: 100)
+                    Color("uiBg").frame(maxWidth: .infinity).frame(height: 100)
                 }
             }
-        }
+            .clipped()
     }
 }
 
