@@ -12,6 +12,7 @@ struct FooterButton: View {
     let text: String
     var style: FooterButtonStyle = .dark
     var enabled: Bool = true
+    var isLoading: Bool = false
     let action: () -> Void
 
     private var containerColor: Color {
@@ -25,17 +26,23 @@ struct FooterButton: View {
 
     var body: some View {
         Button(action: action) {
-            Text(text)
-                .pretendardText(size: 18, weight: .medium)
-                .foregroundColor(contentColor)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity)
-                .frame(height: 72)
-                .padding(.horizontal, 18)
-                .background(containerColor)
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            Group {
+                if isLoading {
+                    ProgressView().tint(.white)
+                } else {
+                    Text(text)
+                        .pretendardText(size: 18, weight: .medium)
+                        .foregroundColor(contentColor)
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 72)
+            .padding(.horizontal, 18)
+            .background(containerColor)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
-        .disabled(!enabled)
+        .disabled(!enabled || isLoading)
     }
 }
 

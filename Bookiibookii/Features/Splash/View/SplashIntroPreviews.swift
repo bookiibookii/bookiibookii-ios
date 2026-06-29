@@ -33,9 +33,9 @@ private func previewChip(_ text: String, bg: Color, fg: Color) -> some View {
 }
 
 private func previewSectionHeader(_ title: String, _ subtitle: String) -> some View {
-    VStack(alignment: .leading, spacing: 2) {
-        Text(title).font(.pretendard(size: 12, weight: .semibold)).foregroundColor(Color("grey900"))
-        Text(subtitle).font(.pretendard(size: 9)).foregroundColor(Color("grey400"))
+    VStack(alignment: .leading, spacing: 3) {
+        Text(title).font(.pretendard(size: 15, weight: .semibold)).foregroundColor(Color("grey900"))
+        Text(subtitle).font(.pretendard(size: 11)).foregroundColor(Color("grey400"))
     }
     .frame(maxWidth: .infinity, alignment: .leading)
 }
@@ -74,49 +74,61 @@ struct GroupPreviewCard: View {
     }
 
     private var groupCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 10) {
-                introCover("intro_book_cant_bear", width: 52, height: 74)
-                VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                introCover("intro_book_cant_bear", width: 76, height: 108)
+                VStack(alignment: .leading, spacing: 6) {
                     previewChip("택배", bg: mainPale, fg: Color("main200"))
                     Text("고전 완독하실 분 구해요")
-                        .font(.pretendard(size: 11, weight: .medium)).foregroundColor(Color("grey900"))
+                        .font(.pretendard(size: 14, weight: .medium)).foregroundColor(Color("grey900"))
                     Text("참을 수 없는 존재의 가벼움")
-                        .font(.pretendard(size: 9)).foregroundColor(Color("grey700")).lineLimit(1)
+                        .font(.pretendard(size: 11)).foregroundColor(Color("grey700")).lineLimit(1)
                     Text("밀란 쿤데라 · 소설")
-                        .font(.pretendard(size: 8)).foregroundColor(Color("grey500"))
-                    HStack(spacing: 4) {
-                        introProfile("intro_profile_sayo", size: 14)
-                        Text("sayo").font(.pretendard(size: 8)).foregroundColor(Color("grey500"))
+                        .font(.pretendard(size: 10)).foregroundColor(Color("grey500"))
+                    HStack(spacing: 5) {
+                        introProfile("intro_profile_sayo", size: 20)
+                        Text("sayo").font(.pretendard(size: 10)).foregroundColor(Color("grey500"))
                     }
                 }
                 Spacer(minLength: 0)
             }
             Text("자세히 보기")
-                .font(.pretendard(size: 10, weight: .medium)).foregroundColor(Color("main200"))
-                .frame(maxWidth: .infinity).frame(height: 30)
+                .font(.pretendard(size: 13, weight: .medium)).foregroundColor(Color("main200"))
+                .frame(maxWidth: .infinity).frame(height: 44)
                 .background(mainPale)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
-        .padding(10)
+        .padding(14)
         .background(Color("uiBg"))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private var bookGrid: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 10) {
-            ForEach(newBooks, id: \.0) { book in
-                VStack(spacing: 4) {
-                    Image(book.0).resizable().scaledToFill()
-                        .frame(height: 82).frame(maxWidth: .infinity)
-                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    Text(book.1).font(.pretendard(size: 8, weight: .medium))
-                        .foregroundColor(Color("grey900")).lineLimit(1)
-                    Text(book.2).font(.pretendard(size: 7))
-                        .foregroundColor(Color("grey500")).lineLimit(1)
-                }
+        VStack(spacing: 10) {
+            HStack(alignment: .top, spacing: 8) {
+                ForEach(newBooks.prefix(3), id: \.0) { book in bookCell(book) }
+            }
+            HStack(alignment: .top, spacing: 8) {
+                ForEach(newBooks.suffix(3), id: \.0) { book in bookCell(book) }
             }
         }
+    }
+
+    private func bookCell(_ book: (String, String, String)) -> some View {
+        VStack(spacing: 5) {
+            // 사이즈 드라이버는 도형(고유 너비 없음), 이미지는 오버레이로 채움 → 가로 폭 누수 방지
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(Color("grey200"))
+                .frame(maxWidth: .infinity)
+                .frame(height: 124)
+                .overlay(Image(book.0).resizable().scaledToFill())
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            Text(book.1).font(.pretendard(size: 10, weight: .medium))
+                .foregroundColor(Color("grey900")).lineLimit(1)
+            Text(book.2).font(.pretendard(size: 9))
+                .foregroundColor(Color("grey500")).lineLimit(1)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -180,14 +192,14 @@ struct TrackerPreviewCard: View {
     }
 
     private func countItem(_ label: String, _ value: String, dimmed: Bool) -> some View {
-        VStack(spacing: 2) {
-            Text(label).font(.pretendard(size: 9)).foregroundColor(Color("grey700"))
-            Text(value).font(.pretendard(size: 16)).foregroundColor(dimmed ? Color("grey300") : Color("grey900"))
+        VStack(spacing: 4) {
+            Text(label).font(.pretendard(size: 11)).foregroundColor(Color("grey700"))
+            Text(value).font(.pretendard(size: 22)).foregroundColor(dimmed ? Color("grey300") : Color("grey900"))
         }
         .frame(maxWidth: .infinity)
     }
 
-    private var divider: some View { Rectangle().fill(Color("grey100")).frame(width: 1, height: 30) }
+    private var divider: some View { Rectangle().fill(Color("grey100")).frame(width: 1, height: 42) }
 
     private var trackerCard: some View {
         VStack(spacing: 10) {
@@ -214,13 +226,13 @@ struct TrackerPreviewCard: View {
             }
 
             HStack(spacing: 8) {
-                Text("독서카드 작성").font(.pretendard(size: 11)).foregroundColor(Color("grey900"))
-                    .frame(maxWidth: .infinity).frame(height: 32).background(Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous).strokeBorder(Color("grey200"), lineWidth: 0.7))
-                Text("진행률 기록").font(.pretendard(size: 11)).foregroundColor(.white)
-                    .frame(maxWidth: .infinity).frame(height: 32).background(Color("main200"))
-                    .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+                Text("독서카드 작성").font(.pretendard(size: 13)).foregroundColor(Color("grey900"))
+                    .frame(maxWidth: .infinity).frame(height: 44).background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color("grey200"), lineWidth: 0.7))
+                Text("진행률 기록").font(.pretendard(size: 13)).foregroundColor(.white)
+                    .frame(maxWidth: .infinity).frame(height: 44).background(Color("main200"))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         }
         .padding(11).background(Color.white)
@@ -228,27 +240,36 @@ struct TrackerPreviewCard: View {
     }
 
     private func trackerColumn(cover: String, profile: String, name: String, title: String, percent: String, myBook: Bool) -> some View {
-        VStack(spacing: 5) {
-            ZStack(alignment: .bottomTrailing) {
-                introCover(cover, width: 68, height: 90, corner: 8)
-                if myBook {
-                    Text("내 책").font(.pretendard(size: 7)).foregroundColor(Color("grey900"))
-                        .padding(.horizontal, 3).padding(.vertical, 1)
-                        .background(Color("grey200").opacity(0.75)).clipShape(RoundedRectangle(cornerRadius: 4)).padding(3)
+        VStack(spacing: 7) {
+            introCover(cover, width: 100, height: 138, corner: 8)
+                .overlay(alignment: .bottomTrailing) {
+                    if myBook {
+                        Text("내 책").font(.pretendard(size: 9)).foregroundColor(Color("grey900"))
+                            .padding(.horizontal, 4).padding(.vertical, 2)
+                            .background(Color("grey200").opacity(0.75)).clipShape(RoundedRectangle(cornerRadius: 5)).padding(4)
+                    }
                 }
+                .overlay(alignment: .topLeading) {
+                    // 상대 책: 프로필이 표지 좌상단에 겹침 (피그마 대각선 배치)
+                    if !myBook {
+                        introProfile(profile, size: 32).padding(6)
+                    }
+                }
+            VStack(spacing: 4) {
+                Text(name).font(.pretendard(size: 11)).foregroundColor(Color("grey700"))
+                Text(title).font(.pretendard(size: 13, weight: .medium)).foregroundColor(Color("grey800")).lineLimit(1)
             }
-            VStack(spacing: 3) {
-                Text(name).font(.pretendard(size: 9)).foregroundColor(Color("grey700"))
-                Text(title).font(.pretendard(size: 11, weight: .medium)).foregroundColor(Color("grey800")).lineLimit(1)
-            }
-            VStack(alignment: .leading, spacing: 4) {
-                Rectangle().fill(Color("grey200")).frame(height: 2)
-                Text(percent).font(.pretendard(size: 9)).foregroundColor(Color("grey800"))
+            VStack(alignment: .leading, spacing: 5) {
+                Rectangle().fill(Color("grey200")).frame(height: 3)
+                Text(percent).font(.pretendard(size: 11)).foregroundColor(Color("grey800"))
             }
             .padding(.horizontal, 3)
-            introProfile(profile, size: 28)
+            // 내 책: 프로필이 컬럼 하단
+            if myBook {
+                introProfile(profile, size: 32)
+            }
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .top)
     }
 }
 
@@ -258,19 +279,24 @@ struct LibraryPreviewCard: View {
         VStack(spacing: 10) {
             bookHeader
             filterRow
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                readingCard(profile: "intro_profile_noshel_lib2", name: "noshel",
-                            comment: "좋은 사람이 결국 행복해지는 이야기를 어떻게 사랑하지 않을 수 있겠어...", page: "p.506",
-                            quote: "“너랑 나는 좋은 사람.” 로키가 말한다. “그러게.” 나는 미소 짓는다.", photo: nil)
-                readingCard(profile: "intro_profile_sayo_lib", name: "sayo",
-                            comment: "인생에서 나 지켜봐 줄 에리디언 너무 필요함", page: "p.299",
-                            quote: nil, photo: "intro_reading_card_photo1")
-                readingCard(profile: "intro_profile_sayo_lib4", name: "sayo",
-                            comment: "나 행복. 너 안 죽음. 행성들을 구하자! 아름다워...ㅜㅜ", page: "p.97",
-                            quote: nil, photo: "intro_reading_card_photo4")
-                readingCard(profile: "intro_profile_noshel_lib3", name: "noshel",
-                            comment: "말 한마디 없이 아프다는 걸 알아채는 거, 이게 진짜 우정이지 않을까?", page: "p.97",
-                            quote: "\"인간은 슬프면 눈에서 물이 흘러나와.\" \"나는 네가 물이 새지 않을 때까지 지켜본다.\"", photo: nil)
+            // 비-lazy Grid (ScrollView 밖에서도 높이 정확히 계산됨)
+            Grid(horizontalSpacing: 10, verticalSpacing: 10) {
+                GridRow {
+                    readingCard(profile: "intro_profile_noshel_lib2", name: "noshel",
+                                comment: "좋은 사람이 결국 행복해지는 이야기를 어떻게 사랑하지 않을 수 있겠어...", page: "p.506",
+                                quote: "“너랑 나는 좋은 사람.” 로키가 말한다. “그러게.” 나는 미소 짓는다.", photo: nil)
+                    readingCard(profile: "intro_profile_sayo_lib", name: "sayo",
+                                comment: "인생에서 나 지켜봐 줄 에리디언 너무 필요함", page: "p.299",
+                                quote: nil, photo: "intro_reading_card_photo1")
+                }
+                GridRow {
+                    readingCard(profile: "intro_profile_sayo_lib4", name: "sayo",
+                                comment: "나 행복. 너 안 죽음. 행성들을 구하자! 아름다워...ㅜㅜ", page: "p.97",
+                                quote: nil, photo: "intro_reading_card_photo4")
+                    readingCard(profile: "intro_profile_noshel_lib3", name: "noshel",
+                                comment: "말 한마디 없이 아프다는 걸 알아채는 거, 이게 진짜 우정이지 않을까?", page: "p.97",
+                                quote: "\"인간은 슬프면 눈에서 물이 흘러나와.\" \"나는 네가 물이 새지 않을 때까지 지켜본다.\"", photo: nil)
+                }
             }
         }
         .padding(11).frame(width: previewCardWidth).background(Color("uiBg"))
@@ -363,6 +389,7 @@ struct LibraryPreviewCard: View {
             .frame(maxWidth: .infinity)
             .clipped()
         }
+        .frame(maxWidth: .infinity)
         .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
     }
@@ -384,10 +411,10 @@ struct ReviewPreviewCard: View {
     private var chatReviewCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             VStack(alignment: .leading, spacing: 3) {
-                Text("김영하 도장깨기 하실 분").font(.pretendard(size: 11, weight: .medium)).foregroundColor(Color("grey900"))
-                Text("2026. 04. 29. ~ 2026. 05. 17.").font(.pretendard(size: 9)).foregroundColor(Color("grey500"))
+                Text("김영하 도장깨기 하실 분").font(.pretendard(size: 14, weight: .medium)).foregroundColor(Color("grey900"))
+                Text("2026. 04. 29. ~ 2026. 05. 17.").font(.pretendard(size: 11)).foregroundColor(Color("grey500"))
             }
-            .padding(.bottom, 5).frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, 7).frame(maxWidth: .infinity, alignment: .leading)
             .overlay(Rectangle().fill(Color("grey100")).frame(height: 0.5), alignment: .bottom)
 
             VStack(alignment: .trailing, spacing: 5) {
@@ -395,8 +422,8 @@ struct ReviewPreviewCard: View {
                 HStack(alignment: .bottom, spacing: 5) {
                     Spacer(minLength: 20)
                     ZStack {
-                        Circle().fill(mainPale).frame(width: 19, height: 19).overlay(Circle().strokeBorder(Color("main200"), lineWidth: 0.4))
-                        Image(systemName: "hand.thumbsup.fill").font(.system(size: 8)).foregroundColor(Color("main200"))
+                        Circle().fill(mainPale).frame(width: 24, height: 24).overlay(Circle().strokeBorder(Color("main200"), lineWidth: 0.5))
+                        Image(systemName: "hand.thumbsup.fill").font(.system(size: 10)).foregroundColor(Color("main200"))
                     }
                     bubble("같은 책을 읽었다는 것만으로 왠지 이 사람이 궁금해졌습니다. 기회가 되면 여쭤보고 싶네요.", bg: Color("grey100"), align: .trailing)
                 }
@@ -411,15 +438,15 @@ struct ReviewPreviewCard: View {
 
     private var bookReviewCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                introCover("intro_book_destroy", width: 44, height: 62, corner: 8)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("나는 나를 파괴할 권리가 있다").font(.pretendard(size: 10, weight: .semibold)).foregroundColor(Color("grey900"))
-                    Text("김영하").font(.pretendard(size: 10, weight: .medium)).foregroundColor(Color("grey700"))
+            HStack(spacing: 10) {
+                introCover("intro_book_destroy", width: 58, height: 82, corner: 8)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("나는 나를 파괴할 권리가 있다").font(.pretendard(size: 13, weight: .semibold)).foregroundColor(Color("grey900"))
+                    Text("김영하").font(.pretendard(size: 12, weight: .medium)).foregroundColor(Color("grey700"))
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.bottom, 5)
+            .padding(.bottom, 7)
             .overlay(Rectangle().fill(Color("grey100")).frame(height: 0.5), alignment: .bottom)
 
             VStack(alignment: .trailing, spacing: 5) {
@@ -437,41 +464,41 @@ struct ReviewPreviewCard: View {
     private func nameRow(_ profile: String, _ name: String, trailing: Bool) -> some View {
         HStack(spacing: 5) {
             if trailing { Spacer() }
-            introProfile(profile, size: 13)
-            Text(name).font(.pretendard(size: 8, weight: .medium)).foregroundColor(Color("grey800"))
+            introProfile(profile, size: 18)
+            Text(name).font(.pretendard(size: 10, weight: .medium)).foregroundColor(Color("grey800"))
             if !trailing { Spacer() }
         }
     }
 
     private func bubble(_ text: String, bg: Color, align: HorizontalAlignment) -> some View {
         Text(text)
-            .font(.pretendard(size: 9)).foregroundColor(Color("grey900"))
+            .font(.pretendard(size: 11)).foregroundColor(Color("grey900"))
             .multilineTextAlignment(align == .trailing ? .trailing : .leading)
-            .padding(10).frame(maxWidth: 190, alignment: align == .trailing ? .trailing : .leading)
-            .background(bg).clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding(13).frame(maxWidth: 230, alignment: align == .trailing ? .trailing : .leading)
+            .background(bg).clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .frame(maxWidth: .infinity, alignment: align == .trailing ? .trailing : .leading)
     }
 
     private func ratedBubble(date: String, stars: Int, text: String, dateLeading: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 if dateLeading {
-                    starRow(stars); Spacer(); Text(date).font(.pretendard(size: 9)).foregroundColor(Color("grey500"))
+                    starRow(stars); Spacer(); Text(date).font(.pretendard(size: 11)).foregroundColor(Color("grey500"))
                 } else {
-                    Text(date).font(.pretendard(size: 9)).foregroundColor(Color("grey500")); Spacer(); starRow(stars)
+                    Text(date).font(.pretendard(size: 11)).foregroundColor(Color("grey500")); Spacer(); starRow(stars)
                 }
             }
-            Text(text).font(.pretendard(size: 9)).foregroundColor(Color("grey900"))
+            Text(text).font(.pretendard(size: 11)).foregroundColor(Color("grey900"))
         }
-        .padding(10).frame(maxWidth: 200).background(Color("grey100"))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(13).frame(maxWidth: 240).background(Color("grey100"))
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .frame(maxWidth: .infinity, alignment: dateLeading ? .leading : .trailing)
     }
 
     private func starRow(_ filled: Int) -> some View {
         HStack(spacing: 0) {
             ForEach(0..<5, id: \.self) { i in
-                Image(systemName: i < filled ? "star.fill" : "star").font(.system(size: 8))
+                Image(systemName: i < filled ? "star.fill" : "star").font(.system(size: 11))
                     .foregroundColor(i < filled ? Color("main200") : Color("grey300"))
             }
         }

@@ -121,6 +121,7 @@ struct SplashView: View {
                     .foregroundColor(Color("grey900"))
                     .tracking(-0.2)
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)   // 카드가 길어도 헤드라인 압축 방지
                     .padding(.top, 32)
 
                 Spacer().frame(height: 28)
@@ -132,23 +133,19 @@ struct SplashView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .clipped()
 
-            // 프레임 7: 하단 고정 "시작" 버튼 (크롭된 카드 위에 uiBg 푸터로 올림)
-            if showsStart {
-                VStack(spacing: 0) {
-                    Spacer()
-                    Button(action: onFinish) {
-                        Text("시작")
-                            .font(.pretendard(size: 18, weight: .medium))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 72)
-                            .background(Color("grey900"))
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
-                    .padding(.bottom, 16)
-                    .background(Color("uiBg"))
+            // 하단 영역을 배경색으로 덮어 카드를 깔끔히 크롭 (피그마 footer 대응)
+            VStack(spacing: 0) {
+                Spacer()
+                if showsStart {
+                    // 프레임 7: 하단 고정 "시작" 버튼
+                    FooterButton(text: "시작", style: .dark, action: onFinish)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.bottom, 16)
+                        .background(Color("uiBg"))
+                } else {
+                    // 프레임 4~6: 카드 하단을 가리는 배경 푸터 (프레임7 "시작" 버튼 영역과 동일 높이: 72+12+16)
+                    Color("uiBg").frame(height: 100)
                 }
             }
         }

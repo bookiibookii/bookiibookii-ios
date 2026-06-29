@@ -505,22 +505,13 @@ struct OnboardingView: View {
 
     // MARK: - 다음/완료 버튼
     private var footerButton: some View {
-        Button(action: viewModel.goNext) {
-            Group {
-                if viewModel.isSubmitting {
-                    ProgressView().tint(.white)
-                } else {
-                    Text(viewModel.isLastStep ? "완료" : "다음")
-                        .font(.system(size: 18, weight: viewModel.canGoNext ? .medium : .regular))
-                        .foregroundColor(viewModel.canGoNext ? .white : Color("grey500"))
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 72)
-            .background(viewModel.canGoNext ? Color("grey900") : Color("grey200"))
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        }
-        .disabled(!viewModel.canGoNext || viewModel.isSubmitting)
+        FooterButton(
+            text: viewModel.isLastStep ? "완료" : "다음",
+            style: .dark,
+            enabled: viewModel.canGoNext,
+            isLoading: viewModel.isSubmitting,
+            action: viewModel.goNext
+        )
     }
 
     // MARK: - 사진 선택 바텀시트
@@ -697,16 +688,9 @@ private struct BirthDatePickerSheet: View {
                 .labelsHidden()
                 .environment(\.locale, Locale(identifier: "ko_KR"))
 
-            Button(action: { onConfirm(date) }) {
-                Text("확인")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity).frame(height: 56)
-                    .background(Color("grey900"))
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            BottomSheetTwoBtnShort(text: "확인", style: .dark, action: { onConfirm(date) })
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
         }
         .background(Color.white)
     }
