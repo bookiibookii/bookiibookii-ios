@@ -229,7 +229,7 @@ final class TrackerService {
     }
 
     private func uploadImage(groupId: Int, image: UIImage) async throws -> String {
-        guard let jpeg = image.jpegData(compressionQuality: 0.85) else {
+        guard let jpeg = ImageCompressor.compressedJPEG(from: image) else {
             throw TrackerServiceError.imageEncodingFailed
         }
         let presigned = try await fetchPresignedUrl(groupId: groupId)

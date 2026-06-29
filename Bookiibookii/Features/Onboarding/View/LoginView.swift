@@ -16,45 +16,44 @@ struct LoginView: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                // 중앙 로고 + 타이틀 (verticalBias=0.42 대응)
                 logoSection
 
                 Spacer()
 
-                // 로그인 성공 문구 (tv_login_complete 대응)
+                // 로그인 성공 문구(tv_login_complete 대응) ↔ SNS 로그인 영역 전환
                 if viewModel.loginSucceeded {
                     Text("로그인이 성공적으로 완료되었습니다")
-                        .font(.system(size: 18))
-                        .tracking(-0.36)
+                        .pretendardText(size: 18)
                         .foregroundColor(Color("white"))
-                        .padding(.bottom, 32)
+                } else if !viewModel.isLoading {
+                    snsSection
                 }
 
-                // 버튼 묶음 + 약관 (group_login_buttons 대응)
-                if !viewModel.isLoading {
-                    buttonSection
-                        .padding(.horizontal, 20)
-                }
+                Spacer().frame(height: 36)
+
+                termsNotice
+
+                Spacer().frame(height: 34)
             }
         }
         .toolbar(.hidden, for: .navigationBar)
         .onChange(of: viewModel.loginSucceeded) { _, succeeded in
             guard succeeded else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboardingProfile
+                let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboarding
                 container.navigationRouter.hardReset(to: destination)
             }
         }
     }
 
-    // MARK: - 로고 영역 (logoContainer)
+    // MARK: - 로고 + 워드마크 + 태그라인
     private var logoSection: some View {
         VStack(spacing: 20) {
             Image("ic_logo_symbol")
                 .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 82, height: 82)
+                .frame(width: 72, height: 72)
                 .foregroundColor(Color("white"))
 
             Image("ic_bookii_text")
@@ -63,64 +62,97 @@ struct LoginView: View {
                 .scaledToFit()
                 .frame(width: 204, height: 22)
                 .foregroundColor(Color("white"))
+
+            (
+                Text("읽고, 교환하고, 기록하다 -\n")
+                    .font(.pretendard(size: 14, weight: .regular))
+                + Text("부키부키")
+                    .font(.pretendard(size: 14, weight: .bold))
+                + Text("에서 교환독서 파트너를 찾아보세요")
+                    .font(.pretendard(size: 14, weight: .regular))
+            )
+            .foregroundColor(Color("white"))
+            .tracking(-0.14)
+            .lineSpacing(4)
+            .multilineTextAlignment(.center)
         }
     }
 
-    // MARK: - 버튼 영역 (btn_kakao_login, btn_google_login, tv_terms_notice)
-    private var buttonSection: some View {
-        VStack(spacing: 0) {
-            loginButton(
-                iconName: "ic_kakao",
-                text: "카카오로 시작하기",
-                backgroundColor: Color("kakao"),
-                textColor: Color("grey900"),
-                action: viewModel.loginWithKakao
-            )
-
-            Spacer().frame(height: 12)
-
-            loginButton(
-                iconName: "ic_google",
-                text: "구글로 시작하기",
-                backgroundColor: Color("grey100"),
-                textColor: Color("grey900"),
-                action: viewModel.loginWithGoogle
-            )
-
-            Spacer().frame(height: 12)
-
-            Text("로그인하면 서비스 약관 및 개인정보 처리방침에 동의한 것으로 간주합니다.")
-                .font(.system(size: 14))
+    // MARK: - SNS 로그인 영역 (안내 문구 + 원형 버튼 3개)
+    private var snsSection: some View {
+        VStack(spacing: 12) {
+            Text("SNS 계정으로 간편 가입하기")
+                .pretendardText(size: 14)
                 .foregroundColor(Color("white"))
-                .multilineTextAlignment(.center)
 
-            Spacer().frame(height: 24)
+            HStack(spacing: 24) {
+                circleButton(icon: "ic_kakao", background: Color("kakao"), action: viewModel.loginWithKakao)
+                circleButton(icon: "ic_google", background: Color("white"), action: viewModel.loginWithGoogle)
+                // 애플 로그인: 디자인상 버튼만 노출, 기능은 추후 구현 (현재 무반응)
+                circleButton(icon: "ic_apple", background: Color("black"), tint: Color("white"), action: {})
+            }
         }
     }
 
-    private func loginButton(
-        iconName: String,
-        text: String,
-        backgroundColor: Color,
-        textColor: Color,
+    private func circleButton(
+        icon: String,
+        background: Color,
+        tint: Color? = nil,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            HStack(spacing: 8) {
-                Image(iconName)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
-                Text(text)
-                    .font(.system(size: 16))
-                    .tracking(-0.32)
-                    .foregroundColor(textColor)
+            Group {
+                if let tint {
+                    Image(icon)
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundColor(tint)
+                } else {
+                    Image(icon)
+                        .resizable()
+                        .scaledToFit()
+                }
             }
-            .frame(maxWidth: .infinity)
-            .frame(height: 72)
-            .background(backgroundColor)
-            .cornerRadius(14)
+            .frame(width: 36, height: 36)
+            .frame(width: 80, height: 80)
+            .background(background)
+            .clipShape(Circle())
         }
+    }
+
+    // MARK: - 약관 안내 (tv_terms_notice 대응)
+    // "서비스 약관"/"개인정보 처리방침"만 클릭 가능(흰색 밑줄) → 외부 브라우저로 열림
+    private static let termsURL = URL(string: "https://www.bookiibookii.com/terms")!
+    private static let privacyURL = URL(string: "https://www.bookiibookii.com/privacy")!
+
+    private var termsAttributed: AttributedString {
+        func link(_ text: String, _ url: URL) -> AttributedString {
+            var part = AttributedString(text)
+            part.link = url
+            part.underlineStyle = .single
+            part.foregroundColor = Color("white")
+            return part
+        }
+        var result = AttributedString("로그인하면 부키부키의 ")
+        result += link("서비스 약관", Self.termsURL)
+        result += AttributedString(" 및 ")
+        result += link("개인정보 처리방침", Self.privacyURL)
+        result += AttributedString("에 동의하게 됩니다.")
+        return result
+    }
+
+    private var termsNotice: some View {
+        Text(termsAttributed)
+            .font(.pretendard(size: 14, weight: .regular))
+            .foregroundColor(Color("white"))
+            .tint(Color("white"))
+            .tracking(-0.14)
+            .lineSpacing(4)
+            .multilineTextAlignment(.leading)   // 줄 내용은 좌측 정렬
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(alignment: .center)          // 블록 자체는 화면 가운데
+            .padding(.horizontal, 16)
     }
 }
 

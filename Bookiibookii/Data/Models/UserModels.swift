@@ -32,14 +32,17 @@ struct PresignedUrlResult: Decodable {
 // MARK: - 온보딩 완료 (안드로이드 OnboardingRequest 대응)
 
 struct OnboardingRequest: Encodable {
-    let name: String
-    let tags: [OnboardingTag]
-    let s3Key: String?
+    let name: String          // 닉네임 (필수)
+    let gender: String?       // "FEMALE" | "MALE" | "NONE" (필수)
+    let birth: String?        // "yyyy-MM-dd" (필수)
+    let tags: [String]        // 기록 방식: ["MEMO"], ["POSTIT"], ["PHOTO"], ["All_ROUNDER"], ["NO_IDEA"] 등 (최소 1)
+    let s3Key: String?        // 프로필 이미지 S3 키 (선택)
+    let userBooks: [OnboardingBook]  // 인생책 ISBN-13, 1~3권 (필수)
+    let introduction: String  // 자기소개 (선택, 최대 50자)
 }
 
-struct OnboardingTag: Encodable {
-    let type: String
-    let value: [String]
+struct OnboardingBook: Encodable {
+    let isbn13: String
 }
 
 // MARK: - 마이페이지 (안드로이드 MypageResponse 대응)

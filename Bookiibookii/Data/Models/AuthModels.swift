@@ -36,5 +36,11 @@ struct LoginResult: Decodable {
     let accessToken: String
     let refreshToken: String
     let userId: Int
-    let onboardingDone: Bool
+    let onboardingStatus: String   // "COMPLETED" | "SPLASH_DONE" | 기타
+    let role: String
+
+    // 안드로이드 LoginActivity 분기 대응: COMPLETED 또는 SPLASH_DONE이면 온보딩 완료로 간주
+    var isOnboardingDone: Bool {
+        onboardingStatus == "COMPLETED" || onboardingStatus == "SPLASH_DONE"
+    }
 }

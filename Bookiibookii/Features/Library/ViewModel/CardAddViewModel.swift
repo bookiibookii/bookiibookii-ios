@@ -135,6 +135,9 @@ final class CardAddViewModel: ObservableObject {
         isUploading = true
         defer { isUploading = false }
 
+        // 안드로이드와 동일 기준으로 리사이즈·재압축 (1600px / 1MB 이하)
+        let uploadData = ImageCompressor.compressedJPEG(from: imageData) ?? imageData
+
         let presigned: PresignedUrlResult
         switch mode {
         case .create(let userBookId):
@@ -142,9 +145,9 @@ final class CardAddViewModel: ObservableObject {
         case .edit(let cardId, _):
             presigned = try await libraryService.requestCardImagePresignedURLForUpdate(cardId: cardId)
         }
-        try await libraryService.uploadCardImageToS3(presignedPutUrl: presigned.presignedPutUrl, imageData: imageData)
+        try await libraryService.uploadCardImageToS3(presignedPutUrl: presigned.presignedPutUrl, imageData: uploadData)
 
-        previewImageData = imageData
+        previewImageData = uploadData
         uploadedS3Key = presigned.s3Key
     }
 

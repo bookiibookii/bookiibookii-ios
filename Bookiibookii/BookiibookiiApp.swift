@@ -17,12 +17,12 @@ struct BookiibookiiApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack(path: $container.navigationRouter.destinations) {
-                SplashView {
+                SplashView(showsIntro: !TokenManager.shared.hasAccessToken) {
                     if TokenManager.shared.hasAccessToken {
-                        let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboardingProfile
+                        let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboarding
                         container.navigationRouter.hardReset(to: destination)
                     } else {
-                        container.navigationRouter.hardReset(to: .loginIntro)
+                        container.navigationRouter.hardReset(to: .login)
                     }
                 }
                 .environmentObject(container)

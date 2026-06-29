@@ -130,7 +130,7 @@ final class ProfileChangeViewModel: ObservableObject {
 
     private func uploadProfileImageIfNeeded() async throws -> String? {
         guard let image = selectedImage,
-              let imageData = image.jpegData(compressionQuality: 0.8) else {
+              let imageData = ImageCompressor.compressedJPEG(from: image) else {
             return nil
         }
         let presigned = try await userService.getPresignedUrl()
