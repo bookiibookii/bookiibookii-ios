@@ -124,15 +124,16 @@ struct GroupPreviewCard: View {
 struct TrackerPreviewCard: View {
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 2) {
+            VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 0) {
                     Text("sayo").foregroundColor(Color("main200"))
                     Text("님의").foregroundColor(Color("grey900"))
                 }
                 Text("교환독서 현황을 알려드려요").foregroundColor(Color("grey900"))
             }
-            .font(.pretendard(size: 13))
-            .frame(maxWidth: .infinity).padding(.vertical, 14)
+            .font(.pretendard(size: 16, weight: .medium))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16).padding(.vertical, 14)
             .background(Color.white)
             .overlay(Rectangle().fill(Color("grey100")).frame(height: 0.7), alignment: .bottom)
 

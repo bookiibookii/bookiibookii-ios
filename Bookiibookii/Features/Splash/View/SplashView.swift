@@ -111,34 +111,45 @@ struct SplashView: View {
         showsStart: Bool = false,
         @ViewBuilder preview: () -> Preview
     ) -> some View {
-        VStack(spacing: 0) {
-            wordmarkHeader
+        ZStack(alignment: .top) {
+            // 콘텐츠: 상단 정렬 → 카드가 아래로 길게 뻗어 화면 하단에서 잘림(크롭)
+            VStack(spacing: 0) {
+                wordmarkHeader
 
-            Text(heading)
-                .font(.pretendard(size: 20, weight: .semibold))
-                .foregroundColor(Color("grey900"))
-                .tracking(-0.2)
-                .multilineTextAlignment(.center)
-                .padding(.top, 40)
+                Text(heading)
+                    .font(.pretendard(size: 20, weight: .semibold))
+                    .foregroundColor(Color("grey900"))
+                    .tracking(-0.2)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 32)
 
-            Spacer(minLength: 24)
+                Spacer().frame(height: 28)
 
-            preview()
+                preview()
 
-            Spacer(minLength: showsStart ? 8 : 40)
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .clipped()
 
+            // 프레임 7: 하단 고정 "시작" 버튼 (크롭된 카드 위에 uiBg 푸터로 올림)
             if showsStart {
-                Button(action: onFinish) {
-                    Text("시작")
-                        .font(.pretendard(size: 18, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(Color("grey900"))
-                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                VStack(spacing: 0) {
+                    Spacer()
+                    Button(action: onFinish) {
+                        Text("시작")
+                            .font(.pretendard(size: 18, weight: .medium))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 72)
+                            .background(Color("grey900"))
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 16)
+                    .background(Color("uiBg"))
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
             }
         }
     }
