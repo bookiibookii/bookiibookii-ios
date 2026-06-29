@@ -47,7 +47,7 @@ final class TokenManager: @unchecked Sendable {
         accessToken = result.accessToken
         refreshToken = result.refreshToken
         userId = result.userId
-        isOnboardingDone = result.onboardingDone
+        isOnboardingDone = result.isOnboardingDone
     }
 
     func clear() {
