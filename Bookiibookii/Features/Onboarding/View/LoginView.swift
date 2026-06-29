@@ -122,21 +122,37 @@ struct LoginView: View {
     }
 
     // MARK: - 약관 안내 (tv_terms_notice 대응)
+    // "서비스 약관"/"개인정보 처리방침"만 클릭 가능(흰색 밑줄) → 외부 브라우저로 열림
+    private static let termsURL = URL(string: "https://www.bookiibookii.com/terms")!
+    private static let privacyURL = URL(string: "https://www.bookiibookii.com/privacy")!
+
+    private var termsAttributed: AttributedString {
+        func link(_ text: String, _ url: URL) -> AttributedString {
+            var part = AttributedString(text)
+            part.link = url
+            part.underlineStyle = .single
+            part.foregroundColor = Color("white")
+            return part
+        }
+        var result = AttributedString("로그인하면 부키부키의 ")
+        result += link("서비스 약관", Self.termsURL)
+        result += AttributedString(" 및 ")
+        result += link("개인정보 처리방침", Self.privacyURL)
+        result += AttributedString("에 동의하게 됩니다.")
+        return result
+    }
+
     private var termsNotice: some View {
-        (
-            Text("로그인하면 부키부키의 ")
-            + Text("서비스 약관").underline()
-            + Text(" 및 ")
-            + Text("개인정보 처리방침").underline()
-            + Text("에 동의하게 됩니다.")
-        )
-        .font(.pretendard(size: 14, weight: .regular))
-        .foregroundColor(Color("white"))
-        .tracking(-0.14)
-        .lineSpacing(4)
-        .multilineTextAlignment(.leading)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
+        Text(termsAttributed)
+            .font(.pretendard(size: 14, weight: .regular))
+            .foregroundColor(Color("white"))
+            .tint(Color("white"))
+            .tracking(-0.14)
+            .lineSpacing(4)
+            .multilineTextAlignment(.leading)   // 줄 내용은 좌측 정렬
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(alignment: .center)          // 블록 자체는 화면 가운데
+            .padding(.horizontal, 16)
     }
 }
 
