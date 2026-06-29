@@ -3,21 +3,18 @@ import SwiftUI
 // 안드로이드 fragment_home.xml 대응
 // HOM-001: 헤더 + 3섹션 (진행 중인 교환 / 이런 그룹은 어떠세요? / 부키메이트)
 struct HomeView: View {
+    @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: HomeViewModel
     private let groupService: GroupService
-    private let notificationService: NotificationService
-    private let keywordService: KeywordService
 
     var onNavigateToGroup: () -> Void
     @State private var selectedGroupId: Int? = nil
-    @State private var showNotification = false
     @State private var exchangePage: Int = 0
 
     init(
         recommendationService: RecommendationService,
         groupService: GroupService,
         notificationService: NotificationService,
-        keywordService: KeywordService,
         trackerService: TrackerService,
         onNavigateToGroup: @escaping () -> Void = {}
     ) {
@@ -29,16 +26,16 @@ struct HomeView: View {
             )
         )
         self.groupService = groupService
-        self.notificationService = notificationService
-        self.keywordService = keywordService
         self.onNavigateToGroup = onNavigateToGroup
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            HomeHeaderView(
+            BookiiTopBar(
+                title: "탐색",
                 hasNotificationBadge: viewModel.hasUnreadNotification,
-                onTapNotification: { showNotification = true }
+                onProfileTap: { container.navigationRouter.push(to: .myPage) },
+                onNotificationTap: { container.navigationRouter.push(to: .notification) }
             )
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
@@ -51,17 +48,11 @@ struct HomeView: View {
         }
         .background(Color("grey100"))
         .task { await viewModel.onAppear() }
+        .onChange(of: container.navigationRouter.destinations) { _, _ in
+            Task { await viewModel.refreshNotificationBadge() }
+        }
         .fullScreenCover(item: $selectedGroupId) { groupId in
             GroupDetailView(groupId: groupId, groupService: groupService)
-        }
-        .fullScreenCover(isPresented: $showNotification, onDismiss: {
-            Task { await viewModel.refreshNotificationBadge() }
-        }) {
-            NotificationView(
-                notificationService: notificationService,
-                keywordService: keywordService,
-                groupService: groupService
-            )
         }
     }
 

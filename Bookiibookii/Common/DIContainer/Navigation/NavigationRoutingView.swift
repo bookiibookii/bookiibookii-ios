@@ -160,6 +160,25 @@ struct NavigationRoutingView: View {
             .environmentObject(container)
             .toolbar(.hidden, for: .navigationBar)
             .navigationBarBackButtonHidden(true)
+        case .group:
+            GroupView(groupService: container.api.group)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .myPage:
+            MyPageView(userService: container.api.user)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .notification:
+            NotificationView(
+                notificationService: container.api.notification,
+                keywordService: container.api.keyword,
+                groupService: container.api.group
+            )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         }
     }
 }

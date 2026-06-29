@@ -28,4 +28,7 @@ enum NavigationDestination: Hashable {
     case hostDirect(groupId: Int)
     case guestDirect(groupId: Int)
     case reviewWrite(groupId: Int)
+    case group
+    case myPage
+    case notification
 }

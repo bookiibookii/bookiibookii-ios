@@ -8,7 +8,7 @@ struct MainTabView: View {
     @State private var selectedTab: BookiiTabCase = .home
 
     var body: some View {
-        selectedTab.contentView(container: container, selectTab: { selectedTab = $0 })
+        selectedTab.contentView(container: container)
             .environmentObject(container)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -16,27 +16,21 @@ struct MainTabView: View {
             }
     }
 
+    // 피그마 알약형 플로팅 탭바 (너비 256, 선택 탭 = 회색 알약 + 아이콘만)
     private var tabBar: some View {
         HStack(spacing: 0) {
             ForEach(BookiiTabCase.allCases, id: \.rawValue) { tab in
                 tabBarItem(tab: tab)
             }
         }
-        .padding(.horizontal, 18)
-        .padding(.top, 12)
-        .padding(.bottom, 24)
+        .padding(8)
+        .frame(width: 256)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            Capsule()
                 .fill(Color("white"))
-                .shadow(color: Color("black").opacity(0.08), radius: 8, x: 0, y: -2)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color("grey200"), lineWidth: 1)
-                )
+                .overlay(Capsule().stroke(Color("grey100"), lineWidth: 1))
         )
-        .background(
-            Color("grey100").ignoresSafeArea(edges: .bottom)
-        )
+        .padding(.bottom, 12)
     }
 
     private func tabBarItem(tab: BookiiTabCase) -> some View {
@@ -45,19 +39,24 @@ struct MainTabView: View {
         return Button {
             selectedTab = tab
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 2) {
                 Image(tab.iconName)
                     .renderingMode(.template)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 24, height: 24)
-                    .foregroundColor(isSelected ? Color("grey900") : Color("grey400"))
+                    .frame(width: 32, height: 32)
+                    .foregroundColor(Color("grey900"))
 
-                Text(tab.title)
-                    .font(.system(size: 11))
-                    .foregroundColor(isSelected ? Color("grey900") : Color("grey400"))
+                if !isSelected {
+                    Text(tab.title)
+                        .pretendardText(size: 11, weight: .medium)
+                        .foregroundColor(Color("grey900"))
+                }
             }
-            .frame(maxWidth: .infinity)
+            .frame(width: 80, height: 60)
+            .background(
+                Capsule().fill(isSelected ? Color("grey100") : Color.clear)
+            )
         }
         .buttonStyle(.plain)
     }

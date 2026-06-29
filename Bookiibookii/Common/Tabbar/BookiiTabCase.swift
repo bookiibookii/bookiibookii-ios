@@ -1,57 +1,46 @@
 import SwiftUI
 
-/// 메인 탭 식별자 (안드로이드 하단 네비 5탭 대응)
+/// 메인 탭 식별자 (안드로이드 하단 네비 3탭: 탐색/트래커/서재)
 enum BookiiTabCase: Int, CaseIterable {
-    case home
-    case group
+    case home      // 라벨 "탐색"
     case tracker
     case library
-    case myPage
 
     var title: String {
         switch self {
-        case .home: return "홈"
-        case .group: return "그룹"
+        case .home: return "탐색"
         case .tracker: return "트래커"
         case .library: return "서재"
-        case .myPage: return "마이페이지"
         }
     }
 
     var iconName: String {
         switch self {
-        case .home: return "ic_tab_home"
-        case .group: return "ic_group_32"
+        case .home: return "ic_group_32"
         case .tracker: return "ic_tracker_32"
         case .library: return "ic_book_32"
-        case .myPage: return "ic_tab_mypage"
         }
     }
 
     @ViewBuilder
-    func contentView(
-        container: DIContainer,
-        selectTab: @escaping (BookiiTabCase) -> Void
-    ) -> some View {
+    func contentView(container: DIContainer) -> some View {
         switch self {
         case .home:
             HomeView(
                 recommendationService: container.api.recommendation,
                 groupService: container.api.group,
                 notificationService: container.api.notification,
-                keywordService: container.api.keyword,
                 trackerService: container.api.tracker,
-                onNavigateToGroup: { selectTab(.group) }
+                onNavigateToGroup: { container.navigationRouter.push(to: .group) }
             )
-        case .group: GroupView(groupService: container.api.group)
         case .tracker:
             TrackerView(
                 trackerService: container.api.tracker,
                 libraryService: container.api.library,
-                onNavigateToGroup: { selectTab(.group) }
+                onNavigateToGroup: { container.navigationRouter.push(to: .group) }
             )
-        case .library: LibraryView(libraryService: container.api.library)
-        case .myPage: MyPageView(userService: container.api.user)
+        case .library:
+            LibraryView(libraryService: container.api.library)
         }
     }
 }

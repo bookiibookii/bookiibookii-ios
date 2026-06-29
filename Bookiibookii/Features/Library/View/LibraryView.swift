@@ -39,13 +39,7 @@ struct LibraryView: View {
     }
 
     private var header: some View {
-        HStack {
-            Text("내 서재")
-                .pretendardText(size: 24, weight: .medium)
-                .foregroundColor(Color("grey800"))
-
-            Spacer()
-
+        BookiiTopBar(title: "서재", onProfileTap: { container.navigationRouter.push(to: .myPage) }) {
             HStack(spacing: 8) {
                 CircleButton(systemName: "magnifyingglass") {
                     container.navigationRouter.push(to: .librarySearch)
@@ -61,12 +55,6 @@ struct LibraryView: View {
                 }
                 .buttonStyle(.plain)
             }
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .background(Color("white"))
-        .overlay(alignment: .bottom) {
-            Divider().overlay(Color("grey200"))
         }
     }
 
