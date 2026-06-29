@@ -19,7 +19,7 @@ struct BookiibookiiApp: App {
             NavigationStack(path: $container.navigationRouter.destinations) {
                 SplashView {
                     if TokenManager.shared.hasAccessToken {
-                        let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboardingProfile
+                        let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboarding
                         container.navigationRouter.hardReset(to: destination)
                     } else {
                         container.navigationRouter.hardReset(to: .loginIntro)

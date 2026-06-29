@@ -40,7 +40,7 @@ struct LoginView: View {
         .onChange(of: viewModel.loginSucceeded) { _, succeeded in
             guard succeeded else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboardingProfile
+                let destination: NavigationDestination = TokenManager.shared.isOnboardingDone ? .mainTab : .onboarding
                 container.navigationRouter.hardReset(to: destination)
             }
         }
