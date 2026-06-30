@@ -90,10 +90,10 @@ struct GroupApplicantView: View {
                     .frame(width: 48, height: 48)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(item.name)
+                    Text(item.name ?? "")
                         .pretendardText(size: 16)
                         .foregroundColor(Color("black"))
-                    Text(String(item.createdAt.prefix(10)).replacingOccurrences(of: "-", with: "."))
+                    Text(String((item.createdAt ?? "").prefix(10)).replacingOccurrences(of: "-", with: "."))
                         .pretendardText(size: 12)
                         .foregroundColor(Color("grey400"))
                 }
@@ -116,7 +116,7 @@ struct GroupApplicantView: View {
                 .padding(.top, 12)
             }
 
-            Text(item.applyMsg)
+            Text(item.applyMsg ?? "")
                 .pretendardText(size: 14)
                 .foregroundColor(Color("grey600"))
                 .padding(12)
@@ -128,9 +128,9 @@ struct GroupApplicantView: View {
             HStack(spacing: 12) {
                 Button {
                     pendingAction = PendingAction(
-                        applicationId: item.applicationId,
+                        applicationId: item.applicationId ?? 0,
                         status: "REJECTED",
-                        nickname: item.name
+                        nickname: item.name ?? ""
                     )
                 } label: {
                     Text("거절")
@@ -145,9 +145,9 @@ struct GroupApplicantView: View {
 
                 Button {
                     pendingAction = PendingAction(
-                        applicationId: item.applicationId,
+                        applicationId: item.applicationId ?? 0,
                         status: "ACCEPTED",
-                        nickname: item.name
+                        nickname: item.name ?? ""
                     )
                 } label: {
                     Text("수락")

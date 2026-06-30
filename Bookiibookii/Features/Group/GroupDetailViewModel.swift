@@ -97,7 +97,7 @@ final class GroupDetailViewModel: ObservableObject {
         guard let d = detail else { return nil }
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        let date = formatter.date(from: d.startDate) ?? Date()
+        let date = formatter.date(from: d.startDate ?? "") ?? Date()
         return GroupEditConfig(
             groupId: groupId,
             bookTitle: d.bookTitle,

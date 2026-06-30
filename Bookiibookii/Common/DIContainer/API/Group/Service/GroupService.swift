@@ -115,8 +115,9 @@ final class GroupService {
     }
 
     /// POST /api/groups/{groupId}/apply
-    func applyGroup(groupId: Int, applyMsg: String) async throws {
-        let request = GroupAPITarget.applyGroup(groupId: groupId, body: GroupApplyRequest(applyMsg: applyMsg)).asURLRequest()
+    /// isbn13: 교환할 책. 그룹 신청 UI 재작업 시 정식 연결 예정(현재 기본값).
+    func applyGroup(groupId: Int, isbn13: String = "", applyMsg: String) async throws {
+        let request = GroupAPITarget.applyGroup(groupId: groupId, body: GroupApplyRequest(isbn13: isbn13, applyMsg: applyMsg)).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
