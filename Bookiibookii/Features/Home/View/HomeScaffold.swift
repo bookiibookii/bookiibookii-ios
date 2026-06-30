@@ -7,15 +7,10 @@ import SwiftUI
 struct HomeWelcomeSection: View {
     let nickname: String
 
-    // 세션 동안 고정 (View 생성 시 1회 결정).
-    private let topGreeting: String
-    private let subtitle: String
-
-    init(nickname: String) {
-        self.nickname = nickname
-        self.topGreeting = Self.topGreetings.randomElement() ?? "안녕하세요,"
-        self.subtitle = Self.pickSubtitle()
-    }
+    // @State 초기값은 뷰가 처음 생성될 때 1회만 평가되고, 이후 뷰 struct가 재생성돼도 유지됨.
+    // (안드 remember 대응 — 탭 전환마다 랜덤이 다시 뽑히는 문제 방지)
+    @State private var topGreeting: String = HomeWelcomeSection.topGreetings.randomElement() ?? "안녕하세요,"
+    @State private var subtitle: String = HomeWelcomeSection.pickSubtitle()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
