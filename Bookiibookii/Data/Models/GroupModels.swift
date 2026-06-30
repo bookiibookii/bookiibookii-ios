@@ -17,6 +17,7 @@ struct GroupPageResult: Codable {
 
 struct GroupItemDto: Codable, Identifiable {
     let groupId: Int
+    let groupName: String?           // 안드 신규
     let title: String
     let author: String?
     let genre: String?
@@ -27,6 +28,7 @@ struct GroupItemDto: Codable, Identifiable {
     let groupStatus: String          // RECRUITING | MATCHED | COMPLETED | 기타
     let currentCount: Int
     let maxCapacity: Int
+    let waitingCount: Int?           // 안드 신규
     let readingPeriod: Int
     let customTag: String?
     let groupType: String            // TOGETHER | RELAY
@@ -34,6 +36,7 @@ struct GroupItemDto: Codable, Identifiable {
     let startDate: String?
     let isHot: Bool
     let pictureBadge: String?
+    let displayStatus: String?       // 안드 신규
 
     var id: Int { groupId }
 }
@@ -393,5 +396,114 @@ struct TogetherCompleteReadingResultDTO: Decodable {
 struct TogetherReviewCreateRequest: Encodable {
     let rating: Double
     let comment: String?
+}
+
+// MARK: - 홈 그룹 (GET /api/groups/home)
+
+struct HomeGroupsResponse: Decodable {
+    let sections: [HomeSection]
+}
+
+struct HomeSection: Decodable {
+    let sectionType: String
+    let title: String
+    let subtitle: String
+    let layoutType: String
+    let items: [HomeSectionItem]
+}
+
+struct HomeSectionItem: Decodable {
+    // 공통
+    let author: String?
+    let bookImage: String?
+    // 책 항목
+    let isbn13: String?
+    let title: String?
+    let searchKeyword: String?
+    let rank: Int?
+    // 그룹 항목
+    let groupId: Int?
+    let groupName: String?
+    let hostNickname: String?
+    let hostProfileImageUrl: String?
+    let bookTitle: String?
+    let readingPeriod: Int?
+    let tradeType: String?    // DIRECT | DELIVERY
+    let genre: String?
+}
+
+enum HomeLayoutType {
+    static let groupCardCarousel    = "GROUP_CARD_CAROUSEL"
+    static let bookThumbnailCarousel = "BOOK_THUMBNAIL_CAROUSEL"
+    static let bookThumbnailGrid     = "BOOK_THUMBNAIL_GRID"
+}
+
+// MARK: - 신청한 그룹 (GET /api/groups/apply/me)
+
+struct AppliedGroupsResponse: Decodable {
+    let applicationList: [AppliedGroupItem]
+    let totalCount: Int
+}
+
+struct AppliedGroupItem: Decodable, Identifiable {
+    let groupId: Int
+    let groupName: String
+    let hostNickname: String?
+    let hostProfileImageUrl: String?
+    let bookImage: String?
+    let bookTitle: String?
+    let author: String?
+    let readingPeriod: Int
+    let applicationStatus: String?
+    let tradeType: String?
+    let pictureBadge: String?
+
+    var id: Int { groupId }
+}
+
+// MARK: - 그룹 댓글 (안드 CommentList / CommentCreate)
+
+struct CommentWriter: Decodable, Equatable {
+    let userId: Int
+    let name: String
+    let profileImage: String?
+    let role: String
+
+    enum CodingKeys: String, CodingKey {
+        case userId, name, role
+        case profileImage = "profileImageUrl"
+    }
+}
+
+struct CommentItem: Decodable, Identifiable, Equatable {
+    let id: Int
+    let deleted: Bool
+    let secret: Bool
+    let content: String
+    let parentId: Int?
+    let writer: CommentWriter
+    let createdAt: String
+    let children: [CommentItem]?
+}
+
+struct CommentCreateRequest: Encodable {
+    let content: String
+    let parentId: Int?
+    let secret: Bool
+
+    init(content: String, parentId: Int? = nil, secret: Bool = false) {
+        self.content = content
+        self.parentId = parentId
+        self.secret = secret
+    }
+}
+
+struct CommentCreateResponse: Decodable {
+    let commentId: Int
+    let groupId: Int
+    let parentId: Int?
+    let content: String
+    let createdAt: String
+    let writer: CommentWriter
 }
 
