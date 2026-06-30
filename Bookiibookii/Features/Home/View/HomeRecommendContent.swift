@@ -217,9 +217,7 @@ private struct KFImageCover: View {
             .fill(Color("grey200"))
             .aspectRatio(120.0 / 168.0, contentMode: .fit)
             .overlay(
-                KFImage(imageUrl.flatMap(URL.init(string:)))
-                    .resizable()
-                    .scaledToFill()
+                BookCoverImage(imageUrl: imageUrl)
             )
             .clipShape(RoundedRectangle(cornerRadius: 4))
     }

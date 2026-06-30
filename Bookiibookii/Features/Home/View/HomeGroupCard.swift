@@ -76,10 +76,7 @@ struct HomeBookCover: View {
     var height: CGFloat
 
     var body: some View {
-        KFImage(imageUrl.flatMap(URL.init(string:)))
-            .placeholder { Color("grey200") }
-            .resizable()
-            .scaledToFill()
+        BookCoverImage(imageUrl: imageUrl)
             .frame(width: width, height: height)
             .clipShape(RoundedRectangle(cornerRadius: 4))
     }

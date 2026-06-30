@@ -30,6 +30,8 @@ final class HomeViewModel: ObservableObject {
     private let notificationService: NotificationService
     private let userService: UserService
     private var didLoadInitial = false
+    private var didLoadMyGroups = false
+    private var didLoadAppliedGroups = false
 
     init(
         groupService: GroupService,
@@ -64,14 +66,15 @@ final class HomeViewModel: ObservableObject {
     func selectTab(_ tab: HomeTab) {
         guard selectedTab != tab else { return }
         selectedTab = tab
+        // 이미 불러온 탭은 캐시 사용 — 탭 전환마다 재조회하지 않음.
         switch tab {
-        case .myGroups: Task { await loadMyGroups() }
-        case .applied:  Task { await loadAppliedGroups() }
-        case .recommend: break
+        case .myGroups where !didLoadMyGroups:      Task { await loadMyGroups() }
+        case .applied where !didLoadAppliedGroups:  Task { await loadAppliedGroups() }
+        default: break
         }
     }
 
-    /// 화면 복귀 시 현재 탭만 다시 로드 (수락 후 상태 변경 반영).
+    /// 화면 복귀 시 현재 탭만 강제 새로고침 (수락/신청 등 상태 변경 반영).
     func refreshCurrentTab() async {
         switch selectedTab {
         case .recommend: await loadRecommendSections()
@@ -99,6 +102,7 @@ final class HomeViewModel: ObservableObject {
         if let groups = try? await groupService.fetchMyHostedGroups() {
             // 안드: 매칭 전(BEFORE_MATCHING) 그룹만 노출.
             myGroups = groups.filter { $0.displayStatus == "BEFORE_MATCHING" }
+            didLoadMyGroups = true
         }
     }
 
@@ -106,6 +110,7 @@ final class HomeViewModel: ObservableObject {
         if let response = try? await groupService.fetchAppliedGroups() {
             // 안드: 대기(PENDING) 신청만 노출.
             appliedGroups = response.applicationList.filter { $0.applicationStatus == "PENDING" }
+            didLoadAppliedGroups = true
         }
     }
 }
