@@ -108,20 +108,6 @@ final class TrackerService {
         try await requestStatusOnly(target: .confirmPartnerReceive(groupId: groupId))
     }
 
-    // MARK: - Library 호환용 임시 stub
-    // 구 트래커 API(독서율 출처)를 신규 구조로 재연동하기 전까지 빈 맵을 반환합니다.
-    // Library 함께읽기 게이지는 라이브러리 응답/로컬 캐시 폴백을 사용합니다.
-
-    struct TogetherReadingRateSnapshot {
-        let myReadingRate: Int
-        let groupReadingRate: Int
-    }
-
-    /// TODO: 신규 TrackerListResDTO 기반으로 함께읽기 독서율 재연동.
-    func fetchTogetherReadingRates() async throws -> [Int: TogetherReadingRateSnapshot] {
-        return [:]
-    }
-
     // MARK: - 공통 헬퍼
 
     private func request<T: Decodable>(target: TrackerAPITarget) async throws -> T {

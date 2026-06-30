@@ -34,11 +34,8 @@ enum BookiiTabCase: Int, CaseIterable {
                 onNavigateToGroup: { container.navigationRouter.push(to: .group) }
             )
         case .tracker:
-            TrackerView(
-                trackerService: container.api.tracker,
-                libraryService: container.api.library,
-                onNavigateToGroup: { container.navigationRouter.push(to: .group) }
-            )
+            // 트래커 UI 전면 재작업 중 — 안드로이드 신규 트래커 화면으로 재구성 예정.
+            TrackerPlaceholderView()
         case .library:
             LibraryView(libraryService: container.api.library)
         }
