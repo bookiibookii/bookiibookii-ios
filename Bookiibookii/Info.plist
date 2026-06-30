@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleDisplayName</key>
-	<string>부키부키</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -28,17 +26,13 @@
 		</dict>
 	</array>
 	<key>FacebookAppID</key>
-	<string>2094893151237745</string>
+	<string>$(FACEBOOK_APP_ID)</string>
 	<key>GIDClientID</key>
 	<string>$(GOOGLE_CLIENT_ID)</string>
 	<key>GOOGLE_SERVER_CLIENT_ID</key>
 	<string>$(GOOGLE_SERVER_CLIENT_ID)</string>
-	<key>FacebookAppID</key>
-	<string>$(FACEBOOK_APP_ID)</string>
 	<key>KAKAO_NATIVE_APP_KEY</key>
 	<string>$(KAKAO_NATIVE_APP_KEY)</string>
-	<key>NSCameraUsageDescription</key>
-	<string>프로필 사진 촬영을 위해 카메라 접근 권한이 필요합니다.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>kakaokompassauth</string>
