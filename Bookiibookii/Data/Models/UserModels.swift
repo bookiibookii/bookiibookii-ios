@@ -144,6 +144,43 @@ struct ProfileChangeUpdateRequest: Encodable {
     let exchangeRegion: String?
 }
 
+// MARK: - 타 유저 프로필 (안드로이드 OtherProfileResult 대응)
+
+struct OtherProfileResponse: Decodable {
+    let isSuccess: Bool
+    let code: String
+    let message: String
+    let result: OtherProfileResult?
+}
+
+struct OtherProfileResult: Decodable {
+    let userId: Int
+    let profileImageUrl: String?
+    let nickname: String
+    let manner: Double
+    let topTags: [String]?
+    let completeBook: Int
+    let readingGroup: Int       // 안드 @SerializedName("relayGroup")
+    let togetherGroup: Int
+    let userBadges: [MypageBadge]?
+    let groups: [MypageGroup]?
+    let books: [MypageBook]?
+
+    enum CodingKeys: String, CodingKey {
+        case userId
+        case profileImageUrl
+        case nickname
+        case manner
+        case topTags
+        case completeBook
+        case readingGroup = "relayGroup"
+        case togetherGroup
+        case userBadges
+        case groups
+        case books
+    }
+}
+
 // MARK: - 공통 단순 응답
 
 struct SimpleResponse: Decodable {

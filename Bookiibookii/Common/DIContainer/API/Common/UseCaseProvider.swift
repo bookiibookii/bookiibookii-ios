@@ -11,6 +11,7 @@ protocol UseCaseProtocol {
     var keyword: KeywordService { get }
     var tracker: TrackerService { get }
     var library: LibraryService { get }
+    var location: LocationService { get }
 }
 
 /// 도메인별 API UseCase 진입점을 한곳에서 제공합니다.
@@ -25,6 +26,7 @@ final class UseCaseProvider: UseCaseProtocol {
     let keyword: KeywordService
     let tracker: TrackerService
     let library: LibraryService
+    let location: LocationService
 
     init(auth: AuthService = AuthService()) {
         self.auth = auth
@@ -38,5 +40,6 @@ final class UseCaseProvider: UseCaseProtocol {
         self.keyword = KeywordService(interceptor: interceptor)
         self.tracker = TrackerService(interceptor: interceptor)
         self.library = LibraryService(interceptor: interceptor)
+        self.location = LocationService(interceptor: interceptor)
     }
 }
