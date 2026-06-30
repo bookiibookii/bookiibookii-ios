@@ -236,6 +236,61 @@ final class GroupService {
         guard response.isSuccess else { throw GroupServiceError.server(response.message) }
     }
 
+    /// GET /api/groups/home — 홈(추천) 섹션 목록
+    func fetchHomeGroups() async throws -> HomeGroupsResponse {
+        try await decodeResult(target: .homeGroups)
+    }
+
+    /// GET /api/groups/my-hosted — 내가 만든 그룹 목록
+    func fetchMyHostedGroups() async throws -> [GroupItemDto] {
+        try await decodeResult(target: .myHostedGroups)
+    }
+
+    /// GET /api/groups/apply/me — 내가 신청한 그룹 목록
+    func fetchAppliedGroups() async throws -> AppliedGroupsResponse {
+        try await decodeResult(target: .appliedGroups)
+    }
+
+    /// GET /api/groups/{groupId}/comments
+    func fetchComments(groupId: Int) async throws -> [CommentItem] {
+        try await decodeResult(target: .fetchComments(groupId: groupId))
+    }
+
+    /// POST /api/groups/{groupId}/comments
+    @discardableResult
+    func postComment(groupId: Int, content: String, parentId: Int? = nil, secret: Bool = false) async throws -> CommentCreateResponse {
+        let body = CommentCreateRequest(content: content, parentId: parentId, secret: secret)
+        return try await decodeResult(target: .postComment(groupId: groupId, body: body))
+    }
+
+    /// DELETE /api/groups/{groupId}/comments/{commentId}
+    func deleteComment(groupId: Int, commentId: Int) async throws {
+        let request = GroupAPITarget.deleteComment(groupId: groupId, commentId: commentId).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+    }
+
+    /// `ApiResponseDTO<T>` 공통 디코딩 헬퍼.
+    private func decodeResult<T: Decodable>(target: GroupAPITarget) async throws -> T {
+        let (data, http) = try await interceptor.request(target.asURLRequest())
+        guard (200...299).contains(http.statusCode) else {
+            if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
+                throw GroupServiceError.server(msg)
+            }
+            throw GroupServiceError.http(http.statusCode)
+        }
+        let response = try JSONDecoder().decode(ApiResponseDTO<T>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw GroupServiceError.server(response.message)
+        }
+        return result
+    }
+
     private struct APIErrorMessage: Decodable { let message: String }
 }
 

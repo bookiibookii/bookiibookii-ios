@@ -11,6 +11,7 @@ struct GroupListResponse: Codable {
 
 struct GroupPageResult: Codable {
     let groupList: [GroupItemDto]?
+    let totalCount: Int?           // 안드 신규
     let currentPage: Int
     let hasNext: Bool
 }
@@ -247,31 +248,30 @@ struct BookItem: Codable, Identifiable {
 
 // MARK: - 그룹 생성 요청
 
+// 안드 GroupCreateRequest 대응
 struct GroupCreateRequest: Encodable {
     let isbn13: String
-    let maxCapacity: Int
-    let startDate: String          // "yyyy-MM-dd"
-    let readingPeriod: Int
-    let groupComment: String
-    let customTag: String          // 없으면 ""
-    let groupType: String          // "RELAY" | "TOGETHER"
-    let tradeType: String          // "DELIVERY" | "DIRECT" | "NONE"
-    let preferRegion: String       // 없으면 ""
-    let meetPlace: String          // 없으면 ""
-    let tags: [GroupTagRequest]
+    let groupName: String
+    let tradeType: String           // DIRECT | DELIVERY
+    let userDeliveryId: Int?        // DELIVERY일 때만
+    let userExchangeId: Int?        // DIRECT일 때만
+    let readingPeriod: Int          // 3, 7, 14, 21, 28
+    let groupComment: String?       // 선택, 최대 500자
+    let rules: [GroupRuleRequest]   // 1~5개
 }
 
-struct GroupTagRequest: Encodable {
-    let type: String               // "METHOD" | "VIBE"
-    let value: [String]
+// 안드 GroupRuleRequest 대응
+struct GroupRuleRequest: Encodable {
+    let tag: String                 // MEMO/POSTIT/PHOTO/All_ROUNDER/NO_IDEA/CUSTOM
+    let content: String?            // CUSTOM일 때만 텍스트
 }
 
+// 안드 GroupModifyRequest 대응
 struct GroupModifyRequest: Encodable {
-    let startDate: String          // "yyyy-MM-dd"
     let readingPeriod: Int
-    let groupComment: String
-    let customTag: String          // 없으면 ""
-    let tags: [GroupTagRequest]
+    let groupComment: String?
+    let groupName: String
+    let rules: [GroupRuleRequest]
 }
 
 // MARK: - 그룹 수정 응답
@@ -291,32 +291,39 @@ struct GroupDetailResponse: Codable {
     let result: GroupDetailDto?
 }
 
+// 안드 GroupDetailResponse 대응
 struct GroupDetailDto: Codable {
     let groupId: Int
+    let groupStatus: String       // RECRUITING | MATCHED
+    let isHost: Bool
+    let tradeType: String         // DIRECT | DELIVERY
+    let placeName: String
+    let address: String
+    let detailAddress: String     // 없으면 ""
     let title: String
-    let bookTitle: String
     let bookImage: String?
     let author: String
-    let category: String
-    let groupStatus: String       // RECRUITING | MATCHED | COMPLETED
-    let buttonStatus: String      // APPLY | CANCEL | MANAGE | FULL | TRACKER
-    let isHost: Bool
+    let genre: String
     let readingPeriod: Int
     let matchedCount: Int
     let maxCapacity: Int
     let waitingCount: Int
     let isHot: Bool
     let createdAt: String
-    let startDate: String
+    let startDate: String?        // 미시작 시 null
     let hostNickname: String
     let hostProfileImageUrl: String?
-    let preferRegion: String?
-    let meetPlace: String?
-    let groupTags: [String]?
-    let customTag: String?
     let groupComment: String?
-    let participantSlots: [ParticipantSlot]?
-    let groupType: String?
+    let groupName: String
+    let rules: [GroupRule]
+    let participantSlots: [ParticipantSlot]
+    let buttonStatus: String      // APPLY | CANCEL | MANAGE | TRACKER | FULL
+}
+
+// 안드 GroupRule (응답 전용)
+struct GroupRule: Codable {
+    let tag: String
+    let content: String
 }
 
 struct ParticipantSlot: Codable {
@@ -329,7 +336,8 @@ struct ParticipantSlot: Codable {
 // MARK: - 신청 / 취소
 
 struct GroupApplyRequest: Encodable {
-    let applyMsg: String
+    let isbn13: String              // 교환할 책 ISBN13
+    let applyMsg: String            // 신청 한 마디 (0~50자)
 }
 
 struct GroupApplyResultWrapper: Codable {
@@ -358,15 +366,18 @@ struct GroupApplicantListResult: Codable {
     let totalCount: Int
 }
 
+// 안드 GroupAppItem 대응
 struct GroupApplicantDto: Codable, Identifiable {
-    let applicationId: Int
-    let user: Int
-    let name: String
-    let tags: [String]?
-    let createdAt: String
-    let applyMsg: String
-    let profileImageUrl: String?
-    var id: Int { applicationId }
+    let applicationId: Int?
+    let user: Int?
+    let name: String?
+    let profileImageUrl: String?   // null=프로필 미등록
+    let createdAt: String?
+    let applyMsg: String?
+    let bookTitle: String?
+    let bookAuthor: String?
+    let bookImage: String?
+    var id: Int { applicationId ?? 0 }
 }
 
 struct GroupAppStatusRequest: Encodable {
