@@ -9,20 +9,17 @@ struct HomeView: View {
 
     var onNavigateToGroup: () -> Void
     @State private var selectedGroupId: Int? = nil
-    @State private var exchangePage: Int = 0
 
     init(
         recommendationService: RecommendationService,
         groupService: GroupService,
         notificationService: NotificationService,
-        trackerService: TrackerService,
         onNavigateToGroup: @escaping () -> Void = {}
     ) {
         _viewModel = StateObject(
             wrappedValue: HomeViewModel(
                 recommendationService: recommendationService,
-                notificationService: notificationService,
-                trackerService: trackerService
+                notificationService: notificationService
             )
         )
         self.groupService = groupService
@@ -39,7 +36,6 @@ struct HomeView: View {
             )
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    exchangeSection
                     groupSection
                     mateSection
                 }
@@ -56,100 +52,7 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - 섹션 1: 진행 중인 교환
-    // 안드 section_home_exchange_progress.xml + HomeFragment.loadExchangeProgress 대응.
-    private var exchangeSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            exchangeHeader
-            exchangeBody
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 8)
-        .task { await viewModel.loadActiveExchanges() }
-        .onChange(of: viewModel.activeExchanges.count) { _, newValue in
-            // 데이터 새로고침되면 첫 페이지로
-            exchangePage = min(exchangePage, max(0, newValue - 1))
-        }
-    }
-
-    private var exchangeHeader: some View {
-        HStack(alignment: .center, spacing: 8) {
-            sectionTitle("진행 중인 교환")
-            Spacer()
-            if viewModel.activeExchanges.count > 1 {
-                exchangePageControl
-            }
-        }
-    }
-
-    private var exchangePageControl: some View {
-        let total = viewModel.activeExchanges.count
-        let hasPrev = exchangePage > 0
-        let hasNext = exchangePage < total - 1
-        return HStack(spacing: 8) {
-            arrowButton(direction: .left, enabled: hasPrev) {
-                if hasPrev { withAnimation { exchangePage -= 1 } }
-            }
-            (
-                Text("\(exchangePage + 1)")
-                    .font(.pretendard(size: 14, weight: .bold))
-                    .tracking(14 * -0.01)
-                    .foregroundColor(Color("grey900"))
-                + Text("/\(total)")
-                    .font(.pretendard(size: 14))
-                    .tracking(14 * -0.01)
-                    .foregroundColor(Color("grey600"))
-            )
-            arrowButton(direction: .right, enabled: hasNext) {
-                if hasNext { withAnimation { exchangePage += 1 } }
-            }
-        }
-    }
-
-    private enum ArrowDirection { case left, right }
-
-    private func arrowButton(direction: ArrowDirection, enabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image("ic_back")
-                .resizable()
-                .renderingMode(.template)
-                .scaledToFit()
-                .frame(width: 20, height: 20)
-                .rotationEffect(direction == .right ? .degrees(180) : .zero)
-                .foregroundColor(Color("grey900"))
-                .frame(width: 30, height: 30)
-                .background(Circle().fill(Color("white")))
-                .overlay(Circle().stroke(Color("grey200"), lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .opacity(enabled ? 1.0 : 0.5)
-    }
-
-    @ViewBuilder
-    private var exchangeBody: some View {
-        if viewModel.activeExchanges.isEmpty {
-            HomeEmptyCard(
-                title: "아직 진행 중인 교환이 없어요",
-                description: "그룹에 참여하고 새로운 책을 만나보세요.",
-                buttonTitle: "그룹 둘러보기",
-                buttonStyle: .dark,
-                onTap: onNavigateToGroup
-            )
-        } else {
-            TabView(selection: $exchangePage) {
-                ForEach(Array(viewModel.activeExchanges.enumerated()), id: \.offset) { index, item in
-                    TrackerCard(item: item, onTap: {})
-                        .tag(index)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .frame(height: 215)
-        }
-    }
-
-    // MARK: - 섹션 2: 이런 그룹은 어떠세요?
+    // MARK: - 섹션: 이런 그룹은 어떠세요?
     private var groupSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             groupSectionHeader

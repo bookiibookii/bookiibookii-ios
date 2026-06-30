@@ -30,7 +30,6 @@ enum BookiiTabCase: Int, CaseIterable {
                 recommendationService: container.api.recommendation,
                 groupService: container.api.group,
                 notificationService: container.api.notification,
-                trackerService: container.api.tracker,
                 onNavigateToGroup: { container.navigationRouter.push(to: .group) }
             )
         case .tracker:
