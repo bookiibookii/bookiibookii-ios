@@ -206,7 +206,7 @@ struct GroupDetailView: View {
                         Text(d.hostNickname)
                             .pretendardText(size: 12, weight: .medium)
                             .foregroundColor(Color("grey700"))
-                        Text(d.startDate.replacingOccurrences(of: "-", with: "."))
+                        Text((d.startDate ?? "").replacingOccurrences(of: "-", with: "."))
                             .pretendardText(size: 11)
                             .foregroundColor(Color("grey400"))
                         Spacer()

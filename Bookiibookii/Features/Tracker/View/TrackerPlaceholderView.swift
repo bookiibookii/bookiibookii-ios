@@ -9,7 +9,7 @@ struct TrackerPlaceholderView: View {
             Image("ic_tracker_32")
                 .renderingMode(.template)
                 .foregroundColor(Color("grey400"))
-            Text("트래커는 곧 새롭게 찾아옵니다")
+            Text("트래커는 곧 작업 예정")
                 .pretendardText(size: 15, weight: .medium)
                 .foregroundColor(Color("grey600"))
             Spacer()

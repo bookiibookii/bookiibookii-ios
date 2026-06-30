@@ -11,12 +11,14 @@ struct GroupListResponse: Codable {
 
 struct GroupPageResult: Codable {
     let groupList: [GroupItemDto]?
+    let totalCount: Int?           // 안드 신규
     let currentPage: Int
     let hasNext: Bool
 }
 
 struct GroupItemDto: Codable, Identifiable {
     let groupId: Int
+    let groupName: String?           // 안드 신규
     let title: String
     let author: String?
     let genre: String?
@@ -27,6 +29,7 @@ struct GroupItemDto: Codable, Identifiable {
     let groupStatus: String          // RECRUITING | MATCHED | COMPLETED | 기타
     let currentCount: Int
     let maxCapacity: Int
+    let waitingCount: Int?           // 안드 신규
     let readingPeriod: Int
     let customTag: String?
     let groupType: String            // TOGETHER | RELAY
@@ -34,6 +37,7 @@ struct GroupItemDto: Codable, Identifiable {
     let startDate: String?
     let isHot: Bool
     let pictureBadge: String?
+    let displayStatus: String?       // 안드 신규
 
     var id: Int { groupId }
 }
@@ -244,31 +248,30 @@ struct BookItem: Codable, Identifiable {
 
 // MARK: - 그룹 생성 요청
 
+// 안드 GroupCreateRequest 대응
 struct GroupCreateRequest: Encodable {
     let isbn13: String
-    let maxCapacity: Int
-    let startDate: String          // "yyyy-MM-dd"
-    let readingPeriod: Int
-    let groupComment: String
-    let customTag: String          // 없으면 ""
-    let groupType: String          // "RELAY" | "TOGETHER"
-    let tradeType: String          // "DELIVERY" | "DIRECT" | "NONE"
-    let preferRegion: String       // 없으면 ""
-    let meetPlace: String          // 없으면 ""
-    let tags: [GroupTagRequest]
+    let groupName: String
+    let tradeType: String           // DIRECT | DELIVERY
+    let userDeliveryId: Int?        // DELIVERY일 때만
+    let userExchangeId: Int?        // DIRECT일 때만
+    let readingPeriod: Int          // 3, 7, 14, 21, 28
+    let groupComment: String?       // 선택, 최대 500자
+    let rules: [GroupRuleRequest]   // 1~5개
 }
 
-struct GroupTagRequest: Encodable {
-    let type: String               // "METHOD" | "VIBE"
-    let value: [String]
+// 안드 GroupRuleRequest 대응
+struct GroupRuleRequest: Encodable {
+    let tag: String                 // MEMO/POSTIT/PHOTO/All_ROUNDER/NO_IDEA/CUSTOM
+    let content: String?            // CUSTOM일 때만 텍스트
 }
 
+// 안드 GroupModifyRequest 대응
 struct GroupModifyRequest: Encodable {
-    let startDate: String          // "yyyy-MM-dd"
     let readingPeriod: Int
-    let groupComment: String
-    let customTag: String          // 없으면 ""
-    let tags: [GroupTagRequest]
+    let groupComment: String?
+    let groupName: String
+    let rules: [GroupRuleRequest]
 }
 
 // MARK: - 그룹 수정 응답
@@ -288,32 +291,39 @@ struct GroupDetailResponse: Codable {
     let result: GroupDetailDto?
 }
 
+// 안드 GroupDetailResponse 대응
 struct GroupDetailDto: Codable {
     let groupId: Int
+    let groupStatus: String       // RECRUITING | MATCHED
+    let isHost: Bool
+    let tradeType: String         // DIRECT | DELIVERY
+    let placeName: String
+    let address: String
+    let detailAddress: String     // 없으면 ""
     let title: String
-    let bookTitle: String
     let bookImage: String?
     let author: String
-    let category: String
-    let groupStatus: String       // RECRUITING | MATCHED | COMPLETED
-    let buttonStatus: String      // APPLY | CANCEL | MANAGE | FULL | TRACKER
-    let isHost: Bool
+    let genre: String
     let readingPeriod: Int
     let matchedCount: Int
     let maxCapacity: Int
     let waitingCount: Int
     let isHot: Bool
     let createdAt: String
-    let startDate: String
+    let startDate: String?        // 미시작 시 null
     let hostNickname: String
     let hostProfileImageUrl: String?
-    let preferRegion: String?
-    let meetPlace: String?
-    let groupTags: [String]?
-    let customTag: String?
     let groupComment: String?
-    let participantSlots: [ParticipantSlot]?
-    let groupType: String?
+    let groupName: String
+    let rules: [GroupRule]
+    let participantSlots: [ParticipantSlot]
+    let buttonStatus: String      // APPLY | CANCEL | MANAGE | TRACKER | FULL
+}
+
+// 안드 GroupRule (응답 전용)
+struct GroupRule: Codable {
+    let tag: String
+    let content: String
 }
 
 struct ParticipantSlot: Codable {
@@ -323,10 +333,21 @@ struct ParticipantSlot: Codable {
     let isMe: Bool
 }
 
+// 그룹 상세 UI 재작업 전 임시 호환 — 구 필드명 매핑. UI 재작업 시 제거 예정.
+extension GroupDetailDto {
+    var bookTitle: String { title }
+    var groupType: String { "" }            // 구 TOGETHER/RELAY 분기 — 빈 값이면 RELAY 취급
+    var meetPlace: String? { placeName }
+    var customTag: String? { nil }
+    var groupTags: [String]? { rules.map { $0.tag } }
+    var category: String { genre }
+}
+
 // MARK: - 신청 / 취소
 
 struct GroupApplyRequest: Encodable {
-    let applyMsg: String
+    let isbn13: String              // 교환할 책 ISBN13
+    let applyMsg: String            // 신청 한 마디 (0~50자)
 }
 
 struct GroupApplyResultWrapper: Codable {
@@ -355,15 +376,23 @@ struct GroupApplicantListResult: Codable {
     let totalCount: Int
 }
 
+// 안드 GroupAppItem 대응
 struct GroupApplicantDto: Codable, Identifiable {
-    let applicationId: Int
-    let user: Int
-    let name: String
-    let tags: [String]?
-    let createdAt: String
-    let applyMsg: String
-    let profileImageUrl: String?
-    var id: Int { applicationId }
+    let applicationId: Int?
+    let user: Int?
+    let name: String?
+    let profileImageUrl: String?   // null=프로필 미등록
+    let createdAt: String?
+    let applyMsg: String?
+    let bookTitle: String?
+    let bookAuthor: String?
+    let bookImage: String?
+    var id: Int { applicationId ?? 0 }
+}
+
+// 신청자 화면 UI 재작업 전 임시 호환. UI 재작업 시 제거 예정.
+extension GroupApplicantDto {
+    var tags: [String]? { nil }
 }
 
 struct GroupAppStatusRequest: Encodable {
@@ -393,5 +422,114 @@ struct TogetherCompleteReadingResultDTO: Decodable {
 struct TogetherReviewCreateRequest: Encodable {
     let rating: Double
     let comment: String?
+}
+
+// MARK: - 홈 그룹 (GET /api/groups/home)
+
+struct HomeGroupsResponse: Decodable {
+    let sections: [HomeSection]
+}
+
+struct HomeSection: Decodable {
+    let sectionType: String
+    let title: String
+    let subtitle: String
+    let layoutType: String
+    let items: [HomeSectionItem]
+}
+
+struct HomeSectionItem: Decodable {
+    // 공통
+    let author: String?
+    let bookImage: String?
+    // 책 항목
+    let isbn13: String?
+    let title: String?
+    let searchKeyword: String?
+    let rank: Int?
+    // 그룹 항목
+    let groupId: Int?
+    let groupName: String?
+    let hostNickname: String?
+    let hostProfileImageUrl: String?
+    let bookTitle: String?
+    let readingPeriod: Int?
+    let tradeType: String?    // DIRECT | DELIVERY
+    let genre: String?
+}
+
+enum HomeLayoutType {
+    static let groupCardCarousel    = "GROUP_CARD_CAROUSEL"
+    static let bookThumbnailCarousel = "BOOK_THUMBNAIL_CAROUSEL"
+    static let bookThumbnailGrid     = "BOOK_THUMBNAIL_GRID"
+}
+
+// MARK: - 신청한 그룹 (GET /api/groups/apply/me)
+
+struct AppliedGroupsResponse: Decodable {
+    let applicationList: [AppliedGroupItem]
+    let totalCount: Int
+}
+
+struct AppliedGroupItem: Decodable, Identifiable {
+    let groupId: Int
+    let groupName: String
+    let hostNickname: String?
+    let hostProfileImageUrl: String?
+    let bookImage: String?
+    let bookTitle: String?
+    let author: String?
+    let readingPeriod: Int
+    let applicationStatus: String?
+    let tradeType: String?
+    let pictureBadge: String?
+
+    var id: Int { groupId }
+}
+
+// MARK: - 그룹 댓글 (안드 CommentList / CommentCreate)
+
+struct CommentWriter: Decodable, Equatable {
+    let userId: Int
+    let name: String
+    let profileImage: String?
+    let role: String
+
+    enum CodingKeys: String, CodingKey {
+        case userId, name, role
+        case profileImage = "profileImageUrl"
+    }
+}
+
+struct CommentItem: Decodable, Identifiable, Equatable {
+    let id: Int
+    let deleted: Bool
+    let secret: Bool
+    let content: String
+    let parentId: Int?
+    let writer: CommentWriter
+    let createdAt: String
+    let children: [CommentItem]?
+}
+
+struct CommentCreateRequest: Encodable {
+    let content: String
+    let parentId: Int?
+    let secret: Bool
+
+    init(content: String, parentId: Int? = nil, secret: Bool = false) {
+        self.content = content
+        self.parentId = parentId
+        self.secret = secret
+    }
+}
+
+struct CommentCreateResponse: Decodable {
+    let commentId: Int
+    let groupId: Int
+    let parentId: Int?
+    let content: String
+    let createdAt: String
+    let writer: CommentWriter
 }
 

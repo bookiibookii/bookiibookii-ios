@@ -15,6 +15,12 @@ enum GroupAPITarget: APITargetType {
     case deleteGroup(groupId: Int)
     case completeTogetherReading(groupId: Int)
     case createTogetherReview(userBookId: Int, body: TogetherReviewCreateRequest)
+    case homeGroups
+    case myHostedGroups
+    case appliedGroups
+    case postComment(groupId: Int, body: CommentCreateRequest)
+    case fetchComments(groupId: Int)
+    case deleteComment(groupId: Int, commentId: Int)
 
     var path: String {
         switch self {
@@ -26,6 +32,12 @@ enum GroupAPITarget: APITargetType {
             return API.Path.groups + "/search"
         case .searchBooks:
             return API.Path.books + "/search"
+        case .homeGroups:
+            return API.Path.homeGroups
+        case .myHostedGroups:
+            return API.Path.myHostedGroups
+        case .appliedGroups:
+            return API.Path.applyMe
         case .fetchGroupDetail(let groupId),
              .modifyGroup(let groupId, _),
              .deleteGroup(let groupId):
@@ -40,14 +52,18 @@ enum GroupAPITarget: APITargetType {
             return "/api/reviews/together/\(userBookId)"
         case .updateApplicant(let applicationId, _):
             return API.Path.groups + "/apply/\(applicationId)"
+        case .postComment(let groupId, _), .fetchComments(let groupId):
+            return API.Path.groupComments(groupId: groupId)
+        case .deleteComment(let groupId, let commentId):
+            return API.Path.groupComment(groupId: groupId, commentId: commentId)
         }
     }
 
     var method: HTTPMethod {
         switch self {
-        case .createGroup, .applyGroup, .createTogetherReview: return .post
+        case .createGroup, .applyGroup, .createTogetherReview, .postComment: return .post
         case .modifyGroup, .updateApplicant, .completeTogetherReading: return .patch
-        case .cancelApply, .deleteGroup:        return .delete
+        case .cancelApply, .deleteGroup, .deleteComment:        return .delete
         default:                                return .get
         }
     }
@@ -90,13 +106,14 @@ enum GroupAPITarget: APITargetType {
         case .updateApplicant(_, let body):       return try? JSONEncoder().encode(body)
         case .modifyGroup(_, let body):           return try? JSONEncoder().encode(body)
         case .createTogetherReview(_, let body):  return try? JSONEncoder().encode(body)
+        case .postComment(_, let body):           return try? JSONEncoder().encode(body)
         default:                                   return nil
         }
     }
 
     var headers: [String: String] {
         switch self {
-        case .createGroup, .applyGroup, .updateApplicant, .modifyGroup, .createTogetherReview:
+        case .createGroup, .applyGroup, .updateApplicant, .modifyGroup, .createTogetherReview, .postComment:
             return ["Content-Type": "application/json"]
         default:
             return [:]

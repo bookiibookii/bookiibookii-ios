@@ -193,9 +193,14 @@ final class GroupCreateViewModel: ObservableObject {
         }
     }
 
-    private func buildTags() -> [GroupTagRequest] {
-        let tagsByType = Dictionary(grouping: Array(selectedTags), by: \.tagType)
-        return tagsByType.map { type, items in GroupTagRequest(type: type, value: items.map(\.rawValue)) }
+    // TODO: 그룹 생성 UI 재작업 시 안드 신규 입력(groupName/배송지·교환장소 선택)에 맞춰 정식 매핑.
+    private func buildRules() -> [GroupRuleRequest] {
+        var rules = selectedTags.map { GroupRuleRequest(tag: $0.rawValue, content: nil) }
+        let custom = rawCustomTag()
+        if !custom.isEmpty {
+            rules.append(GroupRuleRequest(tag: "CUSTOM", content: custom))
+        }
+        return rules
     }
 
     private func rawCustomTag() -> String {
@@ -203,27 +208,16 @@ final class GroupCreateViewModel: ObservableObject {
     }
 
     private func create() async {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-
+        // 그룹 생성 UI 재작업 전 임시 매핑 — groupName/배송지·교환장소 id는 추후 입력 연결.
         let request = GroupCreateRequest(
             isbn13: selectedBook!.isbn13,
-            maxCapacity: groupType == .together ? (Int(maxCapacity) ?? 2) : 2,
-            startDate: formatter.string(from: startDate!),
+            groupName: groupComment,
+            tradeType: tradeType == .direct ? "DIRECT" : "DELIVERY",
+            userDeliveryId: nil,
+            userExchangeId: nil,
             readingPeriod: Int(readingPeriod)!,
             groupComment: groupComment,
-            customTag: rawCustomTag(),
-            groupType: groupType == .relay ? "RELAY" : "TOGETHER",
-            tradeType: {
-                switch tradeType {
-                case .delivery: return "DELIVERY"
-                case .direct:   return "DIRECT"
-                case nil:       return "NONE"
-                }
-            }(),
-            preferRegion: preferRegion,
-            meetPlace: meetPlace,
-            tags: buildTags()
+            rules: buildRules()
         )
 
         do {
@@ -240,15 +234,11 @@ final class GroupCreateViewModel: ObservableObject {
     }
 
     private func modify(groupId: Int) async {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-
         let request = GroupModifyRequest(
-            startDate: formatter.string(from: startDate!),
             readingPeriod: Int(readingPeriod)!,
             groupComment: groupComment,
-            customTag: rawCustomTag(),
-            tags: buildTags()
+            groupName: groupComment,
+            rules: buildRules()
         )
 
         do {

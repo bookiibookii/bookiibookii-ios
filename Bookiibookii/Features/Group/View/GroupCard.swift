@@ -189,14 +189,15 @@ struct GroupCard: View {
 #Preview("모집 중 + RELAY") {
     GroupCard(
         item: GroupItemDto(
-            groupId: 1, title: "괴테는 모든 것을 말했다",
+            groupId: 1, groupName: "괴테 같이 읽어요", title: "괴테는 모든 것을 말했다",
             author: "한강", genre: "소설", bookImage: nil,
             hostProfileImageUrl: nil, hostNickname: "noshel",
             tags: ["MEMO", "INSIGHT", "CLEAN", "SLOW", "SCI_IT"],
             groupStatus: "RECRUITING", currentCount: 2, maxCapacity: 4,
-            readingPeriod: 7, customTag: nil,
+            waitingCount: 1, readingPeriod: 7, customTag: nil,
             groupType: "RELAY", tradeType: "DELIVERY",
-            startDate: "2025-12-16", isHot: true, pictureBadge: "마포구"
+            startDate: "2025-12-16", isHot: true, pictureBadge: "마포구",
+            displayStatus: nil
         ),
         onTap: {}
     )
@@ -207,14 +208,15 @@ struct GroupCard: View {
 #Preview("함께읽기 TOGETHER") {
     GroupCard(
         item: GroupItemDto(
-            groupId: 2, title: "소년이 온다",
+            groupId: 2, groupName: "소년이 온다 함께", title: "소년이 온다",
             author: "한강", genre: "소설", bookImage: nil,
             hostProfileImageUrl: nil, hostNickname: "noshel",
             tags: ["MEMO"],
             groupStatus: "RECRUITING", currentCount: 2, maxCapacity: 3,
-            readingPeriod: 7, customTag: "커스텀",
+            waitingCount: 0, readingPeriod: 7, customTag: "커스텀",
             groupType: "TOGETHER", tradeType: nil,
-            startDate: "2025-12-16", isHot: false, pictureBadge: nil
+            startDate: "2025-12-16", isHot: false, pictureBadge: nil,
+            displayStatus: nil
         ),
         onTap: {}
     )
