@@ -27,9 +27,9 @@ enum BookiiTabCase: Int, CaseIterable {
         switch self {
         case .home:
             HomeView(
-                recommendationService: container.api.recommendation,
                 groupService: container.api.group,
                 notificationService: container.api.notification,
+                userService: container.api.user,
                 onNavigateToGroup: { container.navigationRouter.push(to: .group) }
             )
         case .tracker:
