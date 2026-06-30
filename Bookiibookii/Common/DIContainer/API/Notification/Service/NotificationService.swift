@@ -41,6 +41,28 @@ final class NotificationService {
         }
         return result
     }
+
+    /// POST /api/device-tokens — FCM/APNs 기기 토큰 등록
+    func registerDeviceToken(token: String) async throws {
+        let request = NotificationAPITarget
+            .registerDeviceToken(DeviceTokenRegisterRequest(token: token))
+            .asURLRequest()
+        let (_, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw NotificationServiceError.http(http.statusCode)
+        }
+    }
+
+    /// DELETE /api/device-tokens (body 포함) — 기기 토큰 등록 해제
+    func deactivateDeviceToken(token: String) async throws {
+        let request = NotificationAPITarget
+            .deactivateDeviceToken(DeviceTokenDeactivateRequest(token: token))
+            .asURLRequest()
+        let (_, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw NotificationServiceError.http(http.statusCode)
+        }
+    }
 }
 
 enum NotificationServiceError: LocalizedError {

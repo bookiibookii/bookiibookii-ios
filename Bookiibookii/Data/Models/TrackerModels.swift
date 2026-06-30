@@ -1,253 +1,238 @@
 import Foundation
 
-// MARK: - 서버 DTO (안드로이드 HostTrackerListItemDto / GuestTrackerListItemDto 대응)
+// 안드로이드 data/model/tracker 대응 (TrkApi 신규 구조).
 
-struct HostTrackerListItemDto: Decodable {
-    let groupId: Int
-    let groupType: String?
-    let bookTitle: String?
-    let bookImage: String?
-    let bookAuthor: String?
-    let bookCategory: String?
-    let tradeType: String?
-    let relayDetail: TrackerRelayDetailDto?
-    let togetherDetail: TrackerTogetherDetailDto?
+// MARK: - 트래커 목록 (GET /api/me/trackers)
+
+struct TrackerListResDTO: Decodable {
+    let nickname: String?
+    let summary: TrackerSummaryDTO
+    let topBanners: [TrackerTopBannerResDTO]?
+    let items: [TrackerListItemResDTO]
 }
 
-struct GuestTrackerListItemDto: Decodable {
-    let groupId: Int
-    let groupType: String?
-    let bookTitle: String?
-    let bookImage: String?
-    let bookAuthor: String?
-    let bookCategory: String?
-    let tradeType: String?
-    let relayDetail: TrackerRelayDetailDto?
-    let togetherDetail: TrackerTogetherDetailDto?
+struct TrackerSummaryDTO: Decodable {
+    let totalCount: Int
+    let readingCount: Int
+    let exchangingCount: Int
+    let reviewCount: Int
 }
 
-struct TrackerRelayDetailDto: Decodable {
+struct TrackerTopBannerResDTO: Decodable {
+    let bannerType: String?
+    let groupId: Int?
+    let matchedMemberId: Int?
+    let groupName: String?
     let partnerNickname: String?
-    let hostProfileImageUrl: String?
-    let guestProfileImageUrls: [String?]?
-    let trackerStatus: String?
-    let stepDates: [String?]?
-}
-
-struct TrackerTogetherDetailDto: Decodable {
-    let hostNickname: String?
-    let participantCount: Int?
-    let myReadingRate: Int?
-    let groupReadingRate: Int?
-}
-
-// MARK: - 도메인 모델
-
-enum ExchangeRole: Hashable {
-    case host
-    case guest
-}
-
-enum ExchangeType: Hashable {
-    case delivery   // 택배
-    case direct     // 직거래
-    case none       // 함께읽기
-
-    static func from(raw: String?) -> ExchangeType {
-        switch raw?.uppercased() {
-        case "DELIVERY", "SHIPPING": return .delivery
-        case "DIRECT":               return .direct
-        default:                     return .none
-        }
-    }
-}
-
-struct TrackerItem: Identifiable, Equatable, Hashable {
-    let id: Int            // = groupId
-    let groupId: Int
-    let role: ExchangeRole
-    let exchangeType: ExchangeType
-    let bookTitle: String
-    let bookAuthor: String
-    let bookCategory: String?
-    let coverImageUrl: String?
-    let withUserName: String?
-
-    // 릴레이(택배/직거래) 진행도
-    let stepDates: [String?]
-    let currentStepIndex: Int          // 0~3, 진행 중인 단계
-    let hostProfileImageUrl: String?
-    let guestProfileImageUrl: String?  // 1:1 릴레이라 단일
-
-    // 함께읽기 독서율
-    let myReadingRate: Int?
-    let groupReadingRate: Int?
-}
-
-// MARK: - 매퍼
-
-extension HostTrackerListItemDto {
-    func toTrackerItem() -> TrackerItem {
-        let type = ExchangeType.from(raw: tradeType)
-        let withName = TrackerModelsMapper.withUserName(
-            exchangeType: type,
-            relay: relayDetail,
-            together: togetherDetail
-        )
-        let stepDates = relayDetail?.stepDates ?? []
-        return TrackerItem(
-            id: groupId,
-            groupId: groupId,
-            role: .host,
-            exchangeType: type,
-            bookTitle: bookTitle ?? "",
-            bookAuthor: bookAuthor ?? "",
-            bookCategory: bookCategory,
-            coverImageUrl: bookImage,
-            withUserName: withName,
-            stepDates: stepDates,
-            currentStepIndex: TrackerModelsMapper.stepIndex(stepDates: stepDates),
-            hostProfileImageUrl: relayDetail?.hostProfileImageUrl,
-            guestProfileImageUrl: relayDetail?.guestProfileImageUrls?.first ?? nil,
-            myReadingRate: togetherDetail?.myReadingRate,
-            groupReadingRate: togetherDetail?.groupReadingRate
-        )
-    }
-}
-
-extension GuestTrackerListItemDto {
-    func toTrackerItem() -> TrackerItem {
-        let type = ExchangeType.from(raw: tradeType)
-        let withName = TrackerModelsMapper.withUserName(
-            exchangeType: type,
-            relay: relayDetail,
-            together: togetherDetail
-        )
-        let stepDates = relayDetail?.stepDates ?? []
-        return TrackerItem(
-            id: groupId,
-            groupId: groupId,
-            role: .guest,
-            exchangeType: type,
-            bookTitle: bookTitle ?? "",
-            bookAuthor: bookAuthor ?? "",
-            bookCategory: bookCategory,
-            coverImageUrl: bookImage,
-            withUserName: withName,
-            stepDates: stepDates,
-            currentStepIndex: TrackerModelsMapper.stepIndex(stepDates: stepDates),
-            hostProfileImageUrl: relayDetail?.hostProfileImageUrl,
-            guestProfileImageUrl: relayDetail?.guestProfileImageUrls?.first ?? nil,
-            myReadingRate: togetherDetail?.myReadingRate,
-            groupReadingRate: togetherDetail?.groupReadingRate
-        )
-    }
-}
-
-enum TrackerModelsMapper {
-    static func withUserName(
-        exchangeType: ExchangeType,
-        relay: TrackerRelayDetailDto?,
-        together: TrackerTogetherDetailDto?
-    ) -> String? {
-        switch exchangeType {
-        case .delivery, .direct:
-            return relay?.partnerNickname
-        case .none:
-            guard let name = together?.hostNickname, !name.isEmpty else { return nil }
-            if let count = together?.participantCount, count > 0 {
-                return "\(name)  +\(count)"
-            }
-            return name
-        }
-    }
-
-    /// stepDates에서 마지막으로 채워진 인덱스 = 진행 중인 단계.
-    /// 안드로이드 TrackerAdapter.progressStatusFromDates 로직 대응.
-    static func stepIndex(stepDates: [String?]) -> Int {
-        let lastFilled = stepDates.lastIndex(where: { !($0 ?? "").isEmpty }) ?? -1
-        // -1(아무 단계도 미진행) → 0단계로 표시 (호스트 읽는 중)
-        return max(0, min(lastFilled, 3))
-    }
-}
-
-// MARK: - 택배 교환 상세 DTO (안드로이드 TrackerDetailResponseDto 대응)
-
-struct TrackerDetailResponse: Decodable {
     let bookTitle: String?
-    let partnerNickname: String?
-    let trackerStatus: TrackerStatusDTO
-    let startDate: String?
-    let endDate: String?
-    let extensionCount: Int?
-    let extensionDays: Int?
-    let readingPeriod: Int?
-    let trackerId: Int?
-    let deliveryInfo: DeliveryInfoDTO?
-    let meetingInfo: MeetingInfoDTO?
+    let title: String?
+    let titleTemplate: String?
+    let subtitle: String?
+    let dDayLabel: String?
+    let targetAt: String?
+    let remainingSeconds: Int?
 }
 
-struct DeliveryInfoDTO: Decodable {
-    let receiverName: String?
-    let receiverPhone: String?
-    let receiverAddress: String?
-    let deliveryCompany: String?
-    let trackingNumber: String?
-    let isVerified: Bool?
+struct TrackerListItemResDTO: Decodable, Identifiable {
+    let groupId: Int
+    let groupName: String?
+    let tradeType: String?
+    let myRole: String?
+    let displayStatus: String?
+    let displayBookTitle: String?
+    let displayStatusLabel: String?
+    let remainingDays: Int?
+    let myCurrentBook: BookInfo?
+    let partnerCurrentBook: BookInfo?
+
+    var id: Int { groupId }
 }
 
-struct MeetingInfoDTO: Decodable {
-    let meetingTime: String?
-    let meetingPlace: String?
+struct BookInfo: Decodable {
+    let title: String?
+    let image: String?
+    let totalPages: Int?
+    let currentPage: Int?
+    let isMyOriginalBook: Bool?
+    let currentReaderNickname: String?
+    let currentReaderProfileImageUrl: String?
+    let currentReadingRate: Int?
 }
 
-enum TrackerStatusDTO: String, Decodable {
-    case ready              = "READY"
-    case hostReading        = "HOST_READING"
-    case hostExtension      = "HOST_EXTENSION"
-    case hostDone           = "HOST_DONE"
-    case shippingToGuest    = "SHIPPING_TO_GUEST"
-    case received           = "RECEIVED"
-    case guestReading       = "GUEST_READING"
-    case guestExtension     = "GUEST_EXTENSION"
-    case guestDone          = "GUEST_DONE"
-    case shippingToHost     = "SHIPPING_TO_HOST"
-    case returned           = "RETURNED"
-    case completed          = "COMPLETED"
-    case unknown            = "UNKNOWN"
+// MARK: - 트래커 상세 (GET /api/trackers/{groupId}/tracker)
 
-    init(from decoder: Decoder) throws {
-        let raw = try decoder.singleValueContainer().decode(String.self)
-        self = TrackerStatusDTO(rawValue: raw) ?? .unknown
-    }
+struct TrackerDetailResDTO: Decodable {
+    let groupId: Int
+    let groupName: String?
+    let tradeType: String?
+    let myRole: String?
+    let displayStatus: String?
+    let displayBookTitle: String?
+    let displayStatusLabel: String?
+    let dDay: Int?
+    let myBook: BookInfo?
+    let partnerBook: BookInfo?
+    let steps: [TrackerStepDTO]?
 }
 
-// MARK: - 배송/수령 요청·응답
+struct TrackerStepDTO: Decodable {
+    let status: String?
+    let title: String?
+    let description: String?
+    let completed: Bool?
+}
 
-struct TrackerShippingStartRequest: Encodable {
+// MARK: - 독서 진행률 (PATCH /api/trackers/{groupId}/reading-progress)
+
+struct ReadingProgressReqDTO: Encodable {
+    let currentPage: Int
+}
+
+struct ReadingProgressResDTO: Decodable {
+    let memberBookId: Int?
+    let currentPage: Int?
+    let totalPages: Int?
+    let progressRate: Int?
+    let readingStatus: String?
+    let readingStatusText: String?
+    let dDay: Int?
+}
+
+// MARK: - 독서 기간 수정 (PATCH /api/trackers/{groupId}/reading-period)
+
+struct ReadingPeriodUpdateReqDTO: Encodable {
+    let newEndDate: String   // "yyyy-MM-dd"
+}
+
+struct ReadingPeriodUpdateResDTO: Decodable {
+    let newEndDate: String?
+    let dDay: Int?
+}
+
+// MARK: - 책 후기 (GET/POST/PATCH /api/groups/{groupId}/reviews ...)
+
+struct BookReviewReqDTO: Encodable {
+    let star: Double
+    let comment: String?
+}
+
+struct BookReviewResDTO: Decodable {
+    let reviewId: Int?
+    let groupId: Int?
+    let memberBookId: Int?
+    let star: Double?
+    let comment: String?
+    let readingStatus: String?
+    let exchangeStatus: String?
+}
+
+struct MyBookReviewsResDTO: Decodable {
+    let reviews: [BookReviewItem]?
+}
+
+struct BookReviewItem: Decodable {
+    let reviewId: Int?
+    let reviewType: String?   // MY_BOOK | PARTNER_BOOK
+    let groupId: Int?
+    let bookId: Int?
+    let bookTitle: String?
+    let bookAuthor: String?
+    let bookImageUrl: String?
+    let rating: Double?
+    let content: String?
+    let isEditable: Bool?
+    let createdAt: String?
+    let updatedAt: String?
+}
+
+// MARK: - 파트너(멤버) 후기 (POST /api/groups/{groupId}/member-reviews)
+
+struct MemberReviewCreateReqDTO: Encodable {
+    let reaction: String?   // BOOM_UP | BOOM_DOWN | nil
+    let comment: String     // 최대 20자
+}
+
+struct MemberReviewResDTO: Decodable {
+    let reviewId: Int?
+    let groupCompleted: Bool?
+}
+
+// MARK: - 배송 등록 (POST /api/groups/{groupId}/deliveries)
+
+struct DeliveryRegisterReqDTO: Encodable {
     let deliveryCompany: String
     let trackingNumber: String
-    let s3Key: String
 }
 
-struct TrackerReceiveRequest: Encodable {
-    let s3Key: String
+// MARK: - 직접 교환 약속 (meetings)
+
+struct MeetingRegisterReqDTO: Encodable {
+    let placeName: String
+    let address: String
+    let zipCode: String?
+    let x: Double
+    let y: Double
+    let addressDetail: String?
+    let meetingAt: String   // offset 포함 ISO date-time
 }
 
-struct TrackerPresignedUrlResponse: Decodable {
-    let s3Key: String
-    let presignedPutUrl: String
+struct MeetingResDTO: Decodable {
+    let meetingId: Int?
+    let exchangeRound: String?   // FIRST_EXCHANGE | RETURN_EXCHANGE
+    let location: MeetingLocationDTO?
+    let addressDetail: String?
+    let meetingAt: String?
+    let createdBy: MeetingCreatedByDTO?
 }
 
-struct TrackerImageResponse: Decodable {
-    /// 안드 TrackerCheckShippingImageResponseDto / TrackerCheckImageResponseDto 의 `presignedGetUrl` 필드.
-    let presignedGetUrl: String
+struct MeetingLocationDTO: Decodable {
+    let placeName: String?
+    let address: String?
+    let zipCode: String?
+    let x: Double?
+    let y: Double?
 }
 
-// MARK: - 직거래 약속 요청 (안드 TrackerMeetingRequest 대응)
+struct MeetingCreatedByDTO: Decodable {
+    let matchedMemberId: Int?
+    let userId: Int?
+    let nickname: String?
+    let role: String?   // HOST | GUEST
+}
 
-struct TrackerMeetingRequest: Encodable {
-    /// "yyyy-MM-dd'T'HH:mm:ss'Z'" — KST 로컬을 시프트 없이 그대로 박는 안드 컨벤션.
-    let meetingTime: String
-    let meetingPlace: String
+// MARK: - 배송지 정보 (deliveries/address)
+
+struct DeliveryAddressResDTO: Decodable {
+    let myAddress: DeliveryAddressItemDTO?
+    let partnerAddress: DeliveryAddressItemDTO?
+    let canEditMyAddress: Bool?
+}
+
+struct DeliveryAddressItemDTO: Decodable {
+    let receiverName: String?
+    let phoneNumber: String?
+    let address: String?
+    let addressDetail: String?
+    let zipCode: String?
+}
+
+struct DeliveryAddressSavedUpdateReqDTO: Encodable {
+    let userDeliveryId: Int
+}
+
+struct DeliveryAddressDirectUpdateReqDTO: Encodable {
+    let zipCode: String
+    let address: String
+    let addressDetail: String
+}
+
+// MARK: - 상대방 운송장 (GET /api/groups/{groupId}/deliveries/partner)
+
+struct PartnerDeliveryResponseDTO: Decodable {
+    let deliveryId: String?
+    let deliveryCompany: String?
+    let deliveryCompanyName: String?
+    let trackingNumber: String?
+    let trackingRegisteredAt: String?
+    let canConfirmReceived: Bool?
 }

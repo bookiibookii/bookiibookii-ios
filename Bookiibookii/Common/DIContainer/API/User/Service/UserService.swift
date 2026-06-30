@@ -116,6 +116,19 @@ final class UserService {
             throw UserError.profileChangeFailed(response.message)
         }
     }
+
+    // GET /api/profiles/{nickname} — 타 유저 프로필 조회
+    func getUserProfile(nickname: String) async throws -> OtherProfileResult {
+        let target = UserAPITarget.getUserProfile(nickname: nickname)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(OtherProfileResponse.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.profileFailed
+        }
+        return result
+    }
 }
 
 enum UserError: LocalizedError {

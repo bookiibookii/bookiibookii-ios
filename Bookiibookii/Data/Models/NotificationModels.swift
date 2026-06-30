@@ -2,6 +2,22 @@ import Foundation
 
 // 안드로이드 NotificationModel.kt + NotificationType.kt 대응.
 
+// 안드로이드 DeviceTokenRegisterRequest 대응 — POST /api/device-tokens (platform iOS)
+struct DeviceTokenRegisterRequest: Encodable {
+    let token: String
+    let platform: String
+
+    init(token: String, platform: String = "IOS") {
+        self.token = token
+        self.platform = platform
+    }
+}
+
+// 안드로이드 DeviceTokenDeactivateRequest 대응 — DELETE /api/device-tokens (body 포함)
+struct DeviceTokenDeactivateRequest: Encodable {
+    let token: String
+}
+
 enum NotificationCategory: String, CaseIterable {
     case system = "SYSTEM"
     case keyword = "KEYWORD"

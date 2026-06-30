@@ -111,55 +111,6 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .hostDelivery(let groupId):
-            HostDeliveryView(
-                groupId: groupId,
-                service: container.api.tracker,
-                libraryService: container.api.library,
-                onBack: { container.navigationRouter.pop() }
-            )
-            .environmentObject(container)
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationBarBackButtonHidden(true)
-        case .guestDelivery(let groupId):
-            GuestDeliveryView(
-                groupId: groupId,
-                service: container.api.tracker,
-                libraryService: container.api.library,
-                onBack: { container.navigationRouter.pop() }
-            )
-            .environmentObject(container)
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationBarBackButtonHidden(true)
-        case .hostDirect(let groupId):
-            HostDirectView(
-                groupId: groupId,
-                service: container.api.tracker,
-                libraryService: container.api.library,
-                onBack: { container.navigationRouter.pop() }
-            )
-            .environmentObject(container)
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationBarBackButtonHidden(true)
-        case .guestDirect(let groupId):
-            GuestDirectView(
-                groupId: groupId,
-                service: container.api.tracker,
-                libraryService: container.api.library,
-                onBack: { container.navigationRouter.pop() }
-            )
-            .environmentObject(container)
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationBarBackButtonHidden(true)
-        case .reviewWrite(let groupId):
-            ReviewWriteView(
-                groupId: groupId,
-                groupService: container.api.group,
-                libraryService: container.api.library
-            )
-            .environmentObject(container)
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationBarBackButtonHidden(true)
         case .group:
             GroupView(groupService: container.api.group)
                 .environmentObject(container)

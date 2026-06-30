@@ -8,6 +8,7 @@ enum UserAPITarget: APITargetType {
     case updateMypage(MypageUpdateRequest)
     case profileChangeInfo
     case updateProfileChangeInfo(ProfileChangeUpdateRequest)
+    case getUserProfile(nickname: String)
 
     var path: String {
         switch self {
@@ -21,12 +22,14 @@ enum UserAPITarget: APITargetType {
             return API.Path.mypage
         case .profileChangeInfo, .updateProfileChangeInfo:
             return API.Path.users + "/me/profile-change"
+        case .getUserProfile(let nickname):
+            return API.Path.userProfile(nickname: nickname)
         }
     }
 
     var method: HTTPMethod {
         switch self {
-        case .mypage, .profileChangeInfo: return .get
+        case .mypage, .profileChangeInfo, .getUserProfile: return .get
         case .updateMypage: return .patch
         case .updateProfileChangeInfo: return .put
         case .checkNickname, .presignedURL, .completeOnboarding: return .post

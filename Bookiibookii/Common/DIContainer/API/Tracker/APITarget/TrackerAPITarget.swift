@@ -1,88 +1,103 @@
 import Foundation
 
-// 안드로이드 TrkApi 대응 (택배 교환 포함).
+// 안드로이드 TrkApi 대응 (신규 트래커 구조).
 enum TrackerAPITarget: APITargetType {
-    case allList
-    case hostList
-    case guestList
-
+    case myTrackers
     case detail(groupId: Int)
-    case startReading(groupId: Int)
-    case requestExtension(groupId: Int, days: Int)
-    case markDone(groupId: Int)
-    case startShipping(groupId: Int, body: TrackerShippingStartRequest)
-    case registerReceipt(groupId: Int, body: TrackerReceiveRequest)
-    case verifyReception(groupId: Int)
-    case presignedUrl(groupId: Int)
-    case shippingImage(groupId: Int)
-    case receivedImage(groupId: Int)
+    case readingProgress(groupId: Int, body: ReadingProgressReqDTO)
+    case readingPeriod(groupId: Int, body: ReadingPeriodUpdateReqDTO)
 
-    // 직거래 약속
-    case makeMeeting(groupId: Int, body: TrackerMeetingRequest)
+    case myBookReviews(groupId: Int)
+    case postBookReview(groupId: Int, body: BookReviewReqDTO)
+    case patchBookReview(groupId: Int, reviewId: Int, body: BookReviewReqDTO)
+    case postMemberReview(groupId: Int, body: MemberReviewCreateReqDTO)
+
+    case registerDelivery(groupId: Int, body: DeliveryRegisterReqDTO)
+
+    case registerMeeting(groupId: Int, body: MeetingRegisterReqDTO)
     case fetchMeeting(groupId: Int)
+    case updateMeeting(groupId: Int, body: MeetingRegisterReqDTO)
     case completeMeeting(groupId: Int)
+
+    case deliveryAddress(groupId: Int)
+    case updateDeliveryAddressSaved(groupId: Int, body: DeliveryAddressSavedUpdateReqDTO)
+    case updateDeliveryAddressDirect(groupId: Int, body: DeliveryAddressDirectUpdateReqDTO)
+    case partnerDelivery(groupId: Int)
+    case confirmPartnerReceive(groupId: Int)
 
     var path: String {
         switch self {
-        case .allList:                             return API.Path.trackers
-        case .hostList:                            return API.Path.trackers + "/host"
-        case .guestList:                           return API.Path.trackers + "/guest"
-        case .detail(let id):                      return API.Path.trackerDetail(groupId: id)
-        case .startReading(let id):                return API.Path.trackerReading(groupId: id)
-        case .requestExtension(let id, _):         return API.Path.trackerPeriodExtension(groupId: id)
-        case .markDone(let id):                    return API.Path.trackerDone(groupId: id)
-        case .startShipping(let id, _):            return API.Path.trackerDelivery(groupId: id)
-        case .registerReceipt(let id, _):          return API.Path.trackerReception(groupId: id)
-        case .verifyReception(let id):             return API.Path.trackerVerification(groupId: id)
-        case .presignedUrl(let id):                return API.Path.trackerPresignedUrl(groupId: id)
-        case .shippingImage(let id):               return API.Path.trackerImageDelivery(groupId: id)
-        case .receivedImage(let id):               return API.Path.trackerImageReceived(groupId: id)
-        case .makeMeeting(let id, _):              return API.Path.trackerMeetings(groupId: id)
-        case .fetchMeeting(let id):                return API.Path.trackerMeetings(groupId: id)
-        case .completeMeeting(let id):             return API.Path.trackerMeetingCompletion(groupId: id)
+        case .myTrackers:
+            return API.Path.myTrackers
+        case .detail(let id):
+            return API.Path.trackerDetail(groupId: id)
+        case .readingProgress(let id, _):
+            return API.Path.trackerReadingProgress(groupId: id)
+        case .readingPeriod(let id, _):
+            return API.Path.trackerReadingPeriod(groupId: id)
+        case .myBookReviews(let id):
+            return API.Path.groupBookReviewsMe(groupId: id)
+        case .postBookReview(let id, _):
+            return API.Path.groupReviews(groupId: id)
+        case .patchBookReview(let id, let reviewId, _):
+            return API.Path.groupBookReview(groupId: id, reviewId: reviewId)
+        case .postMemberReview(let id, _):
+            return API.Path.groupMemberReviews(groupId: id)
+        case .registerDelivery(let id, _):
+            return API.Path.groupDeliveries(groupId: id)
+        case .registerMeeting(let id, _), .fetchMeeting(let id), .updateMeeting(let id, _):
+            return API.Path.groupMeetings(groupId: id)
+        case .completeMeeting(let id):
+            return API.Path.groupMeetingCompletion(groupId: id)
+        case .deliveryAddress(let id):
+            return API.Path.groupDeliveryAddress(groupId: id)
+        case .updateDeliveryAddressSaved(let id, _):
+            return API.Path.groupDeliveryAddressMeSaved(groupId: id)
+        case .updateDeliveryAddressDirect(let id, _):
+            return API.Path.groupDeliveryAddressMeDirect(groupId: id)
+        case .partnerDelivery(let id):
+            return API.Path.groupPartnerDelivery(groupId: id)
+        case .confirmPartnerReceive(let id):
+            return API.Path.groupPartnerDeliveryReceive(groupId: id)
         }
     }
 
     var method: HTTPMethod {
         switch self {
-        case .allList, .hostList, .guestList,
-             .detail, .shippingImage, .receivedImage,
-             .fetchMeeting:
+        case .myTrackers, .detail, .myBookReviews, .fetchMeeting,
+             .deliveryAddress, .partnerDelivery:
             return .get
-        case .startShipping, .presignedUrl:
+        case .postBookReview, .postMemberReview, .registerDelivery, .registerMeeting:
             return .post
-        case .startReading, .requestExtension, .markDone,
-             .registerReceipt, .verifyReception,
-             .makeMeeting, .completeMeeting:
+        case .readingProgress, .readingPeriod, .patchBookReview,
+             .updateMeeting, .completeMeeting, .confirmPartnerReceive:
             return .patch
-        }
-    }
-
-    var queryItems: [URLQueryItem] {
-        switch self {
-        case .requestExtension(_, let days):
-            return [URLQueryItem(name: "days", value: "\(days)")]
-        default:
-            return []
+        case .updateDeliveryAddressSaved, .updateDeliveryAddressDirect:
+            return .put
         }
     }
 
     var body: Data? {
         switch self {
-        case .startShipping(_, let body):
-            return try? JSONEncoder().encode(body)
-        case .registerReceipt(_, let body):
-            return try? JSONEncoder().encode(body)
-        case .makeMeeting(_, let body):
-            return try? JSONEncoder().encode(body)
-        default:
-            return nil
+        case .readingProgress(_, let body):            return try? JSONEncoder().encode(body)
+        case .readingPeriod(_, let body):              return try? JSONEncoder().encode(body)
+        case .postBookReview(_, let body):             return try? JSONEncoder().encode(body)
+        case .patchBookReview(_, _, let body):         return try? JSONEncoder().encode(body)
+        case .postMemberReview(_, let body):           return try? JSONEncoder().encode(body)
+        case .registerDelivery(_, let body):           return try? JSONEncoder().encode(body)
+        case .registerMeeting(_, let body):            return try? JSONEncoder().encode(body)
+        case .updateMeeting(_, let body):              return try? JSONEncoder().encode(body)
+        case .updateDeliveryAddressSaved(_, let body): return try? JSONEncoder().encode(body)
+        case .updateDeliveryAddressDirect(_, let body): return try? JSONEncoder().encode(body)
+        default:                                        return nil
         }
     }
 
     var headers: [String: String] {
         switch self {
-        case .startShipping, .registerReceipt, .makeMeeting:
+        case .readingProgress, .readingPeriod, .postBookReview, .patchBookReview,
+             .postMemberReview, .registerDelivery, .registerMeeting, .updateMeeting,
+             .updateDeliveryAddressSaved, .updateDeliveryAddressDirect:
             return ["Content-Type": "application/json"]
         default:
             return [:]

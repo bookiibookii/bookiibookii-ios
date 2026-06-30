@@ -167,17 +167,9 @@ final class LibraryCardListViewModel: ObservableObject {
         }
     }
 
-    /// `Tracker` 화면이 사용하는 동일한 API(`/api/groups/me/trackers`)에서 함께읽기 그룹의
-    /// 본인 독서율 / 그룹 평균 독서율을 가져와 게이지에 반영합니다.
+    /// (함께읽기 제거) 트래커 API에서 독서율을 받아오던 경로 — 트래커 전면 재작업으로 비활성화.
     private func refreshTogetherRatesFromTrackers() async {
-        do {
-            let map = try await trackerService.fetchTogetherReadingRates()
-            guard let snapshot = map[groupId] else { return }
-            togetherMyReadingRate = snapshot.myReadingRate
-            togetherGroupReadingRate = snapshot.groupReadingRate
-        } catch {
-            // 트래커 API 실패는 조용히 무시 (캐시/라이브러리 응답을 폴백으로 사용).
-        }
+        // 트래커 연동 제거됨: 별도 동작 없음.
     }
 
     /// 서버 라이브러리 응답에 함께읽기 독서율/완독시각 필드가 추가되면 자동으로 반영되도록
