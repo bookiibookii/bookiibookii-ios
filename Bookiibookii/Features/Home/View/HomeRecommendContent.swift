@@ -71,7 +71,13 @@ private struct HomeSectionHeader: View {
 private struct HomeGroupCarouselSection: View {
     let section: HomeSection
     var onGroupTap: (Int) -> Void
-    @State private var page = 0
+    @State private var scrolledIndex: Int?
+
+    // 안드 HorizontalPager(pageSize=Fixed(334.dp), pageSpacing=12, contentPadding=16)와 동일.
+    // 카드 너비를 화면보다 좁게 고정 → 오른쪽 다음 카드가 살짝 보임(peek).
+    private let horizontalInset: CGFloat = 16
+    private let cardSpacing: CGFloat = 12
+    private let cardWidth: CGFloat = 334
 
     private var cards: [HomeGroupCardData] { section.items.map { $0.homeGroupCardData } }
 
@@ -80,21 +86,26 @@ private struct HomeGroupCarouselSection: View {
             HomeSectionHeader(title: section.title, subtitle: section.subtitle)
                 .padding(.horizontal, 16)
 
-            TabView(selection: $page) {
-                ForEach(Array(cards.enumerated()), id: \.offset) { index, data in
-                    HomeRecommendGroupCard(data: data, onTap: { onGroupTap(data.groupId) })
-                        .padding(.horizontal, 16)
-                        .tag(index)
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: cardSpacing) {
+                    ForEach(Array(cards.enumerated()), id: \.offset) { index, data in
+                        HomeRecommendGroupCard(data: data, onTap: { onGroupTap(data.groupId) })
+                            .frame(width: cardWidth)
+                            .id(index)
+                    }
                 }
+                .scrollTargetLayout()
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
+            .contentMargins(.horizontal, horizontalInset, for: .scrollContent)
+            .scrollTargetBehavior(.viewAligned)
+            .scrollPosition(id: $scrolledIndex, anchor: .leading)
             .frame(height: 200)
 
             if cards.count > 1 {
                 HStack(spacing: 6) {
                     ForEach(cards.indices, id: \.self) { i in
                         Circle()
-                            .fill(i == page ? Color("grey400") : Color("grey200"))
+                            .fill(i == (scrolledIndex ?? 0) ? Color("grey400") : Color("grey200"))
                             .frame(width: 8, height: 8)
                     }
                 }
