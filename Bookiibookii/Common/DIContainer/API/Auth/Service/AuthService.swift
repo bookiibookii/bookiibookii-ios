@@ -29,6 +29,22 @@ final class AuthService {
         _ = try? await URLSession.shared.data(for: request)
     }
 
+    // 안드로이드 AuthApi.withdraw 대응 — DELETE /api/auth/withdraw
+    func withdraw(accessToken: String) async throws {
+        let target = AuthAPITarget.withdraw(accessToken: accessToken)
+        let request = target.asURLRequest()
+
+        let (data, httpResponse) = try await URLSession.shared.data(for: request)
+        guard let statusCode = (httpResponse as? HTTPURLResponse)?.statusCode,
+              (200...299).contains(statusCode) else {
+            throw AuthError.withdrawFailed
+        }
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw AuthError.withdrawFailed
+        }
+    }
+
     func login(socialType: String, token: String) async throws -> LoginResult {
         let target = AuthAPITarget.login(socialType: socialType, token: token)
         let request = target.asURLRequest()
@@ -46,11 +62,13 @@ final class AuthService {
 enum AuthError: LocalizedError {
     case loginFailed(String)
     case refreshFailed
+    case withdrawFailed
 
     var errorDescription: String? {
         switch self {
         case .loginFailed(let msg): return msg
         case .refreshFailed: return "토큰 갱신에 실패했습니다."
+        case .withdrawFailed: return "회원탈퇴에 실패했습니다."
         }
     }
 }
