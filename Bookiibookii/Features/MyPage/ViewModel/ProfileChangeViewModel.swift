@@ -33,12 +33,8 @@ final class ProfileChangeViewModel: ObservableObject {
     @Published var selectedImage: UIImage?
     @Published var photoImportError: String?
     @Published var nickname: String = ""
-    @Published var name: String = ""
-    @Published var phone: String = ""
-    @Published var zipCode: String = ""
-    @Published var address: String = ""
-    @Published var detailAddress: String = ""
-    @Published var exchangeRegion: String = ""
+    @Published var gender: Gender?
+    @Published var birthDate: Date?
     @Published var isSaving = false
     @Published var saveMessage: String?
     @Published var nicknameValidationState: NicknameValidationState = .idle
@@ -58,11 +54,8 @@ final class ProfileChangeViewModel: ObservableObject {
     var canSubmit: Bool {
         !nickname.trimmed.isEmpty &&
         isNicknameValidForSubmit &&
-        !name.trimmed.isEmpty &&
-        !phone.trimmed.isEmpty &&
-        !zipCode.trimmed.isEmpty &&
-        !address.trimmed.isEmpty &&
-        !detailAddress.trimmed.isEmpty
+        gender != nil &&
+        birthDate != nil
     }
 
     func load() async {
@@ -72,15 +65,11 @@ final class ProfileChangeViewModel: ObservableObject {
             nickname = profile.nickname
             originalNickname = profile.nickname
             nicknameValidationState = .available
-            name = profile.receiverName ?? ""
-            phone = formatPhoneNumber(profile.phone ?? "")
-            zipCode = profile.zipCode ?? ""
-            address = profile.address ?? ""
-            detailAddress = profile.addressDetail ?? ""
-            exchangeRegion = profile.region ?? ""
+            gender = Gender.from(server: profile.gender)
+            birthDate = Self.parseBirthDate(profile.birthDate)
             originalSnapshot = currentSnapshot
         } catch {
-            print("마이페이지 정보 로드 실패: \(error)")
+            print("프로필 정보 로드 실패: \(error)")
         }
     }
 
@@ -89,24 +78,34 @@ final class ProfileChangeViewModel: ObservableObject {
         isSaving = true
         defer { isSaving = false }
 
+        if nickname.trimmed != originalNickname.trimmed {
+            await checkNicknameDuplicatedAsync()
+            guard nicknameValidationState.isAvailable else {
+                saveMessage = nicknameValidationState.message.isEmpty
+                    ? "닉네임 중복 확인이 필요합니다."
+                    : nicknameValidationState.message
+                return
+            }
+        }
+
         do {
             let s3Key = try await uploadProfileImageIfNeeded()
+            guard let birth = birthDate else { return }
 
             let payload = MypageUpdateRequest(
                 nickname: nickname.trimmed,
-                s3Key: s3Key,
-                receiverName: name.trimmed,
-                phone: phone.trimmed,
-                zipCode: zipCode.trimmed,
-                address: address.trimmed,
-                addressDetail: detailAddress.trimmed,
-                meetPlace: nil,
-                region: emptyToNil(exchangeRegion)
+                gender: gender?.serverValue,
+                birth: Self.birthFormatter.string(from: birth),
+                s3Key: s3Key
             )
-
             try await userService.updateMypage(payload)
+
+            let updated = try await userService.getMypage()
+            profileImageURL = updated.profileImageUrl.flatMap(URL.init(string:))
+
             saveMessage = "수정사항이 저장되었어요."
             originalSnapshot = currentSnapshot
+            originalNickname = nickname.trimmed
             selectedImage = nil
         } catch {
             saveMessage = "저장에 실패했어요. 잠시 후 다시 시도해 주세요."
@@ -118,13 +117,17 @@ final class ProfileChangeViewModel: ObservableObject {
         Task { await loadProfilePhoto(from: item) }
     }
 
+    func setCapturedImage(_ image: UIImage) {
+        selectedImage = image
+        photoImportError = nil
+    }
+
     private func loadProfilePhoto(from item: PhotosPickerItem) async {
         do {
             let image = try await PhotosPickerImageLoader.uiImage(from: item)
-            self.selectedImage = image
-            self.photoImportError = nil
+            setCapturedImage(image)
         } catch {
-            self.photoImportError = error.localizedDescription
+            photoImportError = error.localizedDescription
         }
     }
 
@@ -150,6 +153,10 @@ final class ProfileChangeViewModel: ObservableObject {
     }
 
     func checkNicknameDuplicated() {
+        Task { await checkNicknameDuplicatedAsync() }
+    }
+
+    private func checkNicknameDuplicatedAsync() async {
         let trimmed = nickname.trimmed
         guard !trimmed.isEmpty else { return }
         if trimmed == originalNickname.trimmed {
@@ -158,82 +165,59 @@ final class ProfileChangeViewModel: ObservableObject {
         }
 
         nicknameValidationState = .loading
-        Task {
-            do {
-                let result = try await userService.checkNickname(trimmed)
-                switch result.code {
-                case "SUCCESS": nicknameValidationState = .available
-                case "DUPLICATE": nicknameValidationState = .duplicate
-                case "BAD_WORD": nicknameValidationState = .badWord
-                default: nicknameValidationState = .error(result.message)
-                }
-            } catch {
-                nicknameValidationState = .error(error.localizedDescription)
+        do {
+            let result = try await userService.checkNickname(trimmed)
+            switch result.code {
+            case "SUCCESS": nicknameValidationState = .available
+            case "DUPLICATE": nicknameValidationState = .duplicate
+            case "BAD_WORD": nicknameValidationState = .badWord
+            default: nicknameValidationState = .error(result.message)
             }
+        } catch {
+            nicknameValidationState = .error(error.localizedDescription)
         }
     }
 
-    func updatePhone(_ input: String) {
-        phone = formatPhoneNumber(input)
-    }
-
     private var currentSnapshot: ProfileSnapshot {
-        .init(
+        ProfileSnapshot(
             nickname: nickname,
-            name: name,
-            phone: phone,
-            zipCode: zipCode,
-            address: address,
-            detailAddress: detailAddress,
-            exchangeRegion: exchangeRegion
+            gender: gender,
+            birthDate: birthDate
         )
-    }
-
-    private func emptyToNil(_ value: String) -> String? {
-        value.trimmed.isEmpty ? nil : value.trimmed
     }
 
     private var isNicknameValidForSubmit: Bool {
         nickname.trimmed == originalNickname.trimmed || nicknameValidationState.isAvailable
     }
 
-    private func formatPhoneNumber(_ input: String) -> String {
-        let digits = input.filter(\.isNumber)
-        let limited = String(digits.prefix(11))
-        switch limited.count {
-        case 0...3:
-            return limited
-        case 4...7:
-            let first = limited.prefix(3)
-            let second = limited.dropFirst(3)
-            return "\(first)-\(second)"
-        default:
-            let first = limited.prefix(3)
-            let middle = limited.dropFirst(3).prefix(4)
-            let last = limited.dropFirst(7)
-            return "\(first)-\(middle)-\(last)"
-        }
+    private static let birthFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
+    private static let birthParser: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
+    private static func parseBirthDate(_ value: String?) -> Date? {
+        guard let value, !value.isEmpty else { return nil }
+        return birthParser.date(from: value)
     }
 }
 
 private struct ProfileSnapshot: Equatable {
     let nickname: String
-    let name: String
-    let phone: String
-    let zipCode: String
-    let address: String
-    let detailAddress: String
-    let exchangeRegion: String
+    let gender: Gender?
+    let birthDate: Date?
 
-    static let empty = ProfileSnapshot(
-        nickname: "",
-        name: "",
-        phone: "",
-        zipCode: "",
-        address: "",
-        detailAddress: "",
-        exchangeRegion: ""
-    )
+    static let empty = ProfileSnapshot(nickname: "", gender: nil, birthDate: nil)
 }
 
 private extension String {

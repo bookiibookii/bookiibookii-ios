@@ -8,7 +8,7 @@ struct ExchangeAddress: Decodable, Identifiable, Equatable {
     let id: Int
     let placeName: String
     let address: String
-    let zipCode: String
+    let zipCode: String?
     let x: Double
     let y: Double
     let addressDetail: String?   // null 가능

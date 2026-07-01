@@ -9,6 +9,7 @@ enum API {
         static let users = "/api/users"
         static let onboarding = "/api/onboarding"
         static let mypage = "/api/mypage"
+        static let mypageIntroduction = mypage + "/introduction"
         static let groups = "/api/groups"
         static let books = "/api/books"
         static let recommendations = "/api/recommendations"

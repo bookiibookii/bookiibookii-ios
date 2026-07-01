@@ -37,6 +37,11 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .addressManagement:
+            AddressManagementView(locationService: container.api.location)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         case .questoin:
             QuestoinView(inquiryService: container.api.inquiry)
                 .environmentObject(container)

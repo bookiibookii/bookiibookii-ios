@@ -92,6 +92,18 @@ final class UserService {
         }
     }
 
+    // PATCH /api/mypage/introduction
+    func updateIntroduction(_ introduction: String) async throws {
+        let target = UserAPITarget.updateIntroduction(UpdateIntroductionRequest(introduction: introduction))
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw UserError.profileChangeFailed(response.message)
+        }
+    }
+
     // GET /api/users/me/profile-change
     func getProfileChangeInfo() async throws -> ProfileChangeInfoResult {
         let target = UserAPITarget.profileChangeInfo

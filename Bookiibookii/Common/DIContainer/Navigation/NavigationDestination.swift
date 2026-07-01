@@ -10,6 +10,7 @@ enum NavigationDestination: Hashable {
     case setting
     case recievedReview
     case profileChange
+    case addressManagement
     case questoin
     case qustionDetail
     case notice
