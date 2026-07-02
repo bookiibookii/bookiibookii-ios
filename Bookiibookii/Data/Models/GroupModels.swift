@@ -19,7 +19,7 @@ struct GroupPageResult: Codable {
 struct GroupItemDto: Codable, Identifiable {
     let groupId: Int
     let groupName: String?           // 안드 신규
-    let title: String
+    let title: String?               // 안드 GroupItem.title 은 nullable (bookTitle alt)
     let author: String?
     let genre: String?
     let bookImage: String?
@@ -32,7 +32,7 @@ struct GroupItemDto: Codable, Identifiable {
     let waitingCount: Int?           // 안드 신규
     let readingPeriod: Int
     let customTag: String?
-    let groupType: String            // TOGETHER | RELAY
+    let groupType: String?           // 안드 GroupItem.groupType 은 nullable (nil → RELAY 취급)
     let tradeType: String?           // DELIVERY | DIRECT | nil
     let startDate: String?
     let isHot: Bool
@@ -79,45 +79,6 @@ enum GroupSort: String {
         case .recommend: return "추천순"
         case .latest:    return "최신순"
         case .popular:   return "인기순"
-        }
-    }
-}
-
-enum GroupTypeFilter: String, CaseIterable, Identifiable {
-    case together, delivery, direct
-    var id: String { rawValue }
-    var displayName: String {
-        switch self {
-        case .together: return "함께 읽기"
-        case .delivery: return "택배 교환"
-        case .direct:   return "직접 교환"
-        }
-    }
-}
-
-enum CategoryFilter: String, CaseIterable, Identifiable {
-    case econBiz = "ECON_BIZ"
-    case sciIt = "SCI_IT"
-    case novelGenre = "NOVEL_GENRE"
-    case poemEssay = "POEM_ESSAY"
-    case homeHobby = "HOME_HOBBY"
-    case artCulture = "ART_CULTURE"
-    case humanHistory = "HUMAN_HISTORY"
-    case selfDev = "SELF_DEV"
-    case polSoc = "POL_SOC"
-
-    var id: String { rawValue }
-    var displayName: String {
-        switch self {
-        case .econBiz:      return "경제/경영"
-        case .sciIt:        return "과학/IT"
-        case .novelGenre:   return "소설/장르"
-        case .poemEssay:    return "시/에세이"
-        case .homeHobby:    return "가정/취미"
-        case .artCulture:   return "예술/문화"
-        case .humanHistory: return "인문/역사"
-        case .selfDev:      return "자기계발"
-        case .polSoc:       return "정치/사회"
         }
     }
 }

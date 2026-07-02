@@ -38,7 +38,7 @@ struct HomeGroupCardData: Identifiable {
 extension GroupItemDto {
     var homeCardData: HomeGroupCardData {
         HomeGroupCardData(
-            groupId: groupId, bookImage: bookImage, title: title, author: author,
+            groupId: groupId, bookImage: bookImage, title: title ?? "", author: author,
             genre: genre, tradeType: tradeType, readingPeriod: readingPeriod,
             hostNickname: hostNickname, hostProfileImageUrl: hostProfileImageUrl,
             groupName: groupName

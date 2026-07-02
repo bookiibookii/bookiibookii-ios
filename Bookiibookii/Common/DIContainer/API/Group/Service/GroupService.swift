@@ -7,21 +7,19 @@ final class GroupService {
 
     init(interceptor: AuthInterceptor) { self.interceptor = interceptor }
 
-    /// GET /api/groups
+    /// GET /api/groups (안드 getGroupList)
     /// - Parameters는 nil이면 해당 필터 미적용(전체).
     func fetchGroups(
-        groupTypes: [String]?,
         tradeTypes: [String]?,
-        meetPlace: [String]?,
+        regions: [String]?,
         categories: [String]?,
         sort: GroupSort,
         page: Int,
-        size: Int = 20
+        size: Int = 10
     ) async throws -> GroupPageResult {
         let target = GroupAPITarget.fetchGroups(
-            groupTypes: groupTypes,
             tradeTypes: tradeTypes,
-            meetPlace: meetPlace,
+            regions: regions,
             categories: categories,
             sort: sort,
             page: page,
