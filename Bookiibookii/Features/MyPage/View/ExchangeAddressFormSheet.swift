@@ -7,7 +7,7 @@ struct ExchangeAddressFormSheet: View {
     let isSaving: Bool
     let onCancel: () -> Void
     let onSave: () -> Void
-    let onSelectPlace: (DaumPostcodeResult) -> Void
+    let onSelectPlace: (KakaoPlaceResult) -> Void
 
     enum Mode {
         case add
@@ -26,8 +26,7 @@ struct ExchangeAddressFormSheet: View {
             formContent
 
             if isSearchPresented {
-                AddressSearchOverlay(
-                    title: "장소 검색",
+                ExchangePlaceSearchOverlay(
                     onClose: { isSearchPresented = false },
                     onSelect: onSelectPlace
                 )
@@ -144,7 +143,7 @@ struct ExchangeAddressFormSheet: View {
 
                     Text(
                         formState.searchDisplayText.isEmpty
-                            ? "지번, 도로명, 건물명으로 검색"
+                            ? "키워드로 장소 검색"
                             : formState.searchDisplayText
                     )
                     .pretendardText(size: 15, weight: .regular)

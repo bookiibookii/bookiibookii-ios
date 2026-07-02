@@ -124,26 +124,16 @@ struct ExchangeAddressFormState: Equatable {
         x != nil && y != nil && !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
-    mutating func apply(postcode: DaumPostcodeResult) {
-        searchedPlaceName = postcode.buildingName.isEmpty ? postcode.roadAddress : postcode.buildingName
-        address = postcode.roadAddress
-        zipCode = postcode.zonecode
-        x = postcode.x
-        y = postcode.y
-        searchDisplayText = postcode.roadAddress
-        if placeName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-           !postcode.buildingName.isEmpty {
-            placeName = postcode.buildingName
-        }
-    }
-
     mutating func apply(place: KakaoPlaceResult) {
         searchedPlaceName = place.placeName
         address = place.address
         zipCode = place.zipCode ?? ""
         x = place.x
         y = place.y
-        searchDisplayText = place.address
+        searchDisplayText = place.placeName
+        if placeName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            placeName = place.placeName
+        }
     }
 
     func toRequest() -> ExchangeAddressRequest {
@@ -304,8 +294,8 @@ final class AddressManagementViewModel: ObservableObject {
         showPostcode = false
     }
 
-    func applyExchangePostcode(_ result: DaumPostcodeResult) {
-        exchangeFormState.apply(postcode: result)
+    func applyExchangePlace(_ place: KakaoPlaceResult) {
+        exchangeFormState.apply(place: place)
         showPlaceSearch = false
     }
 

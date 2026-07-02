@@ -56,7 +56,7 @@ struct AddressManagementView: View {
                 isSaving: viewModel.isSaving,
                 onCancel: { viewModel.closeExchangeForm() },
                 onSave: { Task { await viewModel.saveExchangeForm() } },
-                onSelectPlace: { viewModel.applyExchangePostcode($0) }
+                onSelectPlace: { viewModel.applyExchangePlace($0) }
             )
             .presentationDetents([.large])
             .presentationDragIndicator(.hidden)

@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct KakaoPlaceSearchView: View {
-    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = KakaoPlaceSearchViewModel()
 
     let onSelect: (KakaoPlaceResult) -> Void
@@ -37,7 +36,6 @@ struct KakaoPlaceSearchView: View {
                             ForEach(viewModel.results) { place in
                                 Button {
                                     onSelect(place)
-                                    dismiss()
                                 } label: {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(place.placeName)
@@ -66,14 +64,17 @@ struct KakaoPlaceSearchView: View {
 
     private var searchField: some View {
         HStack(spacing: 8) {
-            Image("ic_search")
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 20, height: 20)
-                .foregroundColor(Color("grey500"))
+            Button { Task { await viewModel.search() } } label: {
+                Image("ic_search")
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                    .foregroundColor(Color("grey500"))
+            }
+            .buttonStyle(.plain)
 
-            TextField("", text: $viewModel.query, prompt: Text("지번, 도로명, 건물명으로 검색")
+            TextField("", text: $viewModel.query, prompt: Text("키워드로 장소 검색")
                 .font(.pretendard(size: 15))
                 .foregroundColor(Color("grey500")))
             .font(.pretendard(size: 15))
@@ -128,7 +129,7 @@ private final class KakaoPlaceSearchViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            results = try await searchService.searchPlaces(query: keyword)
+            results = try await searchService.searchByKeyword(query: keyword)
         } catch {
             errorMessage = error.localizedDescription
             results = []
