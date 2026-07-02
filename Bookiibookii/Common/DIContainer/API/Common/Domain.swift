@@ -10,6 +10,15 @@ enum API {
         static let onboarding = "/api/onboarding"
         static let mypage = "/api/mypage"
         static let mypageIntroduction = mypage + "/introduction"
+        static let mypageBookshelf = mypage + "/bookshelf"
+        static let mypageBookshelfRepresentativesOrder = mypageBookshelf + "/representatives/order"
+        static func mypageBookshelfRepresentative(userBookId: Int) -> String {
+            mypageBookshelf + "/representatives/\(userBookId)"
+        }
+        static let mypageBookshelfFavorites = mypageBookshelf + "/favorites"
+        static func mypageBookshelfFavorite(userBookId: Int) -> String {
+            mypageBookshelfFavorites + "/\(userBookId)"
+        }
         static let groups = "/api/groups"
         static let books = "/api/books"
         static let recommendations = "/api/recommendations"

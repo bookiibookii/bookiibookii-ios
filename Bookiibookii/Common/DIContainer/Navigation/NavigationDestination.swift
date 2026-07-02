@@ -26,5 +26,6 @@ enum NavigationDestination: Hashable {
     case togetherReview(userBookId: Int, bookTitle: String)
     case group
     case myPage
+    case myBookShelf
     case notification
 }

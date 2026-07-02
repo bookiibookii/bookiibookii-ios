@@ -321,7 +321,9 @@ struct MyPageView: View {
 
     private var bookshelfSection: some View {
         VStack(spacing: 16) {
-            sectionHeader(title: "나의 책장", showChevron: true) {}
+            sectionHeader(title: "나의 책장", showChevron: true) {
+                container.navigationRouter.push(to: .myBookShelf)
+            }
 
             if !viewModel.userBooks.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {

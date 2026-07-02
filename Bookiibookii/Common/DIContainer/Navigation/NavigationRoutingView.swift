@@ -126,6 +126,14 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .myBookShelf:
+            MyBookShelfView(
+                userService: container.api.user,
+                groupService: container.api.group
+            )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         case .notification:
             NotificationView(
                 notificationService: container.api.notification,

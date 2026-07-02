@@ -7,6 +7,12 @@ enum UserAPITarget: APITargetType {
     case mypage
     case updateMypage(MypageUpdateRequest)
     case updateIntroduction(UpdateIntroductionRequest)
+    case bookshelf
+    case deleteRepresentativeBook(userBookId: Int)
+    case reorderRepresentativeBooks(ReorderRepresentativeRequest)
+    case addFavoriteBook(FavoriteBookISBNRequest)
+    case replaceFavoriteBook(userBookId: Int, request: FavoriteBookISBNRequest)
+    case deleteFavoriteBook(userBookId: Int)
     case profileChangeInfo
     case updateProfileChangeInfo(ProfileChangeUpdateRequest)
     case getUserProfile(nickname: String)
@@ -23,6 +29,18 @@ enum UserAPITarget: APITargetType {
             return API.Path.mypage
         case .updateIntroduction:
             return API.Path.mypageIntroduction
+        case .bookshelf:
+            return API.Path.mypageBookshelf
+        case .deleteRepresentativeBook(let userBookId):
+            return API.Path.mypageBookshelfRepresentative(userBookId: userBookId)
+        case .reorderRepresentativeBooks:
+            return API.Path.mypageBookshelfRepresentativesOrder
+        case .addFavoriteBook:
+            return API.Path.mypageBookshelfFavorites
+        case .replaceFavoriteBook(let userBookId, _):
+            return API.Path.mypageBookshelfFavorite(userBookId: userBookId)
+        case .deleteFavoriteBook(let userBookId):
+            return API.Path.mypageBookshelfFavorite(userBookId: userBookId)
         case .profileChangeInfo, .updateProfileChangeInfo:
             return API.Path.users + "/me/profile-change"
         case .getUserProfile(let nickname):
@@ -32,10 +50,11 @@ enum UserAPITarget: APITargetType {
 
     var method: HTTPMethod {
         switch self {
-        case .mypage, .profileChangeInfo, .getUserProfile: return .get
-        case .updateMypage, .updateIntroduction: return .patch
+        case .mypage, .profileChangeInfo, .getUserProfile, .bookshelf: return .get
+        case .updateMypage, .updateIntroduction, .reorderRepresentativeBooks, .replaceFavoriteBook: return .patch
+        case .deleteRepresentativeBook, .deleteFavoriteBook: return .delete
         case .updateProfileChangeInfo: return .put
-        case .checkNickname, .presignedURL, .completeOnboarding: return .post
+        case .checkNickname, .presignedURL, .completeOnboarding, .addFavoriteBook: return .post
         }
     }
 
@@ -56,6 +75,10 @@ enum UserAPITarget: APITargetType {
             return try? JSONEncoder().encode(request)
         case .updateIntroduction(let request):
             return try? JSONEncoder().encode(request)
+        case .reorderRepresentativeBooks(let request):
+            return try? JSONEncoder().encode(request)
+        case .addFavoriteBook(let request), .replaceFavoriteBook(_, let request):
+            return try? JSONEncoder().encode(request)
         case .updateProfileChangeInfo(let request):
             return try? JSONEncoder().encode(request)
         default:
@@ -65,7 +88,7 @@ enum UserAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .presignedURL, .completeOnboarding, .updateMypage, .updateIntroduction, .updateProfileChangeInfo:
+        case .presignedURL, .completeOnboarding, .updateMypage, .updateIntroduction, .updateProfileChangeInfo, .reorderRepresentativeBooks, .addFavoriteBook, .replaceFavoriteBook:
             return ["Content-Type": "application/json"]
         default:
             return [:]
