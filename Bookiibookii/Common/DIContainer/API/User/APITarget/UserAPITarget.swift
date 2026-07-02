@@ -13,6 +13,8 @@ enum UserAPITarget: APITargetType {
     case addFavoriteBook(FavoriteBookISBNRequest)
     case replaceFavoriteBook(userBookId: Int, request: FavoriteBookISBNRequest)
     case deleteFavoriteBook(userBookId: Int)
+    case mypageWrittenReviews(page: Int, size: Int)
+    case mypageReceivedReviews(page: Int, size: Int)
     case profileChangeInfo
     case updateProfileChangeInfo(ProfileChangeUpdateRequest)
     case getUserProfile(nickname: String)
@@ -41,6 +43,10 @@ enum UserAPITarget: APITargetType {
             return API.Path.mypageBookshelfFavorite(userBookId: userBookId)
         case .deleteFavoriteBook(let userBookId):
             return API.Path.mypageBookshelfFavorite(userBookId: userBookId)
+        case .mypageWrittenReviews:
+            return API.Path.mypageReviewsWritten
+        case .mypageReceivedReviews:
+            return API.Path.mypageReviewsReceived
         case .profileChangeInfo, .updateProfileChangeInfo:
             return API.Path.users + "/me/profile-change"
         case .getUserProfile(let nickname):
@@ -50,7 +56,8 @@ enum UserAPITarget: APITargetType {
 
     var method: HTTPMethod {
         switch self {
-        case .mypage, .profileChangeInfo, .getUserProfile, .bookshelf: return .get
+        case .mypage, .profileChangeInfo, .getUserProfile, .bookshelf,
+             .mypageWrittenReviews, .mypageReceivedReviews: return .get
         case .updateMypage, .updateIntroduction, .reorderRepresentativeBooks, .replaceFavoriteBook: return .patch
         case .deleteRepresentativeBook, .deleteFavoriteBook: return .delete
         case .updateProfileChangeInfo: return .put
@@ -62,6 +69,12 @@ enum UserAPITarget: APITargetType {
         switch self {
         case .checkNickname(let nickname):
             return [URLQueryItem(name: "nickname", value: nickname)]
+        case .mypageWrittenReviews(let page, let size),
+             .mypageReceivedReviews(let page, let size):
+            return [
+                URLQueryItem(name: "page", value: String(page)),
+                URLQueryItem(name: "size", value: String(size))
+            ]
         default:
             return []
         }

@@ -8,7 +8,7 @@ enum NavigationDestination: Hashable {
     case onboarding
     case mainTab
     case setting
-    case recievedReview
+    case myReviews(initialTab: MyReviewTab, nickname: String)
     case profileChange
     case addressManagement
     case questoin

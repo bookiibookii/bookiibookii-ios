@@ -19,6 +19,8 @@ enum API {
         static func mypageBookshelfFavorite(userBookId: Int) -> String {
             mypageBookshelfFavorites + "/\(userBookId)"
         }
+        static let mypageReviewsWritten = mypage + "/reviews/written"
+        static let mypageReviewsReceived = mypage + "/reviews/received"
         static let groups = "/api/groups"
         static let books = "/api/books"
         static let recommendations = "/api/recommendations"

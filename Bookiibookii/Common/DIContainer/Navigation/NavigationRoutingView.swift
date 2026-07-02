@@ -27,8 +27,12 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .recievedReview:
-            RecievedReviewView()
+        case .myReviews(let initialTab, let nickname):
+            MyReviewsView(
+                userService: container.api.user,
+                initialTab: initialTab,
+                nickname: nickname
+            )
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)

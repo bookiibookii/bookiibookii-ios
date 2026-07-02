@@ -207,6 +207,32 @@ final class UserService {
         }
     }
 
+    // GET /api/mypage/reviews/written
+    func getWrittenReviews(page: Int = 0, size: Int = 20) async throws -> WrittenReviewsResult {
+        let target = UserAPITarget.mypageWrittenReviews(page: page, size: size)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<WrittenReviewsResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.reviewFailed(response.message)
+        }
+        return result
+    }
+
+    // GET /api/mypage/reviews/received
+    func getReceivedReviews(page: Int = 0, size: Int = 20) async throws -> ReceivedReviewsResult {
+        let target = UserAPITarget.mypageReceivedReviews(page: page, size: size)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<ReceivedReviewsResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.reviewFailed(response.message)
+        }
+        return result
+    }
+
     // GET /api/profiles/{nickname} — 타 유저 프로필 조회
     func getUserProfile(nickname: String) async throws -> OtherProfileResult {
         let target = UserAPITarget.getUserProfile(nickname: nickname)
@@ -228,6 +254,7 @@ enum UserError: LocalizedError {
     case profileFailed
     case profileChangeFailed(String)
     case bookshelfFailed(String)
+    case reviewFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -237,6 +264,7 @@ enum UserError: LocalizedError {
         case .profileFailed: return "프로필을 불러오지 못했습니다."
         case .profileChangeFailed(let msg): return msg
         case .bookshelfFailed(let msg): return msg.isEmpty ? "책장을 불러오지 못했습니다." : msg
+        case .reviewFailed(let msg): return msg.isEmpty ? "후기를 불러오지 못했습니다." : msg
         }
     }
 }

@@ -342,7 +342,10 @@ struct MyPageView: View {
 
     private var writtenReviewsSection: some View {
         VStack(spacing: 8) {
-            sectionHeader(title: "작성한 후기", showChevron: true) {}
+            sectionHeader(title: "작성한 후기", showChevron: true) {
+                let nickname = viewModel.profile?.nickname ?? ""
+                container.navigationRouter.push(to: .myReviews(initialTab: .written, nickname: nickname))
+            }
 
             summaryCard {
                 HStack(spacing: 8) {
@@ -377,7 +380,8 @@ struct MyPageView: View {
     private var receivedReviewsSection: some View {
         VStack(spacing: 8) {
             sectionHeader(title: "받은 후기", showChevron: true) {
-                container.navigationRouter.push(to: .recievedReview)
+                let nickname = viewModel.profile?.nickname ?? ""
+                container.navigationRouter.push(to: .myReviews(initialTab: .received, nickname: nickname))
             }
 
             summaryCard {
