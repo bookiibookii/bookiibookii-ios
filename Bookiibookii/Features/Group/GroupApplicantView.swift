@@ -15,25 +15,25 @@ struct GroupApplicantView: View {
 
     var body: some View {
         ZStack {
-            Color("grey100").ignoresSafeArea()
+            Color("uiBg").ignoresSafeArea()
             VStack(spacing: 0) {
                 header
-                ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 16) {
-                        if viewModel.applicants.isEmpty {
-                            Text("신청자가 없습니다")
-                                .pretendardText(size: 14)
-                                .foregroundColor(Color("grey500"))
-                                .padding(.top, 80)
-                        } else {
+                if viewModel.applicants.isEmpty {
+                    Spacer()
+                    Text("아직 신청자가 없어요")
+                        .pretendardText(size: 15)
+                        .foregroundColor(Color("grey500"))
+                    Spacer()
+                } else {
+                    ScrollView(showsIndicators: false) {
+                        LazyVStack(spacing: 16) {
                             ForEach(viewModel.applicants) { applicant in
                                 applicantCard(applicant)
                             }
                         }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 20)
-                    .padding(.bottom, 40)
                 }
             }
 
@@ -51,35 +51,34 @@ struct GroupApplicantView: View {
     }
 
     private var header: some View {
-        ZStack {
-            Color("white")
-            HStack {
-                Button { dismiss() } label: {
-                    Image("ic_back")
-                        .resizable()
-                        .frame(width: 40, height: 40)
+        VStack(spacing: 0) {
+            ZStack {
+                HStack {
+                    Button { dismiss() } label: {
+                        Image("ic_back")
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                    }
+                    .buttonStyle(.plain)
+                    Spacer()
                 }
-                .buttonStyle(.plain)
-                Spacer()
-            }
-            .padding(.horizontal, 24)
+                .padding(.horizontal, 16)
 
-            HStack(spacing: 4) {
-                Text("참여 요청 관리")
+                Text("참여 요청 관리 (\(viewModel.applicants.count))")
                     .pretendardText(size: 20, weight: .semibold)
                     .foregroundColor(Color("grey900"))
-                if !viewModel.applicants.isEmpty {
-                    Text("(\(viewModel.applicants.count))")
-                        .pretendardText(size: 20, weight: .semibold)
-                        .foregroundColor(Color("grey900"))
-                }
             }
+            .frame(height: 68)
+
+            Rectangle()
+                .fill(Color("grey200"))
+                .frame(height: 1)
         }
-        .frame(height: 68)
+        .background(Color("white"))
     }
 
     private func applicantCard(_ item: GroupApplicantDto) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center, spacing: 12) {
                 KFImage(item.profileImageUrl.flatMap(URL.init(string:)))
                     .placeholder { Color("grey300") }
@@ -88,164 +87,123 @@ struct GroupApplicantView: View {
                     .resizable()
                     .scaledToFill()
                     .frame(width: 48, height: 48)
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .clipShape(Circle())
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.name ?? "")
-                        .pretendardText(size: 16)
-                        .foregroundColor(Color("black"))
+                        .pretendardText(size: 15, weight: .medium)
+                        .foregroundColor(Color("grey900"))
                     Text(String((item.createdAt ?? "").prefix(10)).replacingOccurrences(of: "-", with: "."))
-                        .pretendardText(size: 12)
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey400"))
                 }
             }
 
-            let tags = (item.tags ?? []).map { GroupTagMapper.koreanTag($0) }
-            if !tags.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(tags, id: \.self) { tag in
-                            Text(tag)
-                                .pretendardText(size: 11, weight: .medium)
-                                .foregroundColor(Color("sub200"))
-                                .padding(.horizontal, 10)
-                                .frame(height: 23)
-                                .background(Capsule().fill(Color("sub100")))
-                        }
-                    }
-                }
-                .padding(.top, 12)
-            }
-
             Text(item.applyMsg ?? "")
-                .pretendardText(size: 14)
+                .pretendardText(size: 15)
                 .foregroundColor(Color("grey600"))
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(Color("grey100"))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
-                .padding(.top, 12)
+
+            HStack(alignment: .top, spacing: 12) {
+                BookCoverImage(imageUrl: item.bookImage)
+                    .frame(width: 48, height: 60)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text((item.bookTitle ?? "").stripBookSubtitle())
+                        .pretendardText(size: 15, weight: .medium)
+                        .foregroundColor(Color("grey800"))
+                    Text(item.bookAuthor ?? "")
+                        .pretendardText(size: 14)
+                        .foregroundColor(Color("grey600"))
+                }
+            }
 
             HStack(spacing: 12) {
-                Button {
-                    pendingAction = PendingAction(
-                        applicationId: item.applicationId ?? 0,
-                        status: "REJECTED",
-                        nickname: item.name ?? ""
-                    )
-                } label: {
-                    Text("거절")
-                        .pretendardText(size: 15, weight: .medium)
-                        .foregroundColor(Color("grey900"))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .background(Color("grey200"))
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                }
-                .buttonStyle(.plain)
-
-                Button {
-                    pendingAction = PendingAction(
-                        applicationId: item.applicationId ?? 0,
-                        status: "ACCEPTED",
-                        nickname: item.name ?? ""
-                    )
-                } label: {
-                    Text("수락")
-                        .pretendardText(size: 15, weight: .medium)
-                        .foregroundColor(Color("grey100"))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .background(Color("grey900"))
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                }
-                .buttonStyle(.plain)
+                BottomSheetTwoBtnShort(
+                    text: "거절",
+                    style: .white,
+                    action: {
+                        pendingAction = PendingAction(
+                            applicationId: item.applicationId ?? 0,
+                            status: "REJECTED",
+                            nickname: item.name ?? ""
+                        )
+                    }
+                )
+                BottomSheetTwoBtnShort(
+                    text: "수락",
+                    style: .orange,
+                    action: {
+                        pendingAction = PendingAction(
+                            applicationId: item.applicationId ?? 0,
+                            status: "ACCEPTED",
+                            nickname: item.name ?? ""
+                        )
+                    }
+                )
             }
-            .padding(.top, 20)
         }
-        .padding(24)
+        .padding(20)
         .background(Color("white"))
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     // MARK: - 수락/거절 확인 다이얼로그
 
     private func confirmDialog(_ action: PendingAction) -> some View {
         let isAccept = action.status == "ACCEPTED"
-        let bookTitle = viewModel.detail?.bookTitle ?? ""
-        let isRelay = viewModel.detail?.groupType == "RELAY"
         let contentMsg: String = isAccept
-            ? "\(action.nickname) 님의 그룹 참여 요청을 수락하시겠습니까? \(isRelay ? "수락 즉시 그룹이 시작됩니다." : "인원이 다 차면 그룹이 시작됩니다.")"
+            ? "\(action.nickname) 님의 그룹 참여 요청을 수락하시겠습니까? 수락 즉시 그룹이 시작됩니다."
             : "\(action.nickname) 님의 그룹 참여 요청을 거절하시겠습니까? 상대방에게 거절 알림이 발송됩니다."
-        let confirmBg: Color = isAccept ? Color("grey900") : Color(red: 1, green: 0.302, blue: 0.302)
+        let confirmStyle: BottomSheetBtnStyle = isAccept ? .orange : .red
 
         return VStack(alignment: .leading, spacing: 0) {
-            HStack {
+            HStack(alignment: .center) {
                 Text(isAccept ? "참여 요청 수락" : "참여 요청 거절")
-                    .pretendardText(size: 20, weight: .bold)
+                    .pretendardText(size: 24, weight: .bold)
                     .foregroundColor(Color("grey900"))
                 Spacer()
                 Button { pendingAction = nil } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 12, weight: .medium))
+                    Image("ic_x")
+                        .renderingMode(.template)
+                        .resizable()
+                        .frame(width: 20, height: 20)
                         .foregroundColor(Color("grey900"))
-                        .frame(width: 24, height: 24)
-                        .background(Color("grey200"))
-                        .clipShape(Circle())
+                        .frame(width: 32, height: 32)
+                        .background(Circle().fill(Color("grey100")))
                 }
                 .buttonStyle(.plain)
-            }
-
-            if !bookTitle.isEmpty {
-                Text(bookTitle)
-                    .pretendardText(size: 16)
-                    .foregroundColor(Color("grey800"))
-                    .lineLimit(1)
-                    .padding(.top, 4)
             }
 
             Text(contentMsg)
                 .pretendardText(size: 16)
-                .foregroundColor(Color("grey700"))
-                .padding(.top, 20)
+                .foregroundColor(Color("grey900"))
+                .padding(.top, 24)
 
-            HStack(spacing: 12) {
-                Button { pendingAction = nil } label: {
-                    Text("취소")
-                        .pretendardText(size: 14)
-                        .foregroundColor(Color("grey900"))
-                        .frame(width: 140)
-                        .frame(height: 48)
-                        .background(Color("grey200"))
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                }
-                .buttonStyle(.plain)
-
-                Button {
-                    let captured = action
-                    pendingAction = nil
-                    Task {
-                        await viewModel.processApplicant(
-                            applicationId: captured.applicationId,
-                            status: captured.status,
-                            nickname: captured.nickname
-                        )
+            HStack(spacing: 8) {
+                BottomSheetTwoBtnShort(text: "취소", style: .white, action: { pendingAction = nil })
+                BottomSheetTwoBtnShort(
+                    text: isAccept ? "수락" : "거절",
+                    style: confirmStyle,
+                    action: {
+                        let captured = action
+                        pendingAction = nil
+                        Task {
+                            await viewModel.processApplicant(
+                                applicationId: captured.applicationId,
+                                status: captured.status,
+                                nickname: captured.nickname
+                            )
+                        }
                     }
-                } label: {
-                    Text(isAccept ? "수락" : "거절")
-                        .pretendardText(size: 14)
-                        .foregroundColor(.white)
-                        .frame(width: 140)
-                        .frame(height: 48)
-                        .background(confirmBg)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                }
-                .buttonStyle(.plain)
+                )
             }
-            .padding(.top, 20)
+            .padding(.top, 24)
         }
-        .padding(24)
-        .frame(width: 340)
+        .padding(20)
         .background(Color("white"))
         .clipShape(RoundedRectangle(cornerRadius: 24))
+        .padding(.horizontal, 24)
     }
 }
