@@ -253,8 +253,11 @@ final class GroupDetailViewModel: ObservableObject {
             try await service.updateApplicant(applicationId: applicationId, status: status)
             applicants.removeAll { $0.applicationId == applicationId }
             toast = status == "ACCEPTED"
-                ? "\(nickname) 님이 게스트가 되었습니다."
-                : "\(nickname) 님의 요청을 거절했습니다."
+                ? "\(nickname) 님의 요청을 수락했어요"
+                : "\(nickname) 님의 요청을 거절했어요"
+            if status == "ACCEPTED" {
+                await fetchDetail()
+            }
         } catch {
             toast = error.localizedDescription
         }

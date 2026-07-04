@@ -294,16 +294,6 @@ struct ParticipantSlot: Codable {
     let isMe: Bool
 }
 
-// 그룹 상세 UI 재작업 전 임시 호환 — 구 필드명 매핑. UI 재작업 시 제거 예정.
-extension GroupDetailDto {
-    var bookTitle: String { title }
-    var groupType: String { "" }            // 구 TOGETHER/RELAY 분기 — 빈 값이면 RELAY 취급
-    var meetPlace: String? { placeName }
-    var customTag: String? { nil }
-    var groupTags: [String]? { rules.map { $0.tag } }
-    var category: String { genre }
-}
-
 // MARK: - 신청 / 취소
 
 struct GroupApplyRequest: Encodable {
@@ -349,11 +339,6 @@ struct GroupApplicantDto: Codable, Identifiable {
     let bookAuthor: String?
     let bookImage: String?
     var id: Int { applicationId ?? 0 }
-}
-
-// 신청자 화면 UI 재작업 전 임시 호환. UI 재작업 시 제거 예정.
-extension GroupApplicantDto {
-    var tags: [String]? { nil }
 }
 
 struct GroupAppStatusRequest: Encodable {
