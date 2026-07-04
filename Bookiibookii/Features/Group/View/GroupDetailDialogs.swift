@@ -15,7 +15,7 @@ struct GroupAddressRequiredDialog: View {
                 .foregroundColor(Color("grey900"))
 
             HStack(spacing: 8) {
-                CardButton(text: "닫기", style: .grey, height: 48, fontSize: 15, action: onDismiss)
+                CardButton(text: "닫기", style: .grey, height: 48, fontSize: 15, contentColorOverride: Color("grey900"), action: onDismiss)
                 CardButton(text: "주소지 관리", style: .main, height: 48, fontSize: 15, action: onManageAddress)
             }
             .padding(.top, 24)
