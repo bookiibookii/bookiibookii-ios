@@ -56,6 +56,7 @@ struct CardButton: View {
     var height: CGFloat = 56
     var corner: CGFloat = 16
     var fontSize: CGFloat = 16
+    var contentColorOverride: Color? = nil   // 안드처럼 스타일 기본 글자색을 덮어쓸 때
     let action: () -> Void
 
     private var containerColor: Color {
@@ -84,7 +85,7 @@ struct CardButton: View {
         Button(action: action) {
             Text(text)
                 .pretendardText(size: fontSize)
-                .foregroundColor(contentColor)
+                .foregroundColor(contentColorOverride ?? contentColor)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity)
                 .frame(height: height)

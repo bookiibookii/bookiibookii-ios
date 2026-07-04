@@ -24,6 +24,7 @@ enum NavigationDestination: Hashable {
     case libraryCardEdit(cardId: Int, userBookId: Int)
     case togetherReview(userBookId: Int, bookTitle: String)
     case group
+    case groupEditor(groupId: Int?)
     case myPage
     case notification
 }
