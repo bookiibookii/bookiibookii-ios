@@ -2,30 +2,89 @@ import Foundation
 import SwiftUI
 import Combine
 
+// 그룹 상세 VM. 안드 GroupDetailViewModel + JoinRequestViewModel(게스트부) 대응.
 @MainActor
 final class GroupDetailViewModel: ObservableObject {
     let groupId: Int
     private let service: GroupService
+    private var location: LocationService?
 
     enum Phase { case idle, loading, loaded, failed }
 
     @Published private(set) var detail: GroupDetailDto?
     @Published private(set) var phase: Phase = .idle
     @Published var toast: String?
-
-    @Published var showApplyDialog = false
-    @Published var showDeleteConfirm = false
-    @Published var showApplicants = false
     @Published var shouldDismiss = false
 
+    // 다이얼로그 플래그
+    @Published var showApplyDialog = false
+    @Published var showDeleteDialog = false
+    @Published var showAddressRequiredDialog = false
+    @Published var showApplicants = false   // MANAGE — 기존 GroupApplicantView 재사용
+
+    // 신청 다이얼로그 상태 (안드 JoinRequestViewModel.GroupApplyUiState 대응)
+    @Published var bookSearchQuery: String = ""
+    @Published private(set) var bookSearchResults: [BookItem] = []
+    @Published var bookSearchLoading = false
+    @Published private(set) var selectedISBN: String?
+    @Published var applyMsg: String = ""
+    @Published private(set) var submitting = false
+
+    // 호스트용 신청자 명단 (GroupApplicantView가 참조)
     @Published private(set) var applicants: [GroupApplicantDto] = []
+
+    private var cancellables = Set<AnyCancellable>()
+    private var isCheckingAddress = false
+    private var isCanceling = false
+    private var isDeleting = false
 
     init(groupId: Int, service: GroupService) {
         self.groupId = groupId
         self.service = service
+
+        // 실시간 도서 검색 디바운스(0.3s, 2자 이상) — 안드 observeSearchQuery 대응
+        $bookSearchQuery
+            .dropFirst()
+            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
+            .sink { [weak self] query in
+                guard let self else { return }
+                let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard trimmed.count >= 2 else {
+                    self.bookSearchResults = []
+                    return
+                }
+                Task { await self.performSearch(keyword: trimmed) }
+            }
+            .store(in: &cancellables)
     }
 
+    /// 진입 시그니처(groupId:groupService:) 유지를 위해 뷰가 container.api.location을 조회 시점에 주입.
+    func attachLocationService(_ service: LocationService) {
+        guard location == nil else { return }
+        location = service
+    }
+
+    var canSubmit: Bool {
+        selectedISBN != nil && !applyMsg.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !submitting
+    }
+
+    // MARK: - 액션버튼 매퍼 (안드 groupDetailActionButton)
+
+    var actionButton: (text: String, style: CardButtonStyle)? {
+        guard let d = detail else { return nil }
+        switch d.buttonStatus {
+        case "APPLY":  return ("참여 신청하기", .main)
+        case "MANAGE": return ("참여 요청 관리 (\(d.waitingCount))", .main)
+        case "CANCEL": return ("참여 신청 취소", .mainPale)
+        default:       return nil
+        }
+    }
+
+    // MARK: - 조회
+
     func onAppear() async { await fetchDetail() }
+
+    func retry() { Task { await fetchDetail() } }
 
     func fetchDetail() async {
         phase = .loading
@@ -38,36 +97,148 @@ final class GroupDetailViewModel: ObservableObject {
         }
     }
 
-    func applyGroup(msg: String) async {
+    // MARK: - 액션 탭 (안드 GroupDetailRoute.onActionClick 대응)
+
+    func handleActionTap() {
+        guard let d = detail else { return }
+        switch d.buttonStatus {
+        case "APPLY":  Task { await checkAddressBeforeApply() }
+        case "MANAGE": showApplicants = true
+        case "CANCEL": Task { await cancelApply() }
+        default: break
+        }
+    }
+
+    // 참여 신청 전 배송지/희망 교환 장소 등록 여부 확인
+    private func checkAddressBeforeApply() async {
+        guard !isCheckingAddress, let d = detail, let location else { return }
+        isCheckingAddress = true
+        defer { isCheckingAddress = false }
         do {
-            try await service.applyGroup(groupId: groupId, applyMsg: msg)
-            showApplyDialog = false
-            toast = "그룹 신청 되었습니다."
+            let hasAddress: Bool
+            if d.tradeType == "DIRECT" {
+                hasAddress = try await !location.fetchExchanges().isEmpty
+            } else {
+                hasAddress = try await !location.fetchDeliveries().isEmpty
+            }
+            if hasAddress {
+                showApplyDialog = true
+            } else {
+                showAddressRequiredDialog = true
+            }
+        } catch {
+            toast = error.localizedDescription
+        }
+    }
+
+    // MARK: - 책 검색
+
+    func onBookQueryChange(_ value: String) {
+        bookSearchQuery = value
+        selectedISBN = nil
+    }
+
+    // 검색 버튼/키보드 액션 — 디바운스 기다리지 않고 즉시 검색
+    func searchBooks() {
+        let trimmed = bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        Task { await performSearch(keyword: trimmed) }
+    }
+
+    private func performSearch(keyword: String) async {
+        // 이미 책을 고른 뒤 늦게 도착한 검색이 선택을 덮어쓰지 않도록 가드
+        guard selectedISBN == nil else { return }
+        bookSearchLoading = true
+        do {
+            let results = try await service.searchBooks(keyword: keyword, page: 1, size: 10)
+            if selectedISBN == nil { bookSearchResults = results }
+        } catch {
+            toast = error.localizedDescription
+        }
+        bookSearchLoading = false
+    }
+
+    func selectBook(_ book: BookItem) {
+        selectedISBN = book.isbn13
+        bookSearchQuery = book.title
+        bookSearchResults = []
+    }
+
+    func clearBookSearch() {
+        bookSearchQuery = ""
+        selectedISBN = nil
+        bookSearchResults = []
+    }
+
+    func onApplyMsgChange(_ value: String) {
+        applyMsg = value.count > 50 ? String(value.prefix(50)) : value
+    }
+
+    // MARK: - 신청 제출
+
+    func submitApply() {
+        guard let isbn = selectedISBN, canSubmit else { return }
+        submitting = true
+        Task {
+            do {
+                try await service.applyGroup(groupId: groupId, isbn13: isbn, applyMsg: applyMsg)
+                showApplyDialog = false
+                resetApplyDialog()
+                await fetchDetail()
+            } catch {
+                toast = error.localizedDescription
+            }
+            submitting = false
+        }
+    }
+
+    func resetApplyDialog() {
+        bookSearchQuery = ""
+        bookSearchResults = []
+        selectedISBN = nil
+        applyMsg = ""
+    }
+
+    // MARK: - 신청 취소
+
+    func cancelApply() async {
+        guard !isCanceling else { return }
+        isCanceling = true
+        defer { isCanceling = false }
+        do {
+            try await service.cancelApply(groupId: groupId)
+            toast = "참여 신청을 취소했어요"
             await fetchDetail()
         } catch {
             toast = error.localizedDescription
         }
     }
 
-    func cancelApply() async {
-        do {
-            try await service.cancelApply(groupId: groupId)
-            toast = "신청 취소 요청되었습니다."
-            shouldDismiss = true
-        } catch {
-            toast = error.localizedDescription
+    // MARK: - 삭제
+
+    func confirmDelete() {
+        guard !isDeleting else { return }
+        isDeleting = true
+        Task {
+            do {
+                try await service.deleteGroup(groupId: groupId)
+                shouldDismiss = true
+            } catch {
+                toast = error.localizedDescription
+            }
+            isDeleting = false
         }
     }
 
-    func deleteGroup() async {
-        do {
-            try await service.deleteGroup(groupId: groupId)
-            toast = "그룹이 정상적으로 삭제 되었습니다."
-            shouldDismiss = true
-        } catch {
-            toast = error.localizedDescription
-        }
+    // MARK: - 주소지 관리 (임시)
+
+    // iOS에 주소지 관리 화면이 아직 없어 임시 토스트로 대체.
+    // 화면 추가 시 tradeType(DIRECT/DELIVERY)에 맞는 탭으로 네비게이션 연결 필요(안드 onManageAddress(ExchangeType) 대응).
+    func manageAddress() {
+        toast = "주소지 관리는 준비 중입니다"
     }
+
+    // MARK: - 신청자 관리 (기존 GroupApplicantView 재사용)
 
     func fetchApplicants() async {
         do {
@@ -81,71 +252,11 @@ final class GroupDetailViewModel: ObservableObject {
         do {
             try await service.updateApplicant(applicationId: applicationId, status: status)
             applicants.removeAll { $0.applicationId == applicationId }
-            let msg = status == "ACCEPTED"
+            toast = status == "ACCEPTED"
                 ? "\(nickname) 님이 게스트가 되었습니다."
                 : "\(nickname) 님의 요청을 거절했습니다."
-            toast = msg
         } catch {
             toast = error.localizedDescription
-        }
-    }
-
-    var isHost: Bool { detail?.isHost ?? false }
-    var canEdit: Bool { isHost && detail?.groupStatus == "RECRUITING" }
-
-    var editConfig: GroupEditConfig? {
-        guard let d = detail else { return nil }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let date = formatter.date(from: d.startDate ?? "") ?? Date()
-        return GroupEditConfig(
-            groupId: groupId,
-            bookTitle: d.bookTitle,
-            startDate: date,
-            readingPeriod: d.readingPeriod,
-            groupComment: d.groupComment ?? "",
-            customTag: d.customTag ?? "",
-            tagCodes: d.groupTags ?? []
-        )
-    }
-
-    var displayTags: [String] {
-        guard let d = detail else { return [] }
-        var all: [String] = []
-        if let c = d.customTag, !c.isEmpty { all.append("#\(c)") }
-        (d.groupTags ?? []).forEach { all.append(GroupTagMapper.koreanTag($0)) }
-        return all
-    }
-
-    var buttonLabel: String {
-        guard let d = detail else { return "" }
-        switch d.buttonStatus {
-        case "APPLY":   return "참여 신청하기"
-        case "CANCEL":  return "신청 취소하기"
-        case "MANAGE":  return "참여 요청 관리"
-        case "FULL":    return "모집 완료"
-        case "TRACKER": return d.groupType == "TOGETHER" ? "서재 보기" : "트래커 보기"  // groupType nil → RELAY 취급
-        default:        return ""
-        }
-    }
-
-    func handleButtonTap() {
-        guard let d = detail else { return }
-        switch d.buttonStatus {
-        case "APPLY":   showApplyDialog = true
-        case "CANCEL":  Task { await cancelApply() }
-        case "MANAGE":  showApplicants = true
-        case "FULL":    break
-        case "TRACKER":
-            if d.groupStatus == "RECRUITING" {
-                let msg = d.groupType == "TOGETHER"
-                    ? "모임이 시작되면 서재가 생성됩니다!"
-                    : "모임이 시작되면 트래커가 생성됩니다!"  // nil → RELAY 취급
-                toast = msg
-            } else {
-                shouldDismiss = true
-            }
-        default: break
         }
     }
 }
