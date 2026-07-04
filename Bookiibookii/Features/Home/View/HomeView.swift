@@ -8,13 +8,15 @@ struct HomeView: View {
     private let groupService: GroupService
 
     var onNavigateToGroup: () -> Void
+    var onCreateGroupTap: () -> Void
     @State private var selectedGroupId: Int? = nil
 
     init(
         groupService: GroupService,
         notificationService: NotificationService,
         userService: UserService,
-        onNavigateToGroup: @escaping () -> Void = {}
+        onNavigateToGroup: @escaping () -> Void = {},
+        onCreateGroupTap: @escaping () -> Void = {}
     ) {
         _viewModel = StateObject(
             wrappedValue: HomeViewModel(
@@ -25,6 +27,7 @@ struct HomeView: View {
         )
         self.groupService = groupService
         self.onNavigateToGroup = onNavigateToGroup
+        self.onCreateGroupTap = onCreateGroupTap
     }
 
     var body: some View {
@@ -40,7 +43,7 @@ struct HomeView: View {
                     HomeWelcomeSection(nickname: viewModel.nickname)
                     HomeSearchCreateRow(
                         onSearchTap: onNavigateToGroup,
-                        onCreateGroupTap: onNavigateToGroup
+                        onCreateGroupTap: onCreateGroupTap
                     )
                     Section(header: tabHeader) {
                         tabContent
@@ -75,7 +78,7 @@ struct HomeView: View {
             HomeMyGroupsContent(
                 myGroups: viewModel.myGroups,
                 onGroupTap: { selectedGroupId = $0 },
-                onCreateGroupTap: onNavigateToGroup
+                onCreateGroupTap: onCreateGroupTap
             )
         case .applied:
             HomeAppliedContent(

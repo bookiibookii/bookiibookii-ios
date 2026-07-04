@@ -6,6 +6,7 @@ struct GroupDetailView: View {
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: GroupDetailViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var editGroupId: Int? = nil
 
     init(groupId: Int, groupService: GroupService) {
         _viewModel = StateObject(
@@ -18,7 +19,7 @@ struct GroupDetailView: View {
             GroupDetailHeader(
                 showEditMenu: viewModel.detail?.buttonStatus == "MANAGE",
                 onBack: { dismiss() },
-                onEdit: { viewModel.toast = "준비 중입니다" },
+                onEdit: { editGroupId = viewModel.groupId },
                 onDelete: { viewModel.showDeleteDialog = true }
             )
 
@@ -43,6 +44,16 @@ struct GroupDetailView: View {
         .overlay { dialogOverlay }
         .fullScreenCover(isPresented: $viewModel.showApplicants) {
             GroupApplicantView(viewModel: viewModel)
+        }
+        // 상세는 fullScreenCover 모달 루트라 NavigationStack이 없어 router.push가 화면 전환을 못 함.
+        // 그래서 에디터도 fullScreenCover로 present(상세 자신의 진입 방식과 동일).
+        .fullScreenCover(item: $editGroupId) { groupId in
+            GroupEditorView(
+                groupId: groupId,
+                groupService: container.api.group,
+                locationService: container.api.location
+            )
+            .environmentObject(container)
         }
         .onChange(of: viewModel.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss { dismiss() }
