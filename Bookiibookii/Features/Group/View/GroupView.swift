@@ -34,7 +34,9 @@ struct GroupView: View {
                 .presentationBackground(Color("white"))
         }
         .fullScreenCover(item: $selectedGroupId) { groupId in
-            GroupDetailView(groupId: groupId, groupService: container.api.group)
+            GroupDetailView(groupId: groupId, groupService: container.api.group, onDeleted: {
+                Task { await viewModel.retry() }
+            })
         }
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)

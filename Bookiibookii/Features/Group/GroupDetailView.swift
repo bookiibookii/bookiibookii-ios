@@ -11,14 +11,17 @@ struct GroupDetailView: View {
     @StateObject private var keyboard = KeyboardObserver()
     @State private var sheetExpanded = false
     @State private var dragAccum: CGFloat = 0
+    // 삭제 성공으로 상세가 닫힐 때 호출(진입 화면의 목록 재조회용). 삭제 외 뒤로가기에서는 호출 안 됨.
+    private let onDeleted: (() -> Void)?
 
-    init(groupId: Int, groupService: GroupService) {
+    init(groupId: Int, groupService: GroupService, onDeleted: (() -> Void)? = nil) {
         _viewModel = StateObject(
             wrappedValue: GroupDetailViewModel(groupId: groupId, service: groupService)
         )
         _commentVM = StateObject(
             wrappedValue: GroupCommentViewModel(groupId: groupId, service: groupService)
         )
+        self.onDeleted = onDeleted
     }
 
     var body: some View {
@@ -29,6 +32,9 @@ struct GroupDetailView: View {
                 onEdit: { editGroupId = viewModel.groupId },
                 onDelete: { viewModel.showDeleteDialog = true }
             )
+            // 미트볼 메뉴 드롭다운이 헤더 경계 아래(콘텐츠 영역)로 넘쳐 그려지므로,
+            // 헤더를 콘텐츠 ZStack보다 위에 합성해 드롭다운이 가려지지 않게 함.
+            .zIndex(1)
 
             ZStack {
                 switch viewModel.phase {
@@ -77,7 +83,8 @@ struct GroupDetailView: View {
         }
         // 상세는 fullScreenCover 모달 루트라 NavigationStack이 없어 router.push가 화면 전환을 못 함.
         // 그래서 에디터도 fullScreenCover로 present(상세 자신의 진입 방식과 동일).
-        .fullScreenCover(item: $editGroupId) { groupId in
+        // 에디터가 닫히면(수정 성공/취소 무관) 상세를 재조회해 변경사항 반영.
+        .fullScreenCover(item: $editGroupId, onDismiss: { viewModel.retry() }) { groupId in
             GroupEditorView(
                 groupId: groupId,
                 groupService: container.api.group,
@@ -86,7 +93,10 @@ struct GroupDetailView: View {
             .environmentObject(container)
         }
         .onChange(of: viewModel.shouldDismiss) { _, shouldDismiss in
-            if shouldDismiss { dismiss() }
+            if shouldDismiss {
+                onDeleted?()
+                dismiss()
+            }
         }
         .task {
             viewModel.attachLocationService(container.api.location)
