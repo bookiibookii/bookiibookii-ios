@@ -40,6 +40,7 @@ struct GroupView: View {
         }
         .task { await viewModel.onAppear() }
         .toast($viewModel.toast)
+        .dismissKeyboardOnTap()
     }
 
     // MARK: - 상단바

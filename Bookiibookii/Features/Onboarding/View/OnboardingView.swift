@@ -59,6 +59,7 @@ struct OnboardingView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .dismissKeyboardOnTap()
         .onChange(of: photoPickerItem) { _, item in
             guard item != nil else { return }
             viewModel.consumePhotosPickerItem(item)

@@ -55,6 +55,7 @@ struct GroupDetailView: View {
         }
         .background(Color("white"))
         .ignoresSafeArea(.keyboard)
+        .dismissKeyboardOnTap()
         .overlay(alignment: .bottom) {
             if viewModel.phase == .loaded {
                 GroupCommentSheet(

@@ -240,6 +240,8 @@ struct GroupCommentSheet: View {
                             }
                             .padding(.bottom, 56 + keyboardHeight)
                         }
+                        // 댓글 리스트를 끌어내리면 키보드가 내려감 (Messages 스타일)
+                        .scrollDismissesKeyboard(.interactively)
                         // 답글 진입 시 대상 부모 댓글로 스크롤 (안드 animateScrollToItem)
                         .onChange(of: viewModel.state.replyRequestId) { _, _ in
                             if let target = viewModel.state.replyTargetId {
