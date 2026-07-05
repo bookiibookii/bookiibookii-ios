@@ -131,6 +131,8 @@ struct CommentInputTextView: UIViewRepresentable {
 
         // maxLines 4까지 자라고 초과 시 스크롤. contentHeight 바인딩 갱신.
         func updateHeight(_ tv: UITextView) {
+            // 첫 레이아웃 패스(width=0)에서는 계산을 건너뛰어 높이 플리커 방지
+            if tv.bounds.width == 0 { return }
             let lineHeight = (tv.font?.lineHeight ?? 20)
             let maxHeight = lineHeight * CGFloat(parent.maxLines) + tv.textContainerInset.top + tv.textContainerInset.bottom
             let fitting = tv.sizeThatFits(CGSize(width: tv.bounds.width, height: .greatestFiniteMagnitude)).height

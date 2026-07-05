@@ -7,10 +7,17 @@ struct GroupDetailView: View {
     @StateObject private var viewModel: GroupDetailViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var editGroupId: Int? = nil
+    @StateObject private var commentVM: GroupCommentViewModel
+    @StateObject private var keyboard = KeyboardObserver()
+    @State private var sheetExpanded = false
+    @State private var dragAccum: CGFloat = 0
 
     init(groupId: Int, groupService: GroupService) {
         _viewModel = StateObject(
             wrappedValue: GroupDetailViewModel(groupId: groupId, service: groupService)
+        )
+        _commentVM = StateObject(
+            wrappedValue: GroupCommentViewModel(groupId: groupId, service: groupService)
         )
     }
 
@@ -41,6 +48,29 @@ struct GroupDetailView: View {
             .background(Color("grey100"))
         }
         .background(Color("white"))
+        .ignoresSafeArea(.keyboard)
+        .overlay(alignment: .bottom) {
+            if viewModel.phase == .loaded {
+                GroupCommentSheet(
+                    viewModel: commentVM,
+                    expanded: sheetExpanded,
+                    keyboardHeight: keyboard.height,
+                    onExpand: { withAnimation { sheetExpanded = true } }
+                )
+                .frame(height: sheetHeight)
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in dragAccum = value.translation.height }
+                        .onEnded { _ in
+                            let trigger: CGFloat = 50
+                            if dragAccum < -trigger { withAnimation { sheetExpanded = true } }
+                            else if dragAccum > trigger { withAnimation { sheetExpanded = false } }
+                            dragAccum = 0
+                        }
+                )
+                .animation(.easeInOut(duration: 0.25), value: sheetHeight)
+            }
+        }
         .overlay { dialogOverlay }
         .fullScreenCover(isPresented: $viewModel.showApplicants) {
             GroupApplicantView(viewModel: viewModel)
@@ -61,8 +91,16 @@ struct GroupDetailView: View {
         .task {
             viewModel.attachLocationService(container.api.location)
             await viewModel.onAppear()
+            await commentVM.load()
         }
         .toast($viewModel.toast)
+        .toast($commentVM.toast)
+    }
+
+    // 3단계 높이 — keyboard(600) > expanded(544) > peek(170). 안드 sheetHeight 대응.
+    private var sheetHeight: CGFloat {
+        if keyboard.height > 0 { return 600 }
+        return sheetExpanded ? 544 : 170
     }
 
     // MARK: - 에러 상태
@@ -113,6 +151,7 @@ struct GroupDetailView: View {
                 }
                 .padding(16)
             }
+            .padding(.bottom, 170)
         }
     }
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Kingfisher
 
 // 안드 GroupCommentBottomSheet.kt 대응 — 하위 컴포넌트(행/헤더/칩). 최상위 시트는 아래 Task 7에서 추가.
@@ -39,6 +40,9 @@ struct CommentRow: View {
     let currentUserId: Int?
     let onStartReply: (_ parentId: Int, _ nickname: String) -> Void
     let onDelete: (_ commentId: Int) -> Void
+    let openDeleteId: Int?
+    let onLongPress: (_ commentId: Int) -> Void
+    let onDismissDelete: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -47,8 +51,11 @@ struct CommentRow: View {
                 isMine: isMine(currentUserId, comment.writer.userId),
                 profileSize: 36,
                 indentStart: 0,
+                isDeleteOpen: openDeleteId == comment.id,
                 onTap: { onStartReply(comment.id, comment.writer.name) },
-                onDelete: { onDelete(comment.id) }
+                onDelete: { onDelete(comment.id) },
+                onLongPress: { onLongPress(comment.id) },
+                onDismissDelete: onDismissDelete
             )
             ForEach(comment.children ?? []) { reply in
                 CommentItemRow(
@@ -56,9 +63,12 @@ struct CommentRow: View {
                     isMine: isMine(currentUserId, reply.writer.userId),
                     profileSize: 28,
                     indentStart: 52,
+                    isDeleteOpen: openDeleteId == reply.id,
                     // 답글 탭도 부모에 답글 (멘션은 탭한 대상 닉네임)
                     onTap: { onStartReply(comment.id, reply.writer.name) },
-                    onDelete: { onDelete(reply.id) }
+                    onDelete: { onDelete(reply.id) },
+                    onLongPress: { onLongPress(reply.id) },
+                    onDismissDelete: onDismissDelete
                 )
             }
         }
@@ -75,10 +85,11 @@ struct CommentItemRow: View {
     let isMine: Bool
     let profileSize: CGFloat
     let indentStart: CGFloat
+    let isDeleteOpen: Bool
     let onTap: () -> Void
     let onDelete: () -> Void
-
-    @State private var showPopover = false
+    let onLongPress: () -> Void
+    let onDismissDelete: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -102,33 +113,23 @@ struct CommentItemRow: View {
         .padding(4)
         .padding(.leading, indentStart)
         .contentShape(Rectangle())
-        .onTapGesture { onTap() }
+        .onTapGesture {
+            // 팝오버가 열려 있으면 어느 행을 탭하든 먼저 닫는다 (바깥 탭 dismiss)
+            onDismissDelete()
+            if !isDeleteOpen { onTap() }
+        }
         .onLongPressGesture {
-            if isMine { showPopover = true }
+            if isMine { onLongPress() }
         }
         .overlay(alignment: .topTrailing) {
-            if showPopover {
+            if isDeleteOpen {
                 DeletePopover(onDelete: {
-                    showPopover = false
+                    onDismissDelete()
                     onDelete()
                 })
                 .offset(y: profileSize)
-                .background(
-                    // 바깥 탭 시 닫힘
-                    Color.clear
-                )
             }
         }
-        // 팝오버 열렸을 때 화면 탭으로 닫기
-        .background(
-            Group {
-                if showPopover {
-                    Color.black.opacity(0.001)
-                        .ignoresSafeArea()
-                        .onTapGesture { showPopover = false }
-                }
-            }
-        )
     }
 }
 
@@ -211,6 +212,8 @@ struct GroupCommentSheet: View {
     let keyboardHeight: CGFloat
     let onExpand: () -> Void
 
+    @State private var openDeleteId: Int? = nil
+
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 10) {
@@ -227,7 +230,10 @@ struct GroupCommentSheet: View {
                                         comment: comment,
                                         currentUserId: viewModel.currentUserId,
                                         onStartReply: viewModel.startReply,
-                                        onDelete: viewModel.delete
+                                        onDelete: viewModel.delete,
+                                        openDeleteId: openDeleteId,
+                                        onLongPress: { openDeleteId = $0 },
+                                        onDismissDelete: { openDeleteId = nil }
                                     )
                                     .id(comment.id)
                                 }
@@ -296,11 +302,11 @@ private struct CommentInputField: View {
                     mentionNickname: viewModel.state.mentionNickname,
                     focusTrigger: viewModel.state.replyRequestId,
                     onChange: viewModel.onDraftChange,
-                    onSubmit: { if canSubmit { viewModel.submit() } },
+                    onSubmit: { if canSubmit { viewModel.submit(); dismissKeyboard() } },
                     contentHeight: $contentHeight
                 )
                 .frame(height: max(40, contentHeight))
-                CommentUploadChip(enabled: canSubmit, onClick: { if canSubmit { viewModel.submit() } })
+                CommentUploadChip(enabled: canSubmit, onClick: { if canSubmit { viewModel.submit(); dismissKeyboard() } })
             }
             .padding(4)
             .frame(minHeight: 48)
@@ -317,5 +323,10 @@ private struct CommentInputField: View {
                     .onTapGesture { onInputClick() }
             }
         }
+    }
+
+    // 제출 시 키보드 즉시 내림 (안드 submitAndHide의 keyboard.hide() 대응)
+    private func dismissKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
