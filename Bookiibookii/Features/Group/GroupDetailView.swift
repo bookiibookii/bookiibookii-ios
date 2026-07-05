@@ -11,6 +11,8 @@ struct GroupDetailView: View {
     @StateObject private var keyboard = KeyboardObserver()
     @State private var sheetExpanded = false
     @State private var dragAccum: CGFloat = 0
+    // 홈 인디케이터 세이프에어리어 인셋(키보드 없을 때 캡처). 입력창을 키보드에 딱 붙이기 위한 보정값.
+    @State private var homeIndicatorInset: CGFloat = 0
     // 삭제 성공으로 상세가 닫힐 때 호출(진입 화면의 목록 재조회용). 삭제 외 뒤로가기에서는 호출 안 됨.
     private let onDeleted: (() -> Void)?
 
@@ -61,7 +63,7 @@ struct GroupDetailView: View {
                 GroupCommentSheet(
                     viewModel: commentVM,
                     expanded: sheetExpanded,
-                    keyboardHeight: keyboard.height,
+                    keyboardHeight: effectiveKeyboardInset,
                     onExpand: { withAnimation { sheetExpanded = true } }
                 )
                 .frame(height: sheetHeight)
@@ -76,6 +78,9 @@ struct GroupDetailView: View {
                         }
                 )
                 .animation(.easeInOut(duration: 0.25), value: sheetHeight)
+                // 오버레이는 위 VStack의 .ignoresSafeArea(.keyboard) 밖이라, 시트 자신이 키보드 회피를
+                // 꺼야 함. 안 그러면 SwiftUI가 시트를 통째로 밀어올린 뒤 입력창까지 또 올려 이중으로 뜬다.
+                .ignoresSafeArea(.keyboard)
             }
         }
         .overlay { dialogOverlay }
@@ -104,6 +109,13 @@ struct GroupDetailView: View {
             await viewModel.onAppear()
             await commentVM.load()
         }
+        .onAppear {
+            // 키보드 없는 시점에 홈 인디케이터 인셋 캡처(키보드 뜨면 0으로 보고돼 부정확).
+            homeIndicatorInset = UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .flatMap { $0.windows }
+                .first { $0.isKeyWindow }?.safeAreaInsets.bottom ?? 0
+        }
         .toast($viewModel.toast)
         .toast($commentVM.toast)
     }
@@ -112,6 +124,12 @@ struct GroupDetailView: View {
     private var sheetHeight: CGFloat {
         if keyboard.height > 0 { return 600 }
         return sheetExpanded ? 544 : 170
+    }
+
+    // 시트는 세이프에어리어 하단에 붙으므로, 키보드 전체 높이에서 홈 인디케이터 인셋을 빼야
+    // 입력창이 키보드 바로 위에 딱 붙는다(안 빼면 그 인셋만큼 떠 보임).
+    private var effectiveKeyboardInset: CGFloat {
+        keyboard.height > 0 ? max(0, keyboard.height - homeIndicatorInset) : 0
     }
 
     // MARK: - 에러 상태

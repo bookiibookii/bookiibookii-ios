@@ -258,6 +258,7 @@ struct GroupCommentSheet: View {
 
             // 입력 필드 오버레이 — 키보드 위
             CommentInputField(viewModel: viewModel, expanded: expanded, onInputClick: onExpand)
+                .keyboardDismissExcluded()
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 .padding(.bottom, 24)
