@@ -110,6 +110,7 @@ struct GroupEditorView: View {
         }
         .background(Color("white"))
         .toast($viewModel.toast)
+        .dismissKeyboardOnTap()
         .onChange(of: viewModel.createdEvent) { _, created in
             if created { dismiss() }   // 생성 성공 → 뒤로가기(상세 자동이동 안 함)
         }
