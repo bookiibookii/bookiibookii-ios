@@ -27,13 +27,22 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .recievedReview:
-            RecievedReviewView()
+        case .myReviews(let initialTab, let nickname):
+            MyReviewsView(
+                userService: container.api.user,
+                initialTab: initialTab,
+                nickname: nickname
+            )
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
         case .profileChange:
             ProfileChangeView(userService: container.api.user)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .addressManagement:
+            AddressManagementView(locationService: container.api.location)
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
@@ -123,6 +132,14 @@ struct NavigationRoutingView: View {
                 .navigationBarBackButtonHidden(true)
         case .myPage:
             MyPageView(userService: container.api.user)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .myBookShelf:
+            MyBookShelfView(
+                userService: container.api.user,
+                groupService: container.api.group
+            )
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)

@@ -8,8 +8,9 @@ enum NavigationDestination: Hashable {
     case onboarding
     case mainTab
     case setting
-    case recievedReview
+    case myReviews(initialTab: MyReviewTab, nickname: String)
     case profileChange
+    case addressManagement
     case questoin
     case qustionDetail
     case notice
@@ -26,5 +27,6 @@ enum NavigationDestination: Hashable {
     case group
     case groupEditor(groupId: Int?)
     case myPage
+    case myBookShelf
     case notification
 }

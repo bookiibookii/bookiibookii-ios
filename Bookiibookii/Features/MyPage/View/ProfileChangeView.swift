@@ -1,12 +1,14 @@
 import PhotosUI
 import SwiftUI
+import Kingfisher
 
 struct ProfileChangeView: View {
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: ProfileChangeViewModel
-    @State private var showRegionSearch = false
-    @State private var selectedRegion = RegionSelection.all
     @State private var photoPickerItem: PhotosPickerItem?
+    @State private var showPhotoSheet = false
+    @State private var showCamera = false
+    @State private var showDateSheet = false
 
     init(userService: UserService) {
         _viewModel = StateObject(wrappedValue: ProfileChangeViewModel(userService: userService))
@@ -15,103 +17,139 @@ struct ProfileChangeView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             Color("grey100").ignoresSafeArea()
+
             VStack(spacing: 0) {
-                CustomNavigationBar(title: "프로필 설정", onBack: { container.navigationRouter.pop() }, rightButton: .none)
+                header
+
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 32) {
-                        profileSection
-                        addressSection
-                        exchangeSection
+                        profileImageSection
+                            .padding(.top, 24)
+
+                        VStack(spacing: 32) {
+                            nicknameField
+                            genderSection
+                            birthSection
+                        }
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 16)
-                    .padding(.bottom, viewModel.hasChanges ? 120 : 24)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 120)
                 }
             }
 
-            if viewModel.hasChanges && viewModel.canSubmit {
-                Button {
-                    Task { await viewModel.saveChanges() }
-                } label: {
-                    Text("수정하기")
-                        .pretendardText(size: 18, weight: .medium)
-                        .foregroundColor(Color("white"))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 72)
-                        .background(Color("grey900"))
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                }
-                .disabled(viewModel.isSaving)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
-            }
+            saveButton
         }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
-        .task {
-            await viewModel.load()
-            selectedRegion = regionSelection(from: viewModel.exchangeRegion)
+        .task { await viewModel.load() }
+        .onChange(of: photoPickerItem) { _, item in
+            guard item != nil else { return }
+            viewModel.consumePhotosPickerItem(item)
+            photoPickerItem = nil
+            showPhotoSheet = false
         }
-        .alert("알림", isPresented: Binding(get: { viewModel.saveMessage != nil }, set: { if !$0 { viewModel.clearSaveMessage() } })) {
+        .sheet(isPresented: $showPhotoSheet) {
+            ProfilePhotoBottomSheet(
+                photoPickerItem: $photoPickerItem,
+                onTakePhoto: {
+                    showPhotoSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                        showCamera = true
+                    }
+                }
+            )
+            .presentationDetents([.height(252)])
+            .presentationDragIndicator(.hidden)
+            .presentationCornerRadius(20)
+        }
+        .sheet(isPresented: $showDateSheet) {
+            BirthDatePickerSheet(
+                initialDate: viewModel.birthDate ?? Self.defaultBirthDate,
+                onConfirm: { date in
+                    viewModel.birthDate = date
+                    showDateSheet = false
+                }
+            )
+            .presentationDetents([.height(380)])
+            .presentationDragIndicator(.hidden)
+            .presentationCornerRadius(20)
+        }
+        .cameraPicker(isPresented: $showCamera) { image in
+            viewModel.setCapturedImage(image)
+        }
+        .alert("알림", isPresented: Binding(
+            get: { viewModel.saveMessage != nil },
+            set: { if !$0 { viewModel.clearSaveMessage() } }
+        )) {
             Button("확인") { viewModel.clearSaveMessage() }
         } message: {
             Text(viewModel.saveMessage ?? "")
         }
-        .background(
-            NavigationLink(isActive: $showRegionSearch) {
-                RegionSearchView(preSelected: selectedRegion) { selection in
-                    selectedRegion = selection
-                    viewModel.exchangeRegion = displayText(for: selection)
-                } onClose: {
-                    showRegionSearch = false
-                }
-                .environmentObject(container)
-            } label: { EmptyView() }
-            .hidden()
-        )
+        .alert("사진을 불러오지 못했습니다", isPresented: Binding(
+            get: { viewModel.photoImportError != nil },
+            set: { if !$0 { viewModel.photoImportError = nil } }
+        )) {
+            Button("확인", role: .cancel) { viewModel.photoImportError = nil }
+        } message: {
+            Text(viewModel.photoImportError ?? "")
+        }
     }
 
-    private var profileSection: some View {
-        VStack(spacing: 32) {
+    // MARK: - Header
+
+    private var header: some View {
+        HStack {
+            Button { container.navigationRouter.pop() } label: {
+                Image("ic_back")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .frame(width: 40, height: 40)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Text("내 프로필")
+                .pretendardText(size: 20, weight: .medium)
+                .foregroundColor(Color("grey900"))
+
+            Spacer()
+
+            Color.clear.frame(width: 40, height: 40)
+        }
+        .padding(.horizontal, 16)
+        .frame(height: 68)
+        .background(Color("white"))
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(Color("grey200")).frame(height: 1)
+        }
+    }
+
+    // MARK: - Profile Image
+
+    private var profileImageSection: some View {
+        Button { showPhotoSheet = true } label: {
             ZStack(alignment: .bottomTrailing) {
                 profileImage
                     .frame(width: 128, height: 128)
-                    .clipShape(RoundedRectangle(cornerRadius: 38))
+                    .clipShape(SquircleShape())
 
-                PhotosPicker(selection: $photoPickerItem, matching: .images) {
+                ZStack {
+                    Circle()
+                        .fill(Color("grey600"))
+                        .frame(width: 32, height: 32)
                     Image("ic_camera")
+                        .renderingMode(.template)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 36, height: 36)
-                        .contentShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .offset(x: 6, y: 6)
-            }
-            .onChange(of: photoPickerItem) { _, newValue in
-                viewModel.consumePhotosPickerItem(newValue)
-                photoPickerItem = nil
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                NicknameField(
-                    text: Binding(
-                        get: { viewModel.nickname },
-                        set: { viewModel.onNicknameChanged($0) }
-                    ),
-                    actionTitle: viewModel.nicknameValidationState == .loading ? "확인중..." : "중복확인",
-                    isActionEnabled: viewModel.nicknameValidationState != .loading && !viewModel.nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                    onActionTap: { viewModel.checkNicknameDuplicated() }
-                )
-
-                if !viewModel.nicknameValidationState.message.isEmpty {
-                    Text(viewModel.nicknameValidationState.message)
-                        .pretendardText(size: 12, weight: .regular)
-                        .foregroundColor(viewModel.nicknameValidationState.isAvailable ? Color.green : Color.red)
-                        .padding(.horizontal, 8)
+                        .frame(width: 20, height: 20)
+                        .foregroundColor(Color("white"))
                 }
             }
         }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
     }
 
     @ViewBuilder
@@ -121,138 +159,156 @@ struct ProfileChangeView: View {
                 .resizable()
                 .scaledToFill()
         } else if let url = viewModel.profileImageURL {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let image):
-                    image.resizable().scaledToFill()
-                default:
-                    RoundedRectangle(cornerRadius: 38)
-                        .fill(Color("grey300"))
-                }
-            }
+            KFImage(url)
+                .placeholder { profilePlaceholder }
+                .resizable()
+                .scaledToFill()
         } else {
-            RoundedRectangle(cornerRadius: 38)
-                .fill(Color("grey300"))
+            profilePlaceholder
         }
     }
 
-    private var addressSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("배송지 정보").pretendardText(size: 16, weight: .regular).foregroundColor(Color("grey900"))
-            BasicField(text: $viewModel.name, placeholder: "이름")
-            BasicField(
-                text: Binding(
-                    get: { viewModel.phone },
-                    set: { viewModel.updatePhone($0) }
-                ),
-                placeholder: "연락처"
-            )
-            SearchField(text: $viewModel.zipCode, placeholder: "우편 번호", actionTitle: "검색하기")
-            BasicField(text: $viewModel.address, placeholder: "주소")
-            BasicField(text: $viewModel.detailAddress, placeholder: "상세주소")
-        }
+    private var profilePlaceholder: some View {
+        Image("ic_profile_placeholder")
+            .resizable()
+            .scaledToFill()
     }
 
-    private var exchangeSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("직접 교환 정보").pretendardText(size: 16, weight: .regular).foregroundColor(Color("grey900"))
-            SearchField(text: $viewModel.exchangeRegion, placeholder: "시/도 시/군/구", actionTitle: "검색하기", onActionTap: { showRegionSearch = true })
-        }
-    }
+    // MARK: - Fields
 
-    private func displayText(for selection: RegionSelection) -> String {
-        if selection.isAll { return "" }
-        if selection.isCityAll { return selection.city }
-        return "\(selection.city) " + selection.districts.joined(separator: " · ")
-    }
+    private var nicknameField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            fieldLabel("닉네임")
 
-    private func regionSelection(from text: String) -> RegionSelection {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return .all }
-        let cityNames = Set(RegionData.cities.map(\.name))
-        let components = trimmed.split(separator: " ", maxSplits: 1).map(String.init)
-        guard let city = components.first, cityNames.contains(city) else { return .all }
-        guard components.count > 1 else { return RegionSelection(city: city, districts: []) }
-        let districts = components[1].split(separator: "·").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
-        return RegionSelection(city: city, districts: districts)
-    }
-}
-
-private struct BasicField: View {
-    @Binding var text: String
-    let placeholder: String
-    var body: some View {
-        TextField(placeholder, text: $text)
-            .pretendardText(size: 15, weight: .regular)
-            .foregroundColor(Color("grey900"))
-            .padding(.horizontal, 20)
-            .frame(height: 48)
+            TextField("", text: Binding(
+                get: { viewModel.nickname },
+                set: { viewModel.onNicknameChanged($0) }
+            ))
+            .pretendardText(size: 15, weight: .medium)
+            .foregroundColor(Color("grey800"))
+            .padding(16)
+            .frame(maxWidth: .infinity)
             .background(Color("white"))
             .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color("grey300"), lineWidth: 0.5)
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color("grey300"), lineWidth: 1)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-    }
-}
+            .clipShape(RoundedRectangle(cornerRadius: 16))
 
-private struct NicknameField: View {
-    @Binding var text: String
-    let actionTitle: String
-    let isActionEnabled: Bool
-    var onActionTap: () -> Void = {}
-    var body: some View {
-        HStack {
-            TextField("텍스트 입력 전", text: $text)
-                .pretendardText(size: 15, weight: .regular)
-                .foregroundColor(Color("grey900"))
-                .padding(.leading, 20)
-            Button(actionTitle) { onActionTap() }
-                .pretendardText(size: 14, weight: .medium)
-                .foregroundColor(Color("grey100"))
-                .frame(width: 100, height: 40)
-                .background(isActionEnabled ? Color("grey900") : Color("grey300"))
-                .clipShape(Capsule())
-                .padding(.trailing, 4)
-                .disabled(!isActionEnabled)
+            if !viewModel.nicknameValidationState.message.isEmpty {
+                Text(viewModel.nicknameValidationState.message)
+                    .pretendardText(size: 12, weight: .regular)
+                    .foregroundColor(viewModel.nicknameValidationState.isAvailable ? Color.green : Color.red)
+            }
         }
-        .frame(height: 48)
-        .background(Color("white"))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color("grey300"), lineWidth: 0.5)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
-}
 
-private struct SearchField: View {
-    @Binding var text: String
-    let placeholder: String
-    let actionTitle: String
-    var onActionTap: () -> Void = {}
-    var body: some View {
-        HStack {
-            TextField(placeholder, text: $text)
+    private var genderSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            fieldLabel("성별")
+
+            HStack(spacing: 12) {
+                genderButton(.female, width: 119)
+                genderButton(.male, width: 119)
+                genderButton(.unspecified, width: nil)
+            }
+            .frame(height: 48)
+        }
+    }
+
+    private func genderButton(_ item: Gender, width: CGFloat?) -> some View {
+        let isSelected = viewModel.gender == item
+        return Button { viewModel.gender = item } label: {
+            Text(item.displayName)
                 .pretendardText(size: 15, weight: .regular)
-                .foregroundColor(Color("grey900"))
-                .padding(.leading, 20)
-            Button(actionTitle) { onActionTap() }
-                .pretendardText(size: 14, weight: .medium)
-                .foregroundColor(Color("grey100"))
-                .frame(width: 100, height: 40)
+                .foregroundColor(isSelected ? Color("main200") : Color("grey500"))
+                .frame(maxWidth: width == nil ? .infinity : nil)
+                .frame(width: width)
+                .frame(maxHeight: .infinity)
+                .background(isSelected ? Color("main100") : Color("white"))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(isSelected ? Color("main105") : Color("grey300"), lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var birthSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            fieldLabel("생년월일")
+
+            Button { showDateSheet = true } label: {
+                HStack {
+                    Text(birthDisplayText)
+                        .pretendardText(size: 15, weight: .medium)
+                        .foregroundColor(viewModel.birthDate == nil ? Color("grey500") : Color("grey800"))
+                    Spacer()
+                    Image("ic_calender")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 24)
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity)
+                .background(Color("white"))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color("grey300"), lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var birthDisplayText: String {
+        guard let date = viewModel.birthDate else { return "0000.00.00" }
+        return Self.displayFormatter.string(from: date)
+    }
+
+    private func fieldLabel(_ title: String) -> some View {
+        Text(title)
+            .pretendardText(size: 16, weight: .medium)
+            .foregroundColor(Color("grey900"))
+    }
+
+    // MARK: - Save
+
+    private var saveButton: some View {
+        Button {
+            Task { await viewModel.saveChanges() }
+        } label: {
+            Text("수정")
+                .pretendardText(size: 18, weight: .medium)
+                .foregroundColor(Color("white"))
+                .frame(maxWidth: .infinity)
+                .frame(height: 72)
                 .background(Color("grey900"))
-                .clipShape(Capsule())
-                .padding(.trailing, 4)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
         }
-        .frame(height: 48)
-        .background(Color("white"))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color("grey300"), lineWidth: 0.5)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .buttonStyle(.plain)
+        .disabled(!viewModel.canSubmit || !viewModel.hasChanges || viewModel.isSaving)
+        .opacity(viewModel.canSubmit && viewModel.hasChanges && !viewModel.isSaving ? 1 : 0.45)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
     }
+
+    private static let displayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "yyyy.MM.dd"
+        return formatter
+    }()
+
+    private static let defaultBirthDate: Date = {
+        var comp = DateComponents()
+        comp.year = 2000
+        comp.month = 1
+        comp.day = 1
+        return Calendar(identifier: .gregorian).date(from: comp) ?? Date()
+    }()
 }
 
 #Preview {

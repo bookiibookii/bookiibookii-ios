@@ -92,6 +92,18 @@ final class UserService {
         }
     }
 
+    // PATCH /api/mypage/introduction
+    func updateIntroduction(_ introduction: String) async throws {
+        let target = UserAPITarget.updateIntroduction(UpdateIntroductionRequest(introduction: introduction))
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw UserError.profileChangeFailed(response.message)
+        }
+    }
+
     // GET /api/users/me/profile-change
     func getProfileChangeInfo() async throws -> ProfileChangeInfoResult {
         let target = UserAPITarget.profileChangeInfo
@@ -117,6 +129,110 @@ final class UserService {
         }
     }
 
+    // GET /api/mypage/bookshelf
+    func getBookshelf() async throws -> BookshelfResult {
+        let target = UserAPITarget.bookshelf
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<BookshelfResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.bookshelfFailed(response.message)
+        }
+        return result
+    }
+
+    // DELETE /api/mypage/bookshelf/representatives/{userBookId}
+    func deleteRepresentativeBook(userBookId: Int) async throws {
+        let target = UserAPITarget.deleteRepresentativeBook(userBookId: userBookId)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw UserError.bookshelfFailed(response.message)
+        }
+    }
+
+    // PATCH /api/mypage/bookshelf/representatives/order
+    func reorderRepresentativeBook(userBookId: Int, targetOrder: Int) async throws {
+        let target = UserAPITarget.reorderRepresentativeBooks(
+            ReorderRepresentativeRequest(userBookId: userBookId, targetOrder: targetOrder)
+        )
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw UserError.bookshelfFailed(response.message)
+        }
+    }
+
+    // POST /api/mypage/bookshelf/favorites
+    func addFavoriteBook(isbn13: String) async throws {
+        let target = UserAPITarget.addFavoriteBook(FavoriteBookISBNRequest(isbn13: isbn13))
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw UserError.bookshelfFailed(response.message)
+        }
+    }
+
+    // PATCH /api/mypage/bookshelf/favorites/{userBookId}
+    func replaceFavoriteBook(userBookId: Int, isbn13: String) async throws {
+        let target = UserAPITarget.replaceFavoriteBook(
+            userBookId: userBookId,
+            request: FavoriteBookISBNRequest(isbn13: isbn13)
+        )
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw UserError.bookshelfFailed(response.message)
+        }
+    }
+
+    // DELETE /api/mypage/bookshelf/favorites/{userBookId}
+    func deleteFavoriteBook(userBookId: Int) async throws {
+        let target = UserAPITarget.deleteFavoriteBook(userBookId: userBookId)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw UserError.bookshelfFailed(response.message)
+        }
+    }
+
+    // GET /api/mypage/reviews/written
+    func getWrittenReviews(page: Int = 0, size: Int = 20) async throws -> WrittenReviewsResult {
+        let target = UserAPITarget.mypageWrittenReviews(page: page, size: size)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<WrittenReviewsResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.reviewFailed(response.message)
+        }
+        return result
+    }
+
+    // GET /api/mypage/reviews/received
+    func getReceivedReviews(page: Int = 0, size: Int = 20) async throws -> ReceivedReviewsResult {
+        let target = UserAPITarget.mypageReceivedReviews(page: page, size: size)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<ReceivedReviewsResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.reviewFailed(response.message)
+        }
+        return result
+    }
+
     // GET /api/profiles/{nickname} — 타 유저 프로필 조회
     func getUserProfile(nickname: String) async throws -> OtherProfileResult {
         let target = UserAPITarget.getUserProfile(nickname: nickname)
@@ -137,6 +253,8 @@ enum UserError: LocalizedError {
     case onboardingFailed(String)
     case profileFailed
     case profileChangeFailed(String)
+    case bookshelfFailed(String)
+    case reviewFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -145,6 +263,8 @@ enum UserError: LocalizedError {
         case .onboardingFailed(let msg): return msg
         case .profileFailed: return "프로필을 불러오지 못했습니다."
         case .profileChangeFailed(let msg): return msg
+        case .bookshelfFailed(let msg): return msg.isEmpty ? "책장을 불러오지 못했습니다." : msg
+        case .reviewFailed(let msg): return msg.isEmpty ? "후기를 불러오지 못했습니다." : msg
         }
     }
 }

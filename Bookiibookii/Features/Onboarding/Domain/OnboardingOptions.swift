@@ -22,6 +22,15 @@ enum Gender: CaseIterable, Hashable {
         case .unspecified: return "NONE"
         }
     }
+
+    static func from(server value: String?) -> Gender? {
+        switch value?.uppercased() {
+        case "FEMALE": return .female
+        case "MALE": return .male
+        case "NONE": return .unspecified
+        default: return nil
+        }
+    }
 }
 
 // MARK: - 독서 기록 방식 (안드로이드 RecordMethod 대응)

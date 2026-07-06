@@ -58,22 +58,57 @@ struct MypageResult: Decodable {
     let userId: Int
     let profileImageUrl: String?
     let nickname: String
-    let manner: Double?
-    let topTags: [String]?
-    let completeBook: Int?
-    let relayGroup: Int?
-    let togetherGroup: Int?
-    let userBadges: [MypageBadge]?
-    let groups: [MypageGroup]?
-    let books: [MypageBook]?
-    let receiverName: String?
-    let phone: String?
-    let zipCode: String?
-    let address: String?
-    let addressDetail: String?
-    let region: String?
-    let meetPlace: String?
+    let introduction: String?
+    let gender: String?
+    let birthDate: String?
+    let userBooks: [MypageUserBook]?
+    let bookReviewCount: Int?
+    let recentBookReviews: [MypageBookReview]?
+    let boomUpCount: Int?
+    let recentReceivedReviews: [MypageReceivedReview]?
 }
+
+struct MypageUserBook: Decodable, Equatable, Identifiable {
+    let title: String
+    let auth: String
+    let image: String?
+
+    var id: String { "\(title)-\(auth)" }
+}
+
+struct MypageBookReview: Decodable, Equatable, Identifiable {
+    let bookTitle: String
+    let bookAuthor: String
+    let tradeType: String
+    let rating: Double
+    let comment: String
+    let reviewDate: String
+
+    var id: String { "\(bookTitle)-\(reviewDate)" }
+}
+
+struct MypageReceivedReview: Decodable, Equatable, Identifiable {
+    let reviewerNickname: String
+    let reviewerProfileUrl: String?
+    let reaction: String
+    let comment: String
+    let createdAt: String
+
+    var id: String { "\(reviewerNickname)-\(createdAt)" }
+}
+
+struct MypageUpdateRequest: Encodable {
+    let nickname: String
+    let gender: String?
+    let birth: String?
+    let s3Key: String?
+}
+
+struct UpdateIntroductionRequest: Encodable {
+    let introduction: String
+}
+
+// MARK: - 타 유저 프로필 (기존 스키마 유지)
 
 struct MypageBadge: Decodable, Equatable {
     let userBadge: String
@@ -103,18 +138,6 @@ struct MypageGroup: Decodable, Equatable, Identifiable {
 struct MypageBook: Decodable, Equatable {
     let bookTitle: String?
     let rating: Double?
-}
-
-struct MypageUpdateRequest: Encodable {
-    let nickname: String
-    let s3Key: String?
-    let receiverName: String
-    let phone: String
-    let zipCode: String
-    let address: String
-    let addressDetail: String
-    let meetPlace: String?
-    let region: String?
 }
 
 // MARK: - 프로필 변경 (배송지/직접 교환 정보)
