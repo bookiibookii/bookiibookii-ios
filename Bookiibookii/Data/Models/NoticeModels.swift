@@ -5,9 +5,13 @@ struct NoticeListItemDto: Decodable, Identifiable, Equatable {
     let createdAt: Date
     let title: String
     let summary: String
+    let authorNickname: String?
+    let authorProfileImageUrl: String?
+    let isNew: Bool?
 
     enum CodingKeys: String, CodingKey {
         case id, createdAt, title, summary
+        case authorNickname, authorProfileImageUrl, isNew
     }
 
     init(from decoder: Decoder) throws {
@@ -20,6 +24,9 @@ struct NoticeListItemDto: Decodable, Identifiable, Equatable {
         }
         title = try container.decode(String.self, forKey: .title)
         summary = try container.decode(String.self, forKey: .summary)
+        authorNickname = try container.decodeIfPresent(String.self, forKey: .authorNickname)
+        authorProfileImageUrl = try container.decodeIfPresent(String.self, forKey: .authorProfileImageUrl)
+        isNew = try container.decodeIfPresent(Bool.self, forKey: .isNew)
         createdAt = try Self.decodeDate(forKey: .createdAt, from: container)
     }
 }
@@ -29,9 +36,12 @@ struct NoticeDetailDto: Decodable, Equatable {
     let title: String
     let content: String
     let createdAt: Date
+    let authorNickname: String?
+    let authorProfileImageUrl: String?
 
     enum CodingKeys: String, CodingKey {
         case id, title, content, createdAt
+        case authorNickname, authorProfileImageUrl
     }
 
     init(from decoder: Decoder) throws {
@@ -44,6 +54,8 @@ struct NoticeDetailDto: Decodable, Equatable {
         }
         title = try container.decode(String.self, forKey: .title)
         content = try container.decode(String.self, forKey: .content)
+        authorNickname = try container.decodeIfPresent(String.self, forKey: .authorNickname)
+        authorProfileImageUrl = try container.decodeIfPresent(String.self, forKey: .authorProfileImageUrl)
         createdAt = try Self.decodeDate(forKey: .createdAt, from: container)
     }
 }

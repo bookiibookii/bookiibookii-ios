@@ -26,7 +26,7 @@ enum API {
         static let recommendations = "/api/recommendations"
         static let notifications = "/api/notifications"
         static let notice = "/api/notice"
-        static let inquiry = "/api/inquiry"
+        static let faq = "/api/faq"
         static let keywords = "/api/keywords"
         static let library = "/api/library"
         static let reviews = "/api/reviews"

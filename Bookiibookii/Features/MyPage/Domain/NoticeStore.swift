@@ -5,26 +5,51 @@ struct NoticeItem: Identifiable, Codable, Hashable {
     let title: String
     let summary: String
     let createdAt: Date
+    let authorNickname: String?
+    let authorProfileImageUrl: String?
+    let isNew: Bool
 
-    var relativeDateText: String {
+    var listDateText: String {
         let seconds = max(0, Int(Date().timeIntervalSince(createdAt)))
         let minutes = seconds / 60
+        let hours = seconds / 3600
+        let days = seconds / 86400
+
+        if days >= 7 {
+            return Self.listAbsoluteDateFormatter.string(from: createdAt)
+        }
         if minutes < 1 { return "방금 전" }
         if minutes < 60 { return "\(minutes)분 전" }
-        let hours = minutes / 60
         if hours < 24 { return "\(hours)시간 전" }
-        let days = hours / 24
         return "\(days)일 전"
     }
 
-    var detailDateText: String {
-        Self.detailFormatter.string(from: createdAt)
+    var showsAuthorMeta: Bool {
+        guard let authorNickname, !authorNickname.isEmpty else { return false }
+        return true
     }
 
-    static let detailFormatter: DateFormatter = {
+    private static let listAbsoluteDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "yyyy. MM. dd. HH:mm"
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        formatter.dateFormat = "yyyy. MM. dd."
+        return formatter
+    }()
+
+    static let detailDateOnlyFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        formatter.dateFormat = "yyyy. MM. dd."
+        return formatter
+    }()
+
+    static let detailTimeOnlyFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        formatter.dateFormat = "HH:mm"
         return formatter
     }()
 }
@@ -34,9 +59,20 @@ struct NoticeDetailItem: Equatable {
     let title: String
     let content: String
     let createdAt: Date
+    let authorNickname: String?
+    let authorProfileImageUrl: String?
 
-    var detailDateText: String {
-        NoticeItem.detailFormatter.string(from: createdAt)
+    var detailDateOnlyText: String {
+        NoticeItem.detailDateOnlyFormatter.string(from: createdAt)
+    }
+
+    var detailTimeOnlyText: String {
+        NoticeItem.detailTimeOnlyFormatter.string(from: createdAt)
+    }
+
+    var showsAuthorMeta: Bool {
+        guard let authorNickname, !authorNickname.isEmpty else { return false }
+        return true
     }
 }
 
@@ -46,6 +82,9 @@ extension NoticeItem {
         self.title = dto.title
         self.summary = dto.summary
         self.createdAt = dto.createdAt
+        self.authorNickname = dto.authorNickname
+        self.authorProfileImageUrl = dto.authorProfileImageUrl
+        self.isNew = dto.isNew ?? false
     }
 }
 
@@ -55,5 +94,7 @@ extension NoticeDetailItem {
         self.title = dto.title
         self.content = dto.content
         self.createdAt = dto.createdAt
+        self.authorNickname = dto.authorNickname
+        self.authorProfileImageUrl = dto.authorProfileImageUrl
     }
 }

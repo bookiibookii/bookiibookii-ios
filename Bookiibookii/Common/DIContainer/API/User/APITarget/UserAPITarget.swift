@@ -18,6 +18,7 @@ enum UserAPITarget: APITargetType {
     case profileChangeInfo
     case updateProfileChangeInfo(ProfileChangeUpdateRequest)
     case getUserProfile(nickname: String)
+    case withdraw(WithdrawalRequest)
 
     var path: String {
         switch self {
@@ -51,6 +52,8 @@ enum UserAPITarget: APITargetType {
             return API.Path.users + "/me/profile-change"
         case .getUserProfile(let nickname):
             return API.Path.userProfile(nickname: nickname)
+        case .withdraw:
+            return API.Path.users + "/me/withdrawal"
         }
     }
 
@@ -61,7 +64,7 @@ enum UserAPITarget: APITargetType {
         case .updateMypage, .updateIntroduction, .reorderRepresentativeBooks, .replaceFavoriteBook: return .patch
         case .deleteRepresentativeBook, .deleteFavoriteBook: return .delete
         case .updateProfileChangeInfo: return .put
-        case .checkNickname, .presignedURL, .completeOnboarding, .addFavoriteBook: return .post
+        case .checkNickname, .presignedURL, .completeOnboarding, .addFavoriteBook, .withdraw: return .post
         }
     }
 
@@ -94,6 +97,8 @@ enum UserAPITarget: APITargetType {
             return try? JSONEncoder().encode(request)
         case .updateProfileChangeInfo(let request):
             return try? JSONEncoder().encode(request)
+        case .withdraw(let request):
+            return try? JSONEncoder().encode(request)
         default:
             return nil
         }
@@ -101,7 +106,7 @@ enum UserAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .presignedURL, .completeOnboarding, .updateMypage, .updateIntroduction, .updateProfileChangeInfo, .reorderRepresentativeBooks, .addFavoriteBook, .replaceFavoriteBook:
+        case .presignedURL, .completeOnboarding, .updateMypage, .updateIntroduction, .updateProfileChangeInfo, .reorderRepresentativeBooks, .addFavoriteBook, .replaceFavoriteBook, .withdraw:
             return ["Content-Type": "application/json"]
         default:
             return [:]

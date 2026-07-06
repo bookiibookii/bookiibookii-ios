@@ -1,95 +1,127 @@
-//
-//  SettingView.swift
-//  Bookiibookii
-//
-//  Created by 한태빈 on 4/24/26.
-//
-
 import SwiftUI
 
 struct SettingView: View {
     @EnvironmentObject private var container: DIContainer
-    @State private var isPushNotificationEnabled = false
+
+    @State private var isPushNotificationEnabled = true
     @State private var showLogoutPopup = false
-    @State private var showWithdrawPopup = false
+    @State private var isProcessingLogout = false
+    @State private var accountErrorMessage: String?
+
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        return "v\(version)"
+    }
 
     var body: some View {
         ZStack {
             Color("grey100").ignoresSafeArea()
 
             VStack(spacing: 0) {
-                CustomNavigationBar(
-                    title: "설정",
-                    onBack: { container.navigationRouter.pop() },
-                    rightButton: .none
-                )
+                header
 
                 ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 32) {
+                    VStack(alignment: .leading, spacing: 24) {
                         notificationSection
                         customerCenterSection
                         termsSection
                         versionSection
                         accountSection
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 16)
                     .padding(.top, 16)
                     .padding(.bottom, 32)
                 }
             }
 
-            if showLogoutPopup || showWithdrawPopup {
-                Color.black.opacity(0.35)
+            if showLogoutPopup {
+                Color.black.opacity(0.45)
                     .ignoresSafeArea()
                     .onTapGesture {
+                        guard !isProcessingLogout else { return }
                         showLogoutPopup = false
-                        showWithdrawPopup = false
                     }
-            }
 
-            if showLogoutPopup {
                 LogoutPopupView(
-                    onCancel: { showLogoutPopup = false },
-                    onConfirm: {
+                    onCancel: {
+                        guard !isProcessingLogout else { return }
                         showLogoutPopup = false
-                        // TODO: 로그아웃 API 연결
+                    },
+                    onConfirm: {
+                        Task { await performLogout() }
                     }
                 )
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 20)
             }
 
-            if showWithdrawPopup {
-                WithdrawPopupView(
-                    onCancel: { showWithdrawPopup = false },
-                    onConfirm: {
-                        showWithdrawPopup = false
-                        // TODO: 회원탈퇴 API 연결
-                    }
-                )
-                .padding(.horizontal, 24)
+            if isProcessingLogout {
+                Color.black.opacity(0.15).ignoresSafeArea()
+                ProgressView()
             }
+        }
+        .alert("안내", isPresented: Binding(
+            get: { accountErrorMessage != nil },
+            set: { if !$0 { accountErrorMessage = nil } }
+        )) {
+            Button("확인", role: .cancel) { accountErrorMessage = nil }
+        } message: {
+            Text(accountErrorMessage ?? "")
         }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
     }
 
+    // MARK: - Header
+
+    private var header: some View {
+        HStack {
+            Button { container.navigationRouter.pop() } label: {
+                Image("ic_back")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .frame(width: 40, height: 40)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Text("설정")
+                .pretendardText(size: 20, weight: .medium)
+                .foregroundColor(Color("grey900"))
+
+            Spacer()
+
+            Color.clear.frame(width: 40, height: 40)
+        }
+        .padding(.horizontal, 16)
+        .frame(height: 68)
+        .background(Color("white"))
+        .overlay(alignment: .bottom) {
+            Divider().overlay(Color("grey200"))
+        }
+    }
+
+    // MARK: - Sections
+
     private var notificationSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             sectionTitle("알림")
-            card {
+
+            settingCard(verticalPadding: 12) {
                 HStack(spacing: 12) {
-                    iconBadge(iconName: "ic_alert")
+                    settingIcon("ic_alert")
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("푸시 알림 받기")
-                            .pretendardText(size: 15, weight: .medium)
+                        Text("푸시 알림 설정")
+                            .pretendardText(size: 16, weight: .medium)
                             .foregroundColor(Color("grey900"))
                         Text("서비스 알림을 받습니다.")
                             .pretendardText(size: 12, weight: .regular)
                             .foregroundColor(Color("grey600"))
                     }
 
-                    Spacer()
+                    Spacer(minLength: 8)
 
                     Toggle("", isOn: $isPushNotificationEnabled)
                         .labelsHidden()
@@ -100,35 +132,27 @@ struct SettingView: View {
     }
 
     private var customerCenterSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             sectionTitle("고객센터")
+
             Button {
                 container.navigationRouter.push(to: .notice)
             } label: {
-                settingRow(
+                navigationRow(
                     iconName: "ic_alert",
                     title: "공지사항",
-                    subtitle: "새로운 소식을 확인하세요!"
+                    subtitle: "부키부키의 새로운 소식을 확인하세요!"
                 )
             }
             .buttonStyle(.plain)
+
             Button {
-                container.navigationRouter.push(to: .questoin)
+                container.navigationRouter.push(to: .faq)
             } label: {
-                settingRow(
-                    iconName: "ic_message",
-                    title: "문의하기",
-                    subtitle: "서비스 관련 문의는 여기서!"
-                )
-            }
-            .buttonStyle(.plain)
-            Button {
-                container.navigationRouter.push(to: .report)
-            } label: {
-                settingRow(
+                navigationRow(
                     iconName: "ic_info",
-                    title: "신고하기",
-                    subtitle: "악성 유저를 신고해주세요!"
+                    title: "자주 묻는 질문 / 신고하기",
+                    subtitle: "문의 또는 불편사항이 있으신가요?"
                 )
             }
             .buttonStyle(.plain)
@@ -136,109 +160,154 @@ struct SettingView: View {
     }
 
     private var termsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             sectionTitle("이용 약관")
-            plainRow("서비스 이용 약관")
-            plainRow("개인정보 처리방침")
+
+            Button {
+                container.navigationRouter.push(to: .legalDocument(.termsOfService))
+            } label: {
+                chevronRow("서비스 이용 약관")
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                container.navigationRouter.push(to: .legalDocument(.privacyPolicy))
+            } label: {
+                chevronRow("개인정보 처리 방침")
+            }
+            .buttonStyle(.plain)
         }
     }
 
     private var versionSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             sectionTitle("버전 정보")
-            plainRow("v1.0.0")
+
+            settingCard {
+                Text(appVersion)
+                    .pretendardText(size: 16, weight: .medium)
+                    .foregroundColor(Color("grey500"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
 
     private var accountSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionTitle("계정관리")
-            Button {
-                showLogoutPopup = true
-                showWithdrawPopup = false
-            } label: {
-                actionRow("로그아웃", color: Color("grey900"))
-            }
-            .buttonStyle(.plain)
+        VStack(alignment: .leading, spacing: 8) {
+            sectionTitle("계정 관리")
 
             Button {
-                showWithdrawPopup = true
-                showLogoutPopup = false
+                showLogoutPopup = true
             } label: {
-                actionRow("회원 탈퇴", color: Color(red: 1.0, green: 0.302, blue: 0.302))
+                settingCard {
+                    Text("로그아웃")
+                        .pretendardText(size: 16, weight: .medium)
+                        .foregroundColor(Color("grey900"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .buttonStyle(.plain)
+            .disabled(isProcessingLogout)
+
+            Button {
+                container.navigationRouter.push(to: .accountWithdrawal)
+            } label: {
+                settingCard {
+                    Text("회원 탈퇴")
+                        .pretendardText(size: 16, weight: .medium)
+                        .foregroundColor(Color("pointRed"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(isProcessingLogout)
         }
     }
+
+    // MARK: - Components
 
     private func sectionTitle(_ text: String) -> some View {
         Text(text)
-            .pretendardText(size: 16, weight: .medium)
+            .pretendardText(size: 16, weight: .semibold)
             .foregroundColor(Color("grey900"))
     }
 
-    private func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+    private func settingCard<Content: View>(
+        verticalPadding: CGFloat = 16,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
         content()
-            .padding(16)
+            .padding(.horizontal, 16)
+            .padding(.vertical, verticalPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color("white"))
             .overlay(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 16)
                     .stroke(Color("grey100"), lineWidth: 1)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    private func iconBadge(iconName: String) -> some View {
-        ZStack {
-            Circle()
-                .fill(Color("grey100"))
-                .frame(width: 40, height: 40)
-            Image(iconName)
-                .renderingMode(.original)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 40, height: 40)
-        }
+    private func settingIcon(_ name: String) -> some View {
+        Image(name)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 24, height: 24)
     }
 
-    private func settingRow(iconName: String, title: String, subtitle: String) -> some View {
-        card {
+    private func navigationRow(iconName: String, title: String, subtitle: String) -> some View {
+        settingCard(verticalPadding: 12) {
             HStack(spacing: 12) {
-                iconBadge(iconName: iconName)
+                settingIcon(iconName)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .pretendardText(size: 15, weight: .medium)
+                        .pretendardText(size: 16, weight: .medium)
                         .foregroundColor(Color("grey900"))
                     Text(subtitle)
                         .pretendardText(size: 12, weight: .regular)
                         .foregroundColor(Color("grey600"))
                 }
 
-                Spacer()
+                Spacer(minLength: 8)
 
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color("grey700"))
+                Image("ic_chevron_r")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
             }
         }
     }
 
-    private func plainRow(_ text: String) -> some View {
-        card {
-            Text(text)
-                .pretendardText(size: 15, weight: .regular)
-                .foregroundColor(Color("grey600"))
+    private func chevronRow(_ title: String) -> some View {
+        settingCard {
+            HStack {
+                Text(title)
+                    .pretendardText(size: 16, weight: .medium)
+                    .foregroundColor(Color("grey900"))
+
+                Spacer(minLength: 8)
+
+                Image("ic_chevron_r")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+            }
         }
     }
 
-    private func actionRow(_ text: String, color: Color) -> some View {
-        card {
-            Text(text)
-                .pretendardText(size: 15, weight: .medium)
-                .foregroundColor(color)
+    // MARK: - Account Actions
+
+    private func performLogout() async {
+        isProcessingLogout = true
+        defer { isProcessingLogout = false }
+
+        if let token = TokenManager.shared.accessToken {
+            await container.api.auth.logout(accessToken: token)
         }
+        TokenManager.shared.clear()
+        showLogoutPopup = false
+        container.navigationRouter.hardReset(to: .login)
     }
 }
 

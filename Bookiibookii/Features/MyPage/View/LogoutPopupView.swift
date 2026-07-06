@@ -5,47 +5,48 @@ struct LogoutPopupView: View {
     let onConfirm: () -> Void
 
     var body: some View {
-        VStack(spacing: 20) {
-            VStack(spacing: 8) {
-                Text("로그아웃 하시겠어요?")
-                    .pretendardText(size: 18, weight: .medium)
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(alignment: .center) {
+                Text("로그아웃")
+                    .pretendardText(size: 20, weight: .semibold)
                     .foregroundColor(Color("grey900"))
 
-                Text("언제든 다시 로그인할 수 있어요.")
-                    .pretendardText(size: 14, weight: .regular)
-                    .foregroundColor(Color("grey600"))
+                Spacer()
+
+                Button(action: onCancel) {
+                    Image("ic_x")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .foregroundColor(Color("grey900"))
+                        .frame(width: 32, height: 32)
+                        .background(Circle().fill(Color("grey100")))
+                }
+                .buttonStyle(.plain)
             }
-            .multilineTextAlignment(.center)
 
-            HStack(spacing: 8) {
-                Button("취소") { onCancel() }
-                    .pretendardText(size: 16, weight: .medium)
-                    .foregroundColor(Color("grey900"))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(Color("grey100"))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            Text("로그아웃 하시겠습니까?")
+                .pretendardText(size: 16, weight: .regular)
+                .foregroundColor(Color("grey700"))
 
-                Button("로그아웃") { onConfirm() }
-                    .pretendardText(size: 16, weight: .medium)
-                    .foregroundColor(Color("white"))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 52)
-                    .background(Color("grey900"))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            HStack(spacing: 12) {
+                BottomSheetTwoBtnShort(text: "취소", style: .white, action: onCancel)
+                BottomSheetTwoBtnShort(text: "로그아웃", style: .red, action: onConfirm)
             }
         }
-        .padding(24)
+        .padding(20)
         .frame(maxWidth: .infinity)
         .background(Color("white"))
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: -3)
     }
 }
 
 #Preview {
     ZStack {
-        Color.black.opacity(0.35).ignoresSafeArea()
+        Color.black.opacity(0.45).ignoresSafeArea()
         LogoutPopupView(onCancel: {}, onConfirm: {})
-            .padding(24)
+            .padding(.horizontal, 20)
     }
 }

@@ -233,6 +233,21 @@ final class UserService {
         return result
     }
 
+    // POST /api/users/me/withdrawal
+    func withdraw(_ request: WithdrawalRequest) async throws {
+        let target = UserAPITarget.withdraw(request)
+        let req = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(req)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            if response.code == "USER400_13" {
+                throw UserError.activeGroupExists
+            }
+            throw UserError.withdrawFailed(response.message)
+        }
+    }
+
     // GET /api/profiles/{nickname} — 타 유저 프로필 조회
     func getUserProfile(nickname: String) async throws -> OtherProfileResult {
         let target = UserAPITarget.getUserProfile(nickname: nickname)
@@ -255,6 +270,8 @@ enum UserError: LocalizedError {
     case profileChangeFailed(String)
     case bookshelfFailed(String)
     case reviewFailed(String)
+    case withdrawFailed(String)
+    case activeGroupExists
 
     var errorDescription: String? {
         switch self {
@@ -265,6 +282,8 @@ enum UserError: LocalizedError {
         case .profileChangeFailed(let msg): return msg
         case .bookshelfFailed(let msg): return msg.isEmpty ? "책장을 불러오지 못했습니다." : msg
         case .reviewFailed(let msg): return msg.isEmpty ? "후기를 불러오지 못했습니다." : msg
+        case .withdrawFailed(let msg): return msg.isEmpty ? "회원탈퇴에 실패했습니다." : msg
+        case .activeGroupExists: return "진행 중인 그룹이 모두 종료되어야 탈퇴 가능합니다."
         }
     }
 }
