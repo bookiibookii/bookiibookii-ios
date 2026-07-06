@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 // 다이얼로그 상태머신 + (PR-B/C에서 붙일) 서비스 호출을 소유. 메인 VM·상세 VM이 각자 인스턴스 소유.
 // PR-A: route 상태 + 열기 setter만. 데이터 로드/서비스 호출은 PR-B/C에서 in-place 추가.
