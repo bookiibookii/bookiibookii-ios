@@ -13,6 +13,7 @@ struct GroupDetailView: View {
     @State private var dragAccum: CGFloat = 0
     // 홈 인디케이터 세이프에어리어 인셋(키보드 없을 때 캡처). 입력창을 키보드에 딱 붙이기 위한 보정값.
     @State private var homeIndicatorInset: CGFloat = 0
+    @State private var selectedProfileNickname: NicknameRoute?
     // 삭제 성공으로 상세가 닫힐 때 호출(진입 화면의 목록 재조회용). 삭제 외 뒤로가기에서는 호출 안 됨.
     private let onDeleted: (() -> Void)?
 
@@ -64,7 +65,8 @@ struct GroupDetailView: View {
                     viewModel: commentVM,
                     expanded: sheetExpanded,
                     keyboardHeight: effectiveKeyboardInset,
-                    onExpand: { withAnimation { sheetExpanded = true } }
+                    onExpand: { withAnimation { sheetExpanded = true } },
+                    onProfileTap: { selectedProfileNickname = NicknameRoute(nickname: $0) }
                 )
                 .frame(height: sheetHeight)
                 .gesture(
@@ -85,7 +87,10 @@ struct GroupDetailView: View {
         }
         .overlay { dialogOverlay }
         .fullScreenCover(isPresented: $viewModel.showApplicants) {
-            GroupApplicantView(viewModel: viewModel)
+            GroupApplicantView(
+                viewModel: viewModel,
+                onProfileTap: { selectedProfileNickname = NicknameRoute(nickname: $0) }
+            )
         }
         // 상세는 fullScreenCover 모달 루트라 NavigationStack이 없어 router.push가 화면 전환을 못 함.
         // 그래서 에디터도 fullScreenCover로 present(상세 자신의 진입 방식과 동일).
@@ -97,6 +102,16 @@ struct GroupDetailView: View {
                 locationService: container.api.location
             )
             .environmentObject(container)
+        }
+        .fullScreenCover(item: $selectedProfileNickname) { route in
+            NavigationStack {
+                OtherProfileView(
+                    nickname: route.nickname,
+                    userService: container.api.user,
+                    onClose: { selectedProfileNickname = nil }
+                )
+                .environmentObject(container)
+            }
         }
         .onChange(of: viewModel.shouldDismiss) { _, shouldDismiss in
             if shouldDismiss {
@@ -175,7 +190,8 @@ struct GroupDetailView: View {
                     GroupDetailMembersCard(
                         matchedCount: detail.matchedCount,
                         maxCapacity: detail.maxCapacity,
-                        slots: detail.participantSlots
+                        slots: detail.participantSlots,
+                        onProfileTap: { selectedProfileNickname = NicknameRoute(nickname: $0) }
                     )
                 }
                 .padding(16)

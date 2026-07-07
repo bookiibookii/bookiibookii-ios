@@ -68,7 +68,10 @@ enum API {
         static func deliveryAddress(id: Int) -> String { mypage + "/addresses/deliveries/\(id)" }
         static func deliveryAddressDefault(id: Int) -> String { mypage + "/addresses/deliveries/\(id)/default" }
 
-        // 유저 프로필 (안드로이드 UserApi 기준)
+        // 유저 프로필 (안드로이드 UserApi / Mypage.kt 기준)
         static func userProfile(nickname: String) -> String { profiles + "/\(nickname)" }
+        static func profileReviewsWritten(nickname: String) -> String { profiles + "/\(nickname)/reviews/written" }
+        static func profileReviewsReceived(nickname: String) -> String { profiles + "/\(nickname)/reviews/received" }
+        static func profileBookshelf(nickname: String) -> String { profiles + "/\(nickname)/bookshelf" }
     }
 }

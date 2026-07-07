@@ -18,6 +18,9 @@ enum UserAPITarget: APITargetType {
     case profileChangeInfo
     case updateProfileChangeInfo(ProfileChangeUpdateRequest)
     case getUserProfile(nickname: String)
+    case profileWrittenReviews(nickname: String, page: Int, size: Int)
+    case profileReceivedReviews(nickname: String, page: Int, size: Int)
+    case profileBookshelf(nickname: String)
     case withdraw(WithdrawalRequest)
 
     var path: String {
@@ -52,6 +55,12 @@ enum UserAPITarget: APITargetType {
             return API.Path.users + "/me/profile-change"
         case .getUserProfile(let nickname):
             return API.Path.userProfile(nickname: nickname)
+        case .profileWrittenReviews(let nickname, _, _):
+            return API.Path.profileReviewsWritten(nickname: nickname)
+        case .profileReceivedReviews(let nickname, _, _):
+            return API.Path.profileReviewsReceived(nickname: nickname)
+        case .profileBookshelf(let nickname):
+            return API.Path.profileBookshelf(nickname: nickname)
         case .withdraw:
             return API.Path.users + "/me/withdrawal"
         }
@@ -60,7 +69,8 @@ enum UserAPITarget: APITargetType {
     var method: HTTPMethod {
         switch self {
         case .mypage, .profileChangeInfo, .getUserProfile, .bookshelf,
-             .mypageWrittenReviews, .mypageReceivedReviews: return .get
+             .mypageWrittenReviews, .mypageReceivedReviews,
+             .profileWrittenReviews, .profileReceivedReviews, .profileBookshelf: return .get
         case .updateMypage, .updateIntroduction, .reorderRepresentativeBooks, .replaceFavoriteBook: return .patch
         case .deleteRepresentativeBook, .deleteFavoriteBook: return .delete
         case .updateProfileChangeInfo: return .put
@@ -73,7 +83,9 @@ enum UserAPITarget: APITargetType {
         case .checkNickname(let nickname):
             return [URLQueryItem(name: "nickname", value: nickname)]
         case .mypageWrittenReviews(let page, let size),
-             .mypageReceivedReviews(let page, let size):
+             .mypageReceivedReviews(let page, let size),
+             .profileWrittenReviews(_, let page, let size),
+             .profileReceivedReviews(_, let page, let size):
             return [
                 URLQueryItem(name: "page", value: String(page)),
                 URLQueryItem(name: "size", value: String(size))

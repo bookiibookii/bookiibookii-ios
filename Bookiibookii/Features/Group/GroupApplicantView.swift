@@ -4,6 +4,7 @@ import Kingfisher
 struct GroupApplicantView: View {
     @ObservedObject var viewModel: GroupDetailViewModel
     @Environment(\.dismiss) private var dismiss
+    var onProfileTap: ((String) -> Void)?
 
     private struct PendingAction {
         let applicationId: Int
@@ -79,24 +80,33 @@ struct GroupApplicantView: View {
 
     private func applicantCard(_ item: GroupApplicantDto) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .center, spacing: 12) {
-                KFImage(item.profileImageUrl.flatMap(URL.init(string:)))
-                    .placeholder { Color("grey300") }
-                    .retry(maxCount: 2)
-                    .cancelOnDisappear(true)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 48, height: 48)
-                    .clipShape(Circle())
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.name ?? "")
-                        .pretendardText(size: 15, weight: .medium)
-                        .foregroundColor(Color("grey900"))
-                    Text(String((item.createdAt ?? "").prefix(10)).replacingOccurrences(of: "-", with: "."))
-                        .pretendardText(size: 14)
-                        .foregroundColor(Color("grey400"))
+            Button {
+                if let nickname = item.name, !nickname.isEmpty {
+                    onProfileTap?(nickname)
+                }
+            } label: {
+                HStack(alignment: .center, spacing: 12) {
+                    KFImage(item.profileImageUrl.flatMap(URL.init(string:)))
+                        .placeholder { Color("grey300") }
+                        .retry(maxCount: 2)
+                        .cancelOnDisappear(true)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 48, height: 48)
+                        .clipShape(Circle())
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.name ?? "")
+                            .pretendardText(size: 15, weight: .medium)
+                            .foregroundColor(Color("grey900"))
+                        Text(String((item.createdAt ?? "").prefix(10)).replacingOccurrences(of: "-", with: "."))
+                            .pretendardText(size: 14)
+                            .foregroundColor(Color("grey400"))
+                    }
+                    Spacer(minLength: 0)
                 }
             }
+            .buttonStyle(.plain)
+            .disabled(onProfileTap == nil || (item.name ?? "").isEmpty)
 
             Text(item.applyMsg ?? "")
                 .pretendardText(size: 15)

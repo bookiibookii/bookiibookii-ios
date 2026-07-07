@@ -248,15 +248,54 @@ final class UserService {
         }
     }
 
-    // GET /api/profiles/{nickname} — 타 유저 프로필 조회
-    func getUserProfile(nickname: String) async throws -> OtherProfileResult {
+    // GET /api/profiles/{nickname} — 타 유저 프로필 조회 (안드 UserProfileResDTO와 동일 스키마)
+    func getUserProfile(nickname: String) async throws -> MypageResult {
         let target = UserAPITarget.getUserProfile(nickname: nickname)
         let request = target.asURLRequest()
 
         let (data, _) = try await interceptor.request(request)
-        let response = try JSONDecoder().decode(OtherProfileResponse.self, from: data)
+        let response = try JSONDecoder().decode(MypageResponse.self, from: data)
         guard response.isSuccess, let result = response.result else {
             throw UserError.profileFailed
+        }
+        return result
+    }
+
+    // GET /api/profiles/{nickname}/reviews/written
+    func getProfileWrittenReviews(nickname: String, page: Int = 0, size: Int = 20) async throws -> WrittenReviewsResult {
+        let target = UserAPITarget.profileWrittenReviews(nickname: nickname, page: page, size: size)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<WrittenReviewsResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.reviewFailed(response.message)
+        }
+        return result
+    }
+
+    // GET /api/profiles/{nickname}/reviews/received
+    func getProfileReceivedReviews(nickname: String, page: Int = 0, size: Int = 20) async throws -> ReceivedReviewsResult {
+        let target = UserAPITarget.profileReceivedReviews(nickname: nickname, page: page, size: size)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<ReceivedReviewsResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.reviewFailed(response.message)
+        }
+        return result
+    }
+
+    // GET /api/profiles/{nickname}/bookshelf
+    func getProfileBookshelf(nickname: String) async throws -> BookshelfResult {
+        let target = UserAPITarget.profileBookshelf(nickname: nickname)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<BookshelfResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.bookshelfFailed(response.message)
         }
         return result
     }

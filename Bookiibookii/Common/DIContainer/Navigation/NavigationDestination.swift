@@ -27,5 +27,8 @@ enum NavigationDestination: Hashable {
     case groupEditor(groupId: Int?)
     case myPage
     case myBookShelf
+    case userProfile(nickname: String)
+    case userReviews(nickname: String, initialTab: MyReviewTab)
+    case userBookShelf(nickname: String)
     case notification
 }

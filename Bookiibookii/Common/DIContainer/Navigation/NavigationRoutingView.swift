@@ -138,6 +138,26 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .userProfile(let nickname):
+            OtherProfileView(nickname: nickname, userService: container.api.user)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .userReviews(let nickname, let initialTab):
+            MyReviewsView(
+                userService: container.api.user,
+                initialTab: initialTab,
+                nickname: nickname,
+                profileNickname: nickname
+            )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .userBookShelf(let nickname):
+            OtherUserBookShelfView(nickname: nickname, userService: container.api.user)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         case .notification:
             NotificationView(
                 notificationService: container.api.notification,

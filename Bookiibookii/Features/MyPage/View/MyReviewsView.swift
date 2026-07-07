@@ -4,15 +4,18 @@ import Kingfisher
 struct MyReviewsView: View {
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: MyReviewsViewModel
+    var onClose: (() -> Void)?
 
-    init(userService: UserService, initialTab: MyReviewTab, nickname: String) {
+    init(userService: UserService, initialTab: MyReviewTab, nickname: String, profileNickname: String? = nil, onClose: (() -> Void)? = nil) {
         _viewModel = StateObject(
             wrappedValue: MyReviewsViewModel(
                 userService: userService,
                 initialTab: initialTab,
-                nickname: nickname
+                nickname: nickname,
+                profileNickname: profileNickname
             )
         )
+        self.onClose = onClose
     }
 
     var body: some View {
@@ -74,7 +77,13 @@ struct MyReviewsView: View {
 
     private var header: some View {
         HStack {
-            Button { container.navigationRouter.pop() } label: {
+            Button {
+                if let onClose {
+                    onClose()
+                } else {
+                    container.navigationRouter.pop()
+                }
+            } label: {
                 Image("ic_back")
                     .resizable()
                     .scaledToFit()
@@ -214,7 +223,12 @@ struct MyReviewsView: View {
             }
         case .received:
             ForEach(viewModel.receivedReviews) { review in
-                MyReviewsReceivedCard(review: review)
+                MyReviewsReceivedCard(
+                    review: review,
+                    onProfileTap: {
+                        container.navigationRouter.push(to: .userProfile(nickname: review.reviewerNickname))
+                    }
+                )
                     .onAppear {
                         Task { await viewModel.loadMoreIfNeeded(currentItemId: review.id) }
                     }
@@ -303,19 +317,23 @@ private struct MyReviewsWrittenCard: View {
 
 private struct MyReviewsReceivedCard: View {
     let review: ReceivedReviewItem
+    let onProfileTap: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
-                HStack(spacing: 8) {
-                    reviewerProfileImage
-                        .frame(width: 32, height: 32)
-                        .clipShape(Circle())
+                Button(action: onProfileTap) {
+                    HStack(spacing: 8) {
+                        reviewerProfileImage
+                            .frame(width: 32, height: 32)
+                            .clipShape(Circle())
 
-                    Text(review.reviewerNickname)
-                        .pretendardText(size: 16, weight: .medium)
-                        .foregroundColor(Color("grey800"))
+                        Text(review.reviewerNickname)
+                            .pretendardText(size: 16, weight: .medium)
+                            .foregroundColor(Color("grey800"))
+                    }
                 }
+                .buttonStyle(.plain)
 
                 Spacer(minLength: 8)
 
