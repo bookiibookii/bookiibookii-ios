@@ -27,6 +27,11 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .accountWithdrawal:
+            AccountWithdrawalView(userService: container.api.user)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         case .myReviews(let initialTab, let nickname):
             MyReviewsView(
                 userService: container.api.user,
@@ -46,16 +51,6 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .questoin:
-            QuestoinView(inquiryService: container.api.inquiry)
-                .environmentObject(container)
-                .toolbar(.hidden, for: .navigationBar)
-                .navigationBarBackButtonHidden(true)
-        case .qustionDetail:
-            QustionDetailView(inquiryService: container.api.inquiry)
-                .environmentObject(container)
-                .toolbar(.hidden, for: .navigationBar)
-                .navigationBarBackButtonHidden(true)
         case .notice:
             NoticeView(noticeService: container.api.notice)
                 .environmentObject(container)
@@ -66,13 +61,13 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .report:
-            ReportView()
+        case .faq:
+            FaQView(faqService: container.api.faq)
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .reportDetail:
-            ReportDetailView()
+        case .legalDocument(let documentType):
+            LegalDocumentView(documentType: documentType)
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
@@ -140,6 +135,26 @@ struct NavigationRoutingView: View {
                 userService: container.api.user,
                 groupService: container.api.group
             )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .userProfile(let nickname):
+            OtherProfileView(nickname: nickname, userService: container.api.user)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .userReviews(let nickname, let initialTab):
+            MyReviewsView(
+                userService: container.api.user,
+                initialTab: initialTab,
+                nickname: nickname,
+                profileNickname: nickname
+            )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .userBookShelf(let nickname):
+            OtherUserBookShelfView(nickname: nickname, userService: container.api.user)
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)

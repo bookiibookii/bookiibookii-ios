@@ -233,15 +233,69 @@ final class UserService {
         return result
     }
 
-    // GET /api/profiles/{nickname} — 타 유저 프로필 조회
-    func getUserProfile(nickname: String) async throws -> OtherProfileResult {
+    // POST /api/users/me/withdrawal
+    func withdraw(_ request: WithdrawalRequest) async throws {
+        let target = UserAPITarget.withdraw(request)
+        let req = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(req)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            if response.code == "USER400_13" {
+                throw UserError.activeGroupExists
+            }
+            throw UserError.withdrawFailed(response.message)
+        }
+    }
+
+    // GET /api/profiles/{nickname} — 타 유저 프로필 조회 (안드 UserProfileResDTO와 동일 스키마)
+    func getUserProfile(nickname: String) async throws -> MypageResult {
         let target = UserAPITarget.getUserProfile(nickname: nickname)
         let request = target.asURLRequest()
 
         let (data, _) = try await interceptor.request(request)
-        let response = try JSONDecoder().decode(OtherProfileResponse.self, from: data)
+        let response = try JSONDecoder().decode(MypageResponse.self, from: data)
         guard response.isSuccess, let result = response.result else {
             throw UserError.profileFailed
+        }
+        return result
+    }
+
+    // GET /api/profiles/{nickname}/reviews/written
+    func getProfileWrittenReviews(nickname: String, page: Int = 0, size: Int = 20) async throws -> WrittenReviewsResult {
+        let target = UserAPITarget.profileWrittenReviews(nickname: nickname, page: page, size: size)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<WrittenReviewsResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.reviewFailed(response.message)
+        }
+        return result
+    }
+
+    // GET /api/profiles/{nickname}/reviews/received
+    func getProfileReceivedReviews(nickname: String, page: Int = 0, size: Int = 20) async throws -> ReceivedReviewsResult {
+        let target = UserAPITarget.profileReceivedReviews(nickname: nickname, page: page, size: size)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<ReceivedReviewsResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.reviewFailed(response.message)
+        }
+        return result
+    }
+
+    // GET /api/profiles/{nickname}/bookshelf
+    func getProfileBookshelf(nickname: String) async throws -> BookshelfResult {
+        let target = UserAPITarget.profileBookshelf(nickname: nickname)
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<BookshelfResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.bookshelfFailed(response.message)
         }
         return result
     }
@@ -255,6 +309,8 @@ enum UserError: LocalizedError {
     case profileChangeFailed(String)
     case bookshelfFailed(String)
     case reviewFailed(String)
+    case withdrawFailed(String)
+    case activeGroupExists
 
     var errorDescription: String? {
         switch self {
@@ -265,6 +321,8 @@ enum UserError: LocalizedError {
         case .profileChangeFailed(let msg): return msg
         case .bookshelfFailed(let msg): return msg.isEmpty ? "책장을 불러오지 못했습니다." : msg
         case .reviewFailed(let msg): return msg.isEmpty ? "후기를 불러오지 못했습니다." : msg
+        case .withdrawFailed(let msg): return msg.isEmpty ? "회원탈퇴에 실패했습니다." : msg
+        case .activeGroupExists: return "진행 중인 그룹이 모두 종료되어야 탈퇴 가능합니다."
         }
     }
 }

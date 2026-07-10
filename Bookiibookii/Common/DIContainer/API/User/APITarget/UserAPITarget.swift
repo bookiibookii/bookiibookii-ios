@@ -18,6 +18,10 @@ enum UserAPITarget: APITargetType {
     case profileChangeInfo
     case updateProfileChangeInfo(ProfileChangeUpdateRequest)
     case getUserProfile(nickname: String)
+    case profileWrittenReviews(nickname: String, page: Int, size: Int)
+    case profileReceivedReviews(nickname: String, page: Int, size: Int)
+    case profileBookshelf(nickname: String)
+    case withdraw(WithdrawalRequest)
 
     var path: String {
         switch self {
@@ -51,17 +55,26 @@ enum UserAPITarget: APITargetType {
             return API.Path.users + "/me/profile-change"
         case .getUserProfile(let nickname):
             return API.Path.userProfile(nickname: nickname)
+        case .profileWrittenReviews(let nickname, _, _):
+            return API.Path.profileReviewsWritten(nickname: nickname)
+        case .profileReceivedReviews(let nickname, _, _):
+            return API.Path.profileReviewsReceived(nickname: nickname)
+        case .profileBookshelf(let nickname):
+            return API.Path.profileBookshelf(nickname: nickname)
+        case .withdraw:
+            return API.Path.users + "/me/withdrawal"
         }
     }
 
     var method: HTTPMethod {
         switch self {
         case .mypage, .profileChangeInfo, .getUserProfile, .bookshelf,
-             .mypageWrittenReviews, .mypageReceivedReviews: return .get
+             .mypageWrittenReviews, .mypageReceivedReviews,
+             .profileWrittenReviews, .profileReceivedReviews, .profileBookshelf: return .get
         case .updateMypage, .updateIntroduction, .reorderRepresentativeBooks, .replaceFavoriteBook: return .patch
         case .deleteRepresentativeBook, .deleteFavoriteBook: return .delete
         case .updateProfileChangeInfo: return .put
-        case .checkNickname, .presignedURL, .completeOnboarding, .addFavoriteBook: return .post
+        case .checkNickname, .presignedURL, .completeOnboarding, .addFavoriteBook, .withdraw: return .post
         }
     }
 
@@ -70,7 +83,9 @@ enum UserAPITarget: APITargetType {
         case .checkNickname(let nickname):
             return [URLQueryItem(name: "nickname", value: nickname)]
         case .mypageWrittenReviews(let page, let size),
-             .mypageReceivedReviews(let page, let size):
+             .mypageReceivedReviews(let page, let size),
+             .profileWrittenReviews(_, let page, let size),
+             .profileReceivedReviews(_, let page, let size):
             return [
                 URLQueryItem(name: "page", value: String(page)),
                 URLQueryItem(name: "size", value: String(size))
@@ -94,6 +109,8 @@ enum UserAPITarget: APITargetType {
             return try? JSONEncoder().encode(request)
         case .updateProfileChangeInfo(let request):
             return try? JSONEncoder().encode(request)
+        case .withdraw(let request):
+            return try? JSONEncoder().encode(request)
         default:
             return nil
         }
@@ -101,7 +118,7 @@ enum UserAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .presignedURL, .completeOnboarding, .updateMypage, .updateIntroduction, .updateProfileChangeInfo, .reorderRepresentativeBooks, .addFavoriteBook, .replaceFavoriteBook:
+        case .presignedURL, .completeOnboarding, .updateMypage, .updateIntroduction, .updateProfileChangeInfo, .reorderRepresentativeBooks, .addFavoriteBook, .replaceFavoriteBook, .withdraw:
             return ["Content-Type": "application/json"]
         default:
             return [:]

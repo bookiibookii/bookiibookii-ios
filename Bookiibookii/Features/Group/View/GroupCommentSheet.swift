@@ -40,6 +40,7 @@ struct CommentRow: View {
     let currentUserId: Int?
     let onStartReply: (_ parentId: Int, _ nickname: String) -> Void
     let onDelete: (_ commentId: Int) -> Void
+    let onProfileTap: (_ nickname: String) -> Void
     let openDeleteId: Int?
     let onLongPress: (_ commentId: Int) -> Void
     let onDismissDelete: () -> Void
@@ -53,6 +54,7 @@ struct CommentRow: View {
                 indentStart: 0,
                 isDeleteOpen: openDeleteId == comment.id,
                 onTap: { onStartReply(comment.id, comment.writer.name) },
+                onProfileTap: { onProfileTap(comment.writer.name) },
                 onDelete: { onDelete(comment.id) },
                 onLongPress: { onLongPress(comment.id) },
                 onDismissDelete: onDismissDelete
@@ -66,6 +68,7 @@ struct CommentRow: View {
                     isDeleteOpen: openDeleteId == reply.id,
                     // 답글 탭도 부모에 답글 (멘션은 탭한 대상 닉네임)
                     onTap: { onStartReply(comment.id, reply.writer.name) },
+                    onProfileTap: { onProfileTap(reply.writer.name) },
                     onDelete: { onDelete(reply.id) },
                     onLongPress: { onLongPress(reply.id) },
                     onDismissDelete: onDismissDelete
@@ -87,26 +90,32 @@ struct CommentItemRow: View {
     let indentStart: CGFloat
     let isDeleteOpen: Bool
     let onTap: () -> Void
+    let onProfileTap: () -> Void
     let onDelete: () -> Void
     let onLongPress: () -> Void
     let onDismissDelete: () -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            KFImage(comment.writer.profileImage.flatMap(URL.init(string:)))
-                .placeholder { Color("grey300") }
-                .retry(maxCount: 2)
-                .cancelOnDisappear(true)
-                .resizable()
-                .scaledToFill()
-                .frame(width: profileSize, height: profileSize)
-                .clipShape(Circle())
+            Button(action: onProfileTap) {
+                KFImage(comment.writer.profileImage.flatMap(URL.init(string:)))
+                    .placeholder { Color("grey300") }
+                    .retry(maxCount: 2)
+                    .cancelOnDisappear(true)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: profileSize, height: profileSize)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+
             CommentMetaAndBody(
                 nickname: comment.writer.name,
                 nicknameColor: comment.writer.role == "HOST" ? Color("main200") : Color("grey900"),
                 createdAt: comment.createdAt,
                 secret: comment.secret,
-                content: comment.content
+                content: comment.content,
+                onNicknameTap: onProfileTap
             )
             Spacer(minLength: 0)
         }
@@ -140,13 +149,23 @@ struct CommentMetaAndBody: View {
     let createdAt: String
     let secret: Bool
     let content: String
+    var onNicknameTap: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 8) {
-                Text(nickname)
-                    .pretendardText(size: 14)
-                    .foregroundColor(nicknameColor)
+                if let onNicknameTap {
+                    Button(action: onNicknameTap) {
+                        Text(nickname)
+                            .pretendardText(size: 14)
+                            .foregroundColor(nicknameColor)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text(nickname)
+                        .pretendardText(size: 14)
+                        .foregroundColor(nicknameColor)
+                }
                 HStack(spacing: 2) {
                     Text(TimeAgoFormatter.format(createdAt))
                         .pretendardText(size: 12)
@@ -211,6 +230,7 @@ struct GroupCommentSheet: View {
     let expanded: Bool
     let keyboardHeight: CGFloat
     let onExpand: () -> Void
+    var onProfileTap: ((String) -> Void)?
 
     @State private var openDeleteId: Int? = nil
 
@@ -231,6 +251,7 @@ struct GroupCommentSheet: View {
                                         currentUserId: viewModel.currentUserId,
                                         onStartReply: viewModel.startReply,
                                         onDelete: viewModel.delete,
+                                        onProfileTap: { nickname in onProfileTap?(nickname) },
                                         openDeleteId: openDeleteId,
                                         onLongPress: { openDeleteId = $0 },
                                         onDismissDelete: { openDeleteId = nil }

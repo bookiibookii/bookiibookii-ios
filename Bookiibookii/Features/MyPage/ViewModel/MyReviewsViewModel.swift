@@ -15,16 +15,18 @@ final class MyReviewsViewModel: ObservableObject {
     let nickname: String
 
     private let userService: UserService
+    private let profileNickname: String?
     private var writtenPage = 0
     private var receivedPage = 0
     private var writtenHasNext = false
     private var receivedHasNext = false
     private let pageSize = 20
 
-    init(userService: UserService, initialTab: MyReviewTab, nickname: String) {
+    init(userService: UserService, initialTab: MyReviewTab, nickname: String, profileNickname: String? = nil) {
         self.userService = userService
         self.selectedTab = initialTab
         self.nickname = nickname
+        self.profileNickname = profileNickname
     }
 
     func load() async {
@@ -76,7 +78,16 @@ final class MyReviewsViewModel: ObservableObject {
         }
 
         do {
-            let result = try await userService.getWrittenReviews(page: writtenPage, size: pageSize)
+            let result: WrittenReviewsResult
+            if let profileNickname {
+                result = try await userService.getProfileWrittenReviews(
+                    nickname: profileNickname,
+                    page: writtenPage,
+                    size: pageSize
+                )
+            } else {
+                result = try await userService.getWrittenReviews(page: writtenPage, size: pageSize)
+            }
             if reset {
                 writtenReviews = result.content
             } else {
@@ -106,7 +117,16 @@ final class MyReviewsViewModel: ObservableObject {
         }
 
         do {
-            let result = try await userService.getReceivedReviews(page: receivedPage, size: pageSize)
+            let result: ReceivedReviewsResult
+            if let profileNickname {
+                result = try await userService.getProfileReceivedReviews(
+                    nickname: profileNickname,
+                    page: receivedPage,
+                    size: pageSize
+                )
+            } else {
+                result = try await userService.getReceivedReviews(page: receivedPage, size: pageSize)
+            }
             if reset {
                 receivedReviews = result.content
             } else {

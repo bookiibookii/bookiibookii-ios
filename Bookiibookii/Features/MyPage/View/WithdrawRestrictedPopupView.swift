@@ -1,8 +1,7 @@
 import SwiftUI
 
-struct WithdrawPopupView: View {
-    let onCancel: () -> Void
-    let onConfirm: () -> Void
+struct WithdrawRestrictedPopupView: View {
+    let onDismiss: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -13,7 +12,7 @@ struct WithdrawPopupView: View {
 
                 Spacer()
 
-                Button(action: onCancel) {
+                Button(action: onDismiss) {
                     Image("ic_x")
                         .renderingMode(.template)
                         .resizable()
@@ -26,14 +25,20 @@ struct WithdrawPopupView: View {
                 .buttonStyle(.plain)
             }
 
-            Text("회원 탈퇴 시 부키부키에 저장된 모든 정보가 삭제되며, 되돌릴 수 없습니다. 그래도 탈퇴하시겠습니까?")
+            Text("진행 중인 그룹이 모두 종료되어야 탈퇴 가능합니다.")
                 .pretendardText(size: 16, weight: .regular)
                 .foregroundColor(Color("grey700"))
 
-            HStack(spacing: 12) {
-                BottomSheetTwoBtnShort(text: "취소", style: .white, action: onCancel)
-                BottomSheetTwoBtnShort(text: "회원탈퇴", style: .red, action: onConfirm)
+            Button(action: onDismiss) {
+                Text("닫기")
+                    .pretendardText(size: 15, weight: .regular)
+                    .foregroundColor(Color("white"))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Color("grey900"))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
+            .buttonStyle(.plain)
         }
         .padding(20)
         .frame(maxWidth: .infinity)
@@ -46,7 +51,7 @@ struct WithdrawPopupView: View {
 #Preview {
     ZStack {
         Color.black.opacity(0.45).ignoresSafeArea()
-        WithdrawPopupView(onCancel: {}, onConfirm: {})
+        WithdrawRestrictedPopupView(onDismiss: {})
             .padding(.horizontal, 20)
     }
 }

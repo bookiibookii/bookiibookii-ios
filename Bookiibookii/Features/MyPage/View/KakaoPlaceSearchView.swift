@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct KakaoPlaceSearchView: View {
     @StateObject private var viewModel = KakaoPlaceSearchViewModel()

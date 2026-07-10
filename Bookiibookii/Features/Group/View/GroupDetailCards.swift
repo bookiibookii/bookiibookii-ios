@@ -219,6 +219,7 @@ struct GroupDetailMembersCard: View {
     let matchedCount: Int
     let maxCapacity: Int
     let slots: [ParticipantSlot]
+    var onProfileTap: ((String) -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -239,7 +240,7 @@ struct GroupDetailMembersCard: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
-                    ParticipantSlotRow(slot: slot)
+                    ParticipantSlotRow(slot: slot, onProfileTap: onProfileTap)
                 }
             }
         }
@@ -255,9 +256,10 @@ struct GroupDetailMembersCard: View {
 // 슬롯 한 줄 (HOST / GUEST / EMPTY) — 안드 ParticipantSlotRow
 private struct ParticipantSlotRow: View {
     let slot: ParticipantSlot
+    var onProfileTap: ((String) -> Void)?
 
     var body: some View {
-        HStack(spacing: 12) {
+        let content = HStack(spacing: 12) {
             KFImage(slot.profileImageUrl.flatMap(URL.init(string:)))
                 .placeholder { Image("ic_profile_placeholder").resizable() }
                 .retry(maxCount: 2)
@@ -284,6 +286,13 @@ private struct ParticipantSlotRow: View {
                     .pretendardText(size: 14)
                     .foregroundColor(Color("grey900"))
             }
+        }
+
+        if let nickname = slot.nickname, slot.role != "EMPTY", let onProfileTap {
+            Button { onProfileTap(nickname) } label: { content }
+                .buttonStyle(.plain)
+        } else {
+            content
         }
     }
 }

@@ -7,7 +7,7 @@ protocol UseCaseProtocol {
     var recommendation: RecommendationService { get }
     var notification: NotificationService { get }
     var notice: NoticeService { get }
-    var inquiry: InquiryService { get }
+    var faq: FaqService { get }
     var keyword: KeywordService { get }
     var tracker: TrackerService { get }
     var library: LibraryService { get }
@@ -22,7 +22,7 @@ final class UseCaseProvider: UseCaseProtocol {
     let recommendation: RecommendationService
     let notification: NotificationService
     let notice: NoticeService
-    let inquiry: InquiryService
+    let faq: FaqService
     let keyword: KeywordService
     let tracker: TrackerService
     let library: LibraryService
@@ -36,7 +36,7 @@ final class UseCaseProvider: UseCaseProtocol {
         self.recommendation = RecommendationService(interceptor: interceptor)
         self.notification = NotificationService(interceptor: interceptor)
         self.notice = NoticeService(interceptor: interceptor)
-        self.inquiry = InquiryService(interceptor: interceptor)
+        self.faq = FaqService(interceptor: interceptor)
         self.keyword = KeywordService(interceptor: interceptor)
         self.tracker = TrackerService(interceptor: interceptor)
         self.library = LibraryService(interceptor: interceptor)

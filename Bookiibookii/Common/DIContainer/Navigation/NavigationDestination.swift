@@ -8,15 +8,14 @@ enum NavigationDestination: Hashable {
     case onboarding
     case mainTab
     case setting
+    case accountWithdrawal
     case myReviews(initialTab: MyReviewTab, nickname: String)
     case profileChange
     case addressManagement
-    case questoin
-    case qustionDetail
     case notice
     case noticeDetail(noticeId: Int)
-    case report
-    case reportDetail
+    case faq
+    case legalDocument(LegalDocumentType)
     case librarySearch
     case libraryBookmarkedCards
     case libraryCards(book: LibraryBook)
@@ -28,5 +27,8 @@ enum NavigationDestination: Hashable {
     case groupEditor(groupId: Int?)
     case myPage
     case myBookShelf
+    case userProfile(nickname: String)
+    case userReviews(nickname: String, initialTab: MyReviewTab)
+    case userBookShelf(nickname: String)
     case notification
 }

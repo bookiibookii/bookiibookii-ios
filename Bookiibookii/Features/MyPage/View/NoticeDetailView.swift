@@ -1,17 +1,14 @@
 import SwiftUI
+import Kingfisher
 
 struct NoticeDetailView: View {
     @EnvironmentObject private var container: DIContainer
-
-    let noticeId: Int
-    private let noticeService: NoticeService
-
-    @State private var detail: NoticeDetailItem?
-    @State private var isLoading = false
+    @StateObject private var viewModel: NoticeDetailViewModel
 
     init(noticeId: Int, noticeService: NoticeService) {
-        self.noticeId = noticeId
-        self.noticeService = noticeService
+        _viewModel = StateObject(
+            wrappedValue: NoticeDetailViewModel(noticeId: noticeId, noticeService: noticeService)
+        )
     }
 
     var body: some View {
@@ -19,52 +16,133 @@ struct NoticeDetailView: View {
             Color("grey100").ignoresSafeArea()
 
             VStack(spacing: 0) {
-                CustomNavigationBar(
-                    title: detail?.title ?? "공지사항",
-                    onBack: { container.navigationRouter.pop() },
-                    rightButton: .none
-                )
+                header
 
-                ScrollView(showsIndicators: false) {
-                    if isLoading {
-                        ProgressView()
-                            .padding(.top, 40)
-                    } else if let detail {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(detail.detailDateText)
-                                .pretendardText(size: 12, weight: .regular)
-                                .foregroundColor(Color("grey400"))
-
-                            Text(detail.content)
-                                .pretendardText(size: 14, weight: .regular)
-                                .foregroundColor(Color("grey700"))
-                                .multilineTextAlignment(.leading)
-                        }
-                        .padding(20)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color("white"))
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .padding(.horizontal, 24)
-                        .padding(.top, 20)
-                        .padding(.bottom, 24)
+                if viewModel.isLoading && viewModel.detail == nil {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                } else if let detail = viewModel.detail {
+                    ScrollView(showsIndicators: false) {
+                        detailCard(detail)
+                            .padding(.horizontal, 16)
+                            .padding(.top, 16)
+                            .padding(.bottom, 32)
                     }
+                } else {
+                    Spacer()
+                    Text(viewModel.errorMessage ?? "공지사항을 불러오지 못했어요.")
+                        .pretendardText(size: 16, weight: .regular)
+                        .foregroundColor(Color("grey600"))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                    Spacer()
                 }
             }
         }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
-        .task { await loadDetail() }
+        .task { await viewModel.load() }
     }
 
-    @MainActor
-    private func loadDetail() async {
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            let dto = try await noticeService.fetchNoticeDetail(noticeId: noticeId)
-            detail = NoticeDetailItem(dto: dto)
-        } catch {
-            print("공지 상세 조회 실패: \(error)")
+    // MARK: - Header
+
+    private var header: some View {
+        HStack {
+            Button { container.navigationRouter.pop() } label: {
+                Image("ic_back")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .frame(width: 40, height: 40)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            Text(viewModel.detail?.title ?? "공지사항")
+                .pretendardText(size: 20, weight: .medium)
+                .foregroundColor(Color("grey900"))
+                .lineLimit(1)
+
+            Spacer()
+
+            Color.clear.frame(width: 40, height: 40)
+        }
+        .padding(.horizontal, 16)
+        .frame(height: 68)
+        .background(Color("white"))
+        .overlay(alignment: .bottom) {
+            Divider().overlay(Color("grey200"))
+        }
+    }
+
+    // MARK: - Detail Card
+
+    private func detailCard(_ detail: NoticeDetailItem) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if detail.showsAuthorMeta {
+                authorMetaRow(detail)
+            } else {
+                HStack(spacing: 4) {
+                    Text(detail.detailDateOnlyText)
+                        .pretendardText(size: 14, weight: .regular)
+                        .foregroundColor(Color("grey500"))
+                    Text(detail.detailTimeOnlyText)
+                        .pretendardText(size: 14, weight: .regular)
+                        .foregroundColor(Color("grey500"))
+                }
+            }
+
+            Text(detail.content)
+                .pretendardText(size: 14, weight: .regular)
+                .foregroundColor(Color("grey700"))
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.leading, 20)
+        .padding(.trailing, 32)
+        .padding(.vertical, 20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color("white"))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+
+    private func authorMetaRow(_ detail: NoticeDetailItem) -> some View {
+        HStack(spacing: 4) {
+            HStack(spacing: 8) {
+                noticeProfileImage(urlString: detail.authorProfileImageUrl)
+                    .frame(width: 22, height: 22)
+                    .clipShape(Circle())
+
+                Text(detail.authorNickname ?? "")
+                    .pretendardText(size: 16, weight: .medium)
+                    .foregroundColor(Color("grey800"))
+            }
+
+            Text("·")
+                .pretendardText(size: 14, weight: .regular)
+                .foregroundColor(Color("grey500"))
+
+            Text(detail.detailDateOnlyText)
+                .pretendardText(size: 14, weight: .regular)
+                .foregroundColor(Color("grey500"))
+
+            Text(detail.detailTimeOnlyText)
+                .pretendardText(size: 14, weight: .regular)
+                .foregroundColor(Color("grey500"))
+        }
+    }
+
+    @ViewBuilder
+    private func noticeProfileImage(urlString: String?) -> some View {
+        if let urlString, let url = URL(string: urlString) {
+            KFImage(url)
+                .placeholder { Color("grey200") }
+                .resizable()
+                .scaledToFill()
+        } else {
+            Color("grey200")
         }
     }
 }
