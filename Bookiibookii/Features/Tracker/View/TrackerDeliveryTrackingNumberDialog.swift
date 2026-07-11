@@ -10,7 +10,7 @@ struct TrackerDeliveryTrackingNumberDialog: View {
     @State private var trackingInput: String = ""
 
     private var canSubmit: Bool {
-        selectedCompany != nil && !trackingInput.isEmpty
+        selectedCompany != nil && trackingInput.count >= 10
     }
 
     var body: some View {

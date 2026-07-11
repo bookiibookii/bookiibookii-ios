@@ -131,7 +131,7 @@ private struct TrackerProfileColumn: View {
             .frame(maxWidth: .infinity)
             .padding(.top, 12)
 
-            // 아직 iOS 공용 컴포넌트로 이식되지 않아 이 파일 내부 private 뷰로만 구현(신규 공용 파일 생성은 브리프 범위 밖).
+            // 아직 iOS 공용 컴포넌트가 없어 이 파일 내부 private 뷰로만 구현.
             TrackerProfileAvatar(imageUrl: profile.profileImageUrl, innerStroke: true)
                 .frame(width: 44, height: 44)
                 .offset(x: 17, y: 0)

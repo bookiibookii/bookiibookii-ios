@@ -107,6 +107,6 @@ struct TrackerMainRoute: View {
             }
         )
         .task { await viewModel.onAppear() }
-        .trackerDialogHost(viewModel.coordinator)
+        .trackerDialogHost(viewModel.coordinator, cardFor: { id in viewModel.state.cards.first { $0.groupId == id } })
     }
 }
