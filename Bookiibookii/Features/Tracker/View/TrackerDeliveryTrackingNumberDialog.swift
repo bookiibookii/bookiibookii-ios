@@ -106,7 +106,7 @@ private struct DeliveryCompanyField: View {
                             .resizable()
                             .frame(width: 24, height: 24)
                             .foregroundColor(Color("grey500"))
-                            .rotationEffect(.degrees(expanded ? 90 : -90))
+                            .rotationEffect(.degrees(-90))
                     }
                     .padding(.leading, 16)
                     .padding(.trailing, 12)

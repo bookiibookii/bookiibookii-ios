@@ -9,10 +9,10 @@ final class TrackerMainViewModel: ObservableObject {
     private let trackerService: TrackerService
     private let notificationService: NotificationService
 
-    init(trackerService: TrackerService, notificationService: NotificationService) {
+    init(trackerService: TrackerService, notificationService: NotificationService, locationService: LocationService) {
         self.trackerService = trackerService
         self.notificationService = notificationService
-        self.coordinator = TrackerDialogCoordinator()
+        self.coordinator = TrackerDialogCoordinator(trackerService: trackerService, locationService: locationService)
         self.coordinator.onChanged = { [weak self] in await self?.load() }
     }
 

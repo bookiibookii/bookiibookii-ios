@@ -37,7 +37,8 @@ enum BookiiTabCase: Int, CaseIterable {
             TrackerMainRoute(
                 viewModel: TrackerMainViewModel(
                     trackerService: container.api.tracker,
-                    notificationService: container.api.notification
+                    notificationService: container.api.notification,
+                    locationService: container.api.location
                 ),
                 onProfileTap: { container.navigationRouter.push(to: .myPage) },
                 onNotificationTap: { container.navigationRouter.push(to: .notification) },
