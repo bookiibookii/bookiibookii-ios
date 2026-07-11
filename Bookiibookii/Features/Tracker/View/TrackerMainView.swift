@@ -1,8 +1,5 @@
 import SwiftUI
 
-// 안드 tracker/ui/main/TrackerMainScreen.kt 대응 —
-// TrackerMainScreen(L888–961, stateless) / TrackerMainRoute(L448–594 중 상태·조립 부분).
-
 struct TrackerMainScreen: View {
     let state: TrackerMainUiState
     let onProfileTap: () -> Void

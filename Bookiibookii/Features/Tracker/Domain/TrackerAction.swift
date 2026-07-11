@@ -1,6 +1,5 @@
 import Foundation
 
-// 안드 tracker/model/TrackerAction.kt 대응.
 // displayStatus(서버 상태) → 액션 버튼 / 활성화 / 진행률 표시 규칙.
 enum TrackerAction {
     case none

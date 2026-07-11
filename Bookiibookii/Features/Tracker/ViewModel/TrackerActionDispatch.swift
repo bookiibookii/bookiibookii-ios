@@ -8,7 +8,7 @@ struct TrackerNavActions {
     var onWriteReadingCard: (_ groupId: Int) -> Void = { _ in }
 }
 
-// 안드 TrackerMainScreen.dispatchAction 이식. primary/secondary 액션을 다이얼로그 열기 또는 네비로 분기.
+// primary/secondary 액션을 다이얼로그 열기 또는 네비로 분기.
 @MainActor
 func dispatchTrackerAction(
     _ action: TrackerAction,

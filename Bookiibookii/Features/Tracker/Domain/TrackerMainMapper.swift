@@ -1,7 +1,5 @@
 import Foundation
 
-// 안드 tracker/model/TrackerMainMapper.kt 대응.
-
 // 제목이 maxChars(공백 포함 글자수)를 넘으면 그만큼 자르고 "..." 부착
 func ellipsizeTitle(_ title: String, maxChars: Int) -> String {
     title.count > maxChars ? String(title.prefix(maxChars)) + "..." : title

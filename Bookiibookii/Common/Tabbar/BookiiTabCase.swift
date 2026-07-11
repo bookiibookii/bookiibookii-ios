@@ -34,8 +34,15 @@ enum BookiiTabCase: Int, CaseIterable {
                 onCreateGroupTap: { container.navigationRouter.push(to: .groupEditor(groupId: nil)) }
             )
         case .tracker:
-            // 트래커 UI 전면 재작업 중 — 안드로이드 신규 트래커 화면으로 재구성 예정.
-            TrackerPlaceholderView()
+            TrackerMainRoute(
+                viewModel: TrackerMainViewModel(
+                    trackerService: container.api.tracker,
+                    notificationService: container.api.notification
+                ),
+                onProfileTap: { container.navigationRouter.push(to: .myPage) },
+                onNotificationTap: { container.navigationRouter.push(to: .notification) },
+                onCreateGroupTap: { container.navigationRouter.push(to: .groupEditor(groupId: nil)) }
+            )
         case .library:
             LibraryView(libraryService: container.api.library)
         }

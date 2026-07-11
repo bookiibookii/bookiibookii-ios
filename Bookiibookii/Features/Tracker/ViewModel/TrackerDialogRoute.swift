@@ -1,6 +1,6 @@
 import Foundation
 
-// 트래커 다이얼로그 라우트. 안드 TrackerMainRoute의 rememberSaveable groupId 상태들을 하나의 enum으로 통합.
+// 트래커 다이얼로그 라우트. rememberSaveable groupId 상태들을 하나의 enum으로 통합.
 // 메인(PR-A~C)·상세(#5)가 공유하는 TrackerDialogCoordinator.route 값.
 enum TrackerDialogRoute: Equatable {
     case progress(groupId: Int)
