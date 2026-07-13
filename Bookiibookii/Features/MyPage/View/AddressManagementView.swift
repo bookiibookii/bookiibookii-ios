@@ -4,8 +4,8 @@ struct AddressManagementView: View {
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: AddressManagementViewModel
 
-    init(locationService: LocationService) {
-        _viewModel = StateObject(wrappedValue: AddressManagementViewModel(locationService: locationService))
+    init(locationService: LocationService, initialTab: AddressManagementTab = .delivery) {
+        _viewModel = StateObject(wrappedValue: AddressManagementViewModel(locationService: locationService, initialTab: initialTab))
     }
 
     var body: some View {

@@ -185,8 +185,9 @@ final class AddressManagementViewModel: ObservableObject {
 
     private let locationService: LocationService
 
-    init(locationService: LocationService) {
+    init(locationService: LocationService, initialTab: AddressManagementTab = .delivery) {
         self.locationService = locationService
+        self.selectedTab = initialTab
     }
 
     var deliveryEmptyMessage: (String, String) {
