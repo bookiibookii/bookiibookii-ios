@@ -1,10 +1,6 @@
 import SwiftUI
 import Kingfisher
 
-// 안드 tracker/ui/main/TrackerMainCard.kt 전체 대응 —
-// TrackerMainCard(L36–101) / TrackerCardHeader(L103–147) / DDayChip(L149–163)
-// / TrackerProfileColumn(L165–233) / TrackerProgressBar(L235–253).
-
 struct TrackerMainCard: View {
     let card: TrackerCardModel
     let onCardClick: () -> Void
@@ -135,8 +131,7 @@ private struct TrackerProfileColumn: View {
             .frame(maxWidth: .infinity)
             .padding(.top, 12)
 
-            // 안드 ProfilePlaceholder(squircle + innerStroke) 대응 — 아직 iOS 공용 컴포넌트로
-            // 이식되지 않아 이 파일 내부 private 뷰로만 구현(신규 공용 파일 생성은 브리프 범위 밖).
+            // 아직 iOS 공용 컴포넌트가 없어 이 파일 내부 private 뷰로만 구현.
             TrackerProfileAvatar(imageUrl: profile.profileImageUrl, innerStroke: true)
                 .frame(width: 44, height: 44)
                 .offset(x: 17, y: 0)
@@ -162,7 +157,7 @@ private struct TrackerProgressBar: View {
     }
 }
 
-// 안드 ProfilePlaceholder 대응 축소판 — squircle은 continuous corner RoundedRectangle로 근사.
+// squircle은 continuous corner RoundedRectangle로 근사.
 private struct TrackerProfileAvatar: View {
     let imageUrl: String?
     var innerStroke: Bool = false

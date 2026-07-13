@@ -1,6 +1,6 @@
 import SwiftUI
+import Combine
 
-// 안드 vm/TrackerMainViewModel.kt 대응 — load()(L367–396) / fetchNotificationDot()(L59–74).
 @MainActor
 final class TrackerMainViewModel: ObservableObject {
     @Published var state = TrackerMainUiState()
@@ -8,16 +8,15 @@ final class TrackerMainViewModel: ObservableObject {
 
     private let trackerService: TrackerService
     private let notificationService: NotificationService
-    private var didFirstAppear = false   // 안드 isFirstResume: 첫 진입 재조회 skip
 
-    init(trackerService: TrackerService, notificationService: NotificationService) {
+    init(trackerService: TrackerService, notificationService: NotificationService, locationService: LocationService) {
         self.trackerService = trackerService
         self.notificationService = notificationService
-        self.coordinator = TrackerDialogCoordinator()
+        self.coordinator = TrackerDialogCoordinator(trackerService: trackerService, locationService: locationService)
         self.coordinator.onChanged = { [weak self] in await self?.load() }
     }
 
-    // 안드 load(): fetchMyTrackers → cards/nickname/notifications/counts 매핑
+    // fetchMyTrackers → cards/nickname/notifications/counts 매핑
     func load() async {
         state.loading = true
         state.error = nil
@@ -39,7 +38,7 @@ final class TrackerMainViewModel: ObservableObject {
         }
     }
 
-    // 안드 fetchNotificationDot(): SYSTEM+KEYWORD 미읽음 하나라도 있으면 배지
+    // SYSTEM+KEYWORD 미읽음 하나라도 있으면 배지
     func fetchNotificationDot() async {
         async let sys = try? notificationService.fetchNotifications(category: .system, cursor: nil, size: 20)
         async let kw = try? notificationService.fetchNotifications(category: .keyword, cursor: nil, size: 20)
@@ -48,15 +47,9 @@ final class TrackerMainViewModel: ObservableObject {
         state.hasNewNotification = sysItems.contains { !$0.isRead } || kwItems.contains { !$0.isRead }
     }
 
-    // 화면 진입: 첫 진입은 init 후 최초 load, 복귀는 재조회 (안드 ON_RESUME)
+    // 화면 진입: load + 알림 뱃지 조회
     func onAppear() async {
-        if didFirstAppear {
-            await load()
-            await fetchNotificationDot()
-        } else {
-            didFirstAppear = true
-            await load()
-            await fetchNotificationDot()
-        }
+        await load()
+        await fetchNotificationDot()
     }
 }

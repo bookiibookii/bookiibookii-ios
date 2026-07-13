@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// 트래커 UI 전면 재작업 동안의 임시 플레이스홀더.
-/// 안드로이드 신규 트래커 화면(TrackerListResDTO 기반)으로 재구성되면 교체됩니다.
+/// 트래커 메인 화면으로 교체되면 제거 예정.
 struct TrackerPlaceholderView: View {
     var body: some View {
         VStack(spacing: 12) {

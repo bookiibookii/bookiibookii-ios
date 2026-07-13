@@ -1,7 +1,5 @@
 import Foundation
 
-// 안드 tracker/model/TrackerMainUiState.kt + TrackerDetailUiState.kt 대응.
-
 enum TrackerStepLabelStyle {
     case main
     case sub

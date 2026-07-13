@@ -1,6 +1,5 @@
 import Foundation
 
-// 안드 tracker/model/TrackerCardModel.kt 대응.
 struct TrackerProfileItem {
     var nickname: String
     var bookTitle: String

@@ -1,9 +1,5 @@
 import SwiftUI
 
-// 안드 tracker/ui/main/TrackerMainScreen.kt 대응 —
-// TrackerNotificationCard(L120–171) + formatRemainingTime/correctJosa/rememberBannerBody(L173–251)
-// + CarouselIndicator(L253–279).
-
 struct TrackerNotificationCard: View {
     let notifications: [TrackerNotificationItem]
     let onItemClick: (Int) -> Void
@@ -32,6 +28,9 @@ struct TrackerNotificationCard: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .onPreferenceChange(TrackerPageHeightKey.self) { pageHeight = $0 }
+                .onChange(of: notifications.count) { _, count in
+                    if currentPage >= count { currentPage = max(0, count - 1) }
+                }
                 .frame(maxWidth: .infinity)
                 .frame(height: pageHeight > 0 ? pageHeight : nil)
 
@@ -96,6 +95,9 @@ private struct TrackerNotificationPage: View {
                 if Task.isCancelled { return }
                 seconds -= 1
             }
+        }
+        .onChange(of: item.remainingSeconds) { _, newValue in
+            seconds = newValue
         }
     }
 }

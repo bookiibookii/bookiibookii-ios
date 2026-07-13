@@ -1,7 +1,5 @@
 import Foundation
 
-// 안드 tracker/model/TrackerDetailMapper.kt 대응.
-
 extension TrackerDetailResDTO {
     func toUiState() -> TrackerDetailUiState {
         let dDayChip = "D-\(max(0, dDay ?? 0))"

@@ -1,8 +1,5 @@
 import SwiftUI
 
-// 안드 tracker/ui/main/TrackerMainScreen.kt 대응 —
-// TrackerNoticeBanner(L80–110) / TrackerCountBoard·CountColumn·CountDivider(L320–382) / TrackerEmptyCard(L410–438).
-
 // MARK: - NoticeBanner
 
 struct TrackerNoticeBanner: View {
