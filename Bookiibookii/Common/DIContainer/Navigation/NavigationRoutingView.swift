@@ -85,6 +85,7 @@ struct NavigationRoutingView: View {
             LibraryCardListView(
                 book: book,
                 libraryService: container.api.library,
+                userService: container.api.user,
                 groupService: container.api.group,
                 trackerService: container.api.tracker
             )

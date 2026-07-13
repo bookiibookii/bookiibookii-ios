@@ -3,6 +3,7 @@ import SwiftUI
 struct LibraryReadingCardItem: View {
     let card: LibraryCard
     var onToggleBookmark: (() -> Void)? = nil
+    var onToggleEmpathy: (() -> Void)? = nil
     var onTap: (() -> Void)? = nil
 
     var body: some View {
@@ -35,6 +36,32 @@ struct LibraryReadingCardItem: View {
                     .lineLimit(1)
 
                 Spacer(minLength: 0)
+
+                Button {
+                    onToggleBookmark?()
+                } label: {
+                    Image("ic_bookmark_fill")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundColor(
+                            card.isBookmarked ? Color("main200") : Color("grey300")
+                        )
+                        .frame(width: 16, height: 16)
+                        .frame(width: 20, height: 20)
+                        .background(
+                            card.isBookmarked ? Color("main100") : Color("grey100")
+                        )
+                        .clipShape(Circle())
+                        .overlay {
+                            Circle()
+                                .stroke(
+                                    card.isBookmarked ? Color("main200") : Color.clear,
+                                    lineWidth: 0.5
+                                )
+                        }
+                }
+                .buttonStyle(.plain)
             }
 
             Text(card.memo)
@@ -44,6 +71,19 @@ struct LibraryReadingCardItem: View {
                 .frame(maxWidth: .infinity, minHeight: 59, alignment: .topLeading)
 
             HStack {
+                Button {
+                    onToggleEmpathy?()
+                } label: {
+                    Image(LibraryCardReaction.empathy.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 20, height: 20)
+                        .opacity(
+                            card.activeReactions.contains(.empathy) ? 1 : 0.35
+                        )
+                }
+                .buttonStyle(.plain)
+
                 Spacer()
                 Text("p.\(card.page)")
                     .pretendardText(size: 14)

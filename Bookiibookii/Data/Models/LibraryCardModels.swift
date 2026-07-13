@@ -37,6 +37,13 @@ struct GroupCardResponseDTO: Decodable {
     let isBookmarked: Bool?
     let creatorName: String?
     let creatorProfileImageUrl: String?
+    let reactionCounts: [CardReactionCountResponseDTO]?
+    let myReactions: [String]?
+}
+
+struct CardReactionCountResponseDTO: Decodable {
+    let reaction: String?
+    let count: Int?
 }
 
 struct CardImageResponseDTO: Decodable {
@@ -47,6 +54,45 @@ struct CardImageResponseDTO: Decodable {
 
 struct CardBookmarkResponseDTO: Decodable {
     let bookmarked: Bool
+}
+
+struct CardReactionToggleRequestBody: Encodable {
+    let reaction: LibraryCardReaction
+}
+
+struct CardReactionToggleResponseDTO: Decodable {
+    let reaction: LibraryCardReaction
+    let active: Bool
+}
+
+enum LibraryCardReaction: String, Codable, CaseIterable, Hashable, Identifiable {
+    case empathy = "FEELYOU"
+    case good = "LIKE"
+    case fun = "FUN"
+    case sad = "SAD"
+    case angry = "ANGRY"
+
+    var id: String { rawValue }
+
+    var iconName: String {
+        switch self {
+        case .empathy: return "ic_empathy"
+        case .good: return "ic_good"
+        case .fun: return "ic_fun"
+        case .sad: return "ic_sad"
+        case .angry: return "ic_angry"
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .empathy: return "공감해요"
+        case .good: return "좋아요"
+        case .fun: return "웃겨요"
+        case .sad: return "슬퍼요"
+        case .angry: return "화나요"
+        }
+    }
 }
 
 struct CardCreateRequestBody: Encodable {
@@ -128,6 +174,7 @@ struct LibraryCard: Equatable, Identifiable {
     let creatorProfileImageURL: String?
     let isMine: Bool
     let isBookmarked: Bool
+    let activeReactions: Set<LibraryCardReaction>
     let createdAt: String?
     let messageCount: Int
 }
@@ -143,15 +190,82 @@ enum LibraryCardType: Equatable {
 
 struct LibraryCardDetail: Equatable {
     let cardId: Int
+    let memberBookId: Int?
+    let cardType: LibraryCardType
     let page: Int
     let memo: String
+    let quotation: String?
     let imageURL: String?
     /// 수정 시 기존 이미지 업로드 키 (변경 없이 저장할 때 필요).
     let imageS3Key: String?
     let creatorName: String
+    let creatorProfileImageURL: String?
     let bookTitle: String?
+    let totalPages: Int?
+    let genre: String?
+    let completedAt: String?
+    let isMine: Bool
     let isBookmarked: Bool
+    let activeReactions: Set<LibraryCardReaction>
     let createdAt: String?
+}
+
+extension LibraryCardDetail {
+    func updatingBookmark(_ isBookmarked: Bool) -> LibraryCardDetail {
+        LibraryCardDetail(
+            cardId: cardId,
+            memberBookId: memberBookId,
+            cardType: cardType,
+            page: page,
+            memo: memo,
+            quotation: quotation,
+            imageURL: imageURL,
+            imageS3Key: imageS3Key,
+            creatorName: creatorName,
+            creatorProfileImageURL: creatorProfileImageURL,
+            bookTitle: bookTitle,
+            totalPages: totalPages,
+            genre: genre,
+            completedAt: completedAt,
+            isMine: isMine,
+            isBookmarked: isBookmarked,
+            activeReactions: activeReactions,
+            createdAt: createdAt
+        )
+    }
+
+    func updatingReaction(
+        _ reaction: LibraryCardReaction,
+        active: Bool
+    ) -> LibraryCardDetail {
+        var reactions = activeReactions
+        if active {
+            reactions.insert(reaction)
+        } else {
+            reactions.remove(reaction)
+        }
+
+        return LibraryCardDetail(
+            cardId: cardId,
+            memberBookId: memberBookId,
+            cardType: cardType,
+            page: page,
+            memo: memo,
+            quotation: quotation,
+            imageURL: imageURL,
+            imageS3Key: imageS3Key,
+            creatorName: creatorName,
+            creatorProfileImageURL: creatorProfileImageURL,
+            bookTitle: bookTitle,
+            totalPages: totalPages,
+            genre: genre,
+            completedAt: completedAt,
+            isMine: isMine,
+            isBookmarked: isBookmarked,
+            activeReactions: reactions,
+            createdAt: createdAt
+        )
+    }
 }
 
 struct LibraryCardComment: Equatable, Identifiable {
@@ -187,6 +301,9 @@ extension GroupCardResponseDTO {
             creatorProfileImageURL: creatorProfileImageUrl,
             isMine: isMine ?? false,
             isBookmarked: isBookmarked ?? false,
+            activeReactions: Set(
+                (myReactions ?? []).compactMap(LibraryCardReaction.init(rawValue:))
+            ),
             createdAt: createdAt,
             messageCount: 0
         )
@@ -195,13 +312,24 @@ extension GroupCardResponseDTO {
     func toLibraryCardDetail() -> LibraryCardDetail {
         LibraryCardDetail(
             cardId: cardId ?? 0,
+            memberBookId: memberBookId,
+            cardType: LibraryCardType(rawValue: cardType),
             page: page ?? 0,
             memo: memo ?? "",
+            quotation: quotation,
             imageURL: cardImage?.presignedGetUrl,
             imageS3Key: cardImage?.s3Key,
             creatorName: (creatorName ?? "").isEmpty ? "-" : (creatorName ?? ""),
+            creatorProfileImageURL: creatorProfileImageUrl,
             bookTitle: (bookTitle ?? "").isEmpty ? nil : bookTitle,
+            totalPages: totalPages,
+            genre: genre,
+            completedAt: completedAt,
+            isMine: isMine ?? false,
             isBookmarked: isBookmarked ?? false,
+            activeReactions: Set(
+                (myReactions ?? []).compactMap(LibraryCardReaction.init(rawValue:))
+            ),
             createdAt: createdAt
         )
     }

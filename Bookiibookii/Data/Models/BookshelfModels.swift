@@ -80,6 +80,11 @@ struct ReorderRepresentativeRequest: Encodable {
     let targetOrder: Int
 }
 
+struct AddRepresentativeBookRequest: Encodable {
+    let userBookId: Int?
+    let memberBookId: Int?
+}
+
 struct FavoriteBookISBNRequest: Encodable {
     let isbn13: String
 }

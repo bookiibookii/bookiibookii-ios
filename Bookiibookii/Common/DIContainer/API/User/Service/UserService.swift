@@ -142,6 +142,20 @@ final class UserService {
         return result
     }
 
+    // POST /api/mypage/bookshelf/representatives
+    func addRepresentativeBook(memberBookId: Int) async throws {
+        let target = UserAPITarget.addRepresentativeBook(
+            AddRepresentativeBookRequest(userBookId: nil, memberBookId: memberBookId)
+        )
+        let request = target.asURLRequest()
+
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
+        guard response.isSuccess else {
+            throw UserError.bookshelfFailed(response.message)
+        }
+    }
+
     // DELETE /api/mypage/bookshelf/representatives/{userBookId}
     func deleteRepresentativeBook(userBookId: Int) async throws {
         let target = UserAPITarget.deleteRepresentativeBook(userBookId: userBookId)

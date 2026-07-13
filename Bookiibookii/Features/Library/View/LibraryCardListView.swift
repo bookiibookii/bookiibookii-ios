@@ -2,14 +2,17 @@ import SwiftUI
 
 struct LibraryCardListView: View {
     @EnvironmentObject private var container: DIContainer
+    @Environment(\.openURL) private var openURL
     @StateObject private var viewModel: LibraryCardListViewModel
     @State private var isAddMenuExpanded = false
+    @State private var isBookActionsPresented = false
 
     let book: LibraryBook
 
     init(
         book: LibraryBook,
         libraryService: LibraryService,
+        userService: UserService,
         groupService: GroupService,
         trackerService: TrackerService
     ) {
@@ -18,6 +21,7 @@ struct LibraryCardListView: View {
             wrappedValue: LibraryCardListViewModel(
                 book: book,
                 libraryService: libraryService,
+                userService: userService,
                 groupService: groupService,
                 trackerService: trackerService
             )
@@ -65,6 +69,15 @@ struct LibraryCardListView: View {
                 .padding(.bottom, 132)
         }
         .task { await viewModel.load() }
+        .onReceive(NotificationCenter.default.publisher(for: .libraryCardEngagementChanged)) { _ in
+            Task { await viewModel.load() }
+        }
+        .sheet(isPresented: $isBookActionsPresented) {
+            bookActionsSheet
+                .presentationDetents([.height(295)])
+                .presentationDragIndicator(.hidden)
+                .presentationCornerRadius(20)
+        }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
         .alert("안내", isPresented: Binding(
@@ -99,11 +112,19 @@ struct LibraryCardListView: View {
 
             Spacer()
 
-            Image("ic_meetball")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 32, height: 32)
-                .frame(width: 40, height: 40)
+            Button {
+                isBookActionsPresented = true
+                Task {
+                    await viewModel.refreshRepresentativeStatus()
+                }
+            } label: {
+                Image("ic_meetball")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .frame(width: 40, height: 40)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 16)
         .frame(height: 68)
@@ -217,14 +238,28 @@ struct LibraryCardListView: View {
             spacing: 16
         ) {
             ForEach(viewModel.sortedCards) { card in
-                LibraryReadingCardItem(card: card) {
-                    container.navigationRouter.push(
-                        to: .libraryCardDetail(
-                            cardId: card.id,
-                            userBookId: card.isMine ? card.memberBookId : nil
+                LibraryReadingCardItem(
+                    card: card,
+                    onToggleBookmark: {
+                        Task { await viewModel.toggleBookmark(cardId: card.id) }
+                    },
+                    onToggleEmpathy: {
+                        Task {
+                            await viewModel.toggleReaction(
+                                cardId: card.id,
+                                reaction: .empathy
+                            )
+                        }
+                    },
+                    onTap: {
+                        container.navigationRouter.push(
+                            to: .libraryCardDetail(
+                                cardId: card.id,
+                                userBookId: card.isMine ? card.memberBookId : nil
+                            )
                         )
-                    )
-                }
+                    }
+                )
             }
         }
     }
@@ -271,6 +306,89 @@ struct LibraryCardListView: View {
         }
     }
 
+    private var bookActionsSheet: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 20) {
+                Capsule()
+                    .fill(Color("grey200"))
+                    .frame(width: 44, height: 4)
+                    .frame(maxWidth: .infinity)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(book.title)
+                        .pretendardText(size: 20, weight: .semibold)
+                        .foregroundColor(Color("grey900"))
+                        .lineLimit(1)
+
+                    Text(bookAuthorDescription)
+                        .pretendardText(size: 16)
+                        .foregroundColor(Color("grey700"))
+                        .lineLimit(1)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 12)
+                .overlay(alignment: .bottom) {
+                    Rectangle()
+                        .fill(Color("grey200"))
+                        .frame(height: 1)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 16) {
+                bookActionButton(title: "교환독서 후기 확인") {
+                    dismissBookActions(with: "교환독서 후기 화면은 준비 중입니다.")
+                }
+
+                Button {
+                    isBookActionsPresented = false
+                    Task {
+                        await viewModel.toggleRepresentative()
+                    }
+                } label: {
+                    HStack {
+                        if viewModel.isRepresentativeMutating || viewModel.isRepresentative == nil {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                        Text(
+                            viewModel.isRepresentative == true
+                                ? "대표 도서 등록 해제"
+                                : "대표 도서 등록"
+                        )
+                    }
+                    .pretendardText(size: 18)
+                    .foregroundColor(
+                        viewModel.isRepresentative == true
+                            ? Color("pointRed")
+                            : Color("grey800")
+                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isRepresentativeMutating || viewModel.isRepresentative == nil)
+
+                bookActionButton(title: "알라딘으로 이동") {
+                    isBookActionsPresented = false
+                    openAladinSearch()
+                }
+
+                bookActionButton(title: "서재 삭제", color: Color("pointRed")) {
+                    dismissBookActions(with: "서재 삭제 기능은 준비 중입니다.")
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 24)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color("white"))
+    }
+
+    private var bookAuthorDescription: String {
+        let author = book.author ?? "-"
+        guard let genre = book.genre, !genre.isEmpty else { return author }
+        return "\(author) (\(genre))"
+    }
+
     private func addMenuButton(
         title: String,
         icon: String,
@@ -291,6 +409,20 @@ struct LibraryCardListView: View {
             .frame(height: 48)
             .background(Color("grey900"))
             .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func bookActionButton(
+        title: String,
+        color: Color = Color("grey800"),
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Text(title)
+                .pretendardText(size: 18)
+                .foregroundColor(color)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .buttonStyle(.plain)
     }
@@ -317,6 +449,23 @@ struct LibraryCardListView: View {
             return
         }
         container.navigationRouter.push(to: .libraryCardAdd(userBookId: memberBookId))
+    }
+
+    private func dismissBookActions(with message: String) {
+        isBookActionsPresented = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            viewModel.toastMessage = message
+        }
+    }
+
+    private func openAladinSearch() {
+        var components = URLComponents(string: "https://www.aladin.co.kr/search/wsearchresult.aspx")
+        components?.queryItems = [
+            URLQueryItem(name: "SearchWord", value: book.title)
+        ]
+        if let url = components?.url {
+            openURL(url)
+        }
     }
 
     private func formatDate(_ value: String?) -> String {
@@ -381,6 +530,7 @@ private struct LibraryCardBookRating: View {
             togetherReadingCompletedAtISO: nil
         ),
         libraryService: LibraryService(interceptor: AuthInterceptor(authService: AuthService())),
+        userService: UserService(interceptor: AuthInterceptor(authService: AuthService())),
         groupService: GroupService(interceptor: AuthInterceptor(authService: AuthService())),
         trackerService: TrackerService(interceptor: AuthInterceptor(authService: AuthService()))
     )

@@ -23,17 +23,43 @@ final class LibraryCardDetailViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        async let detailOptional = try? await libraryService.fetchLibraryCardDetail(cardId: cardId)
-        async let commentsOptional = try? await libraryService.fetchLibraryCardComments(cardId: cardId)
+        detail = try? await libraryService.fetchLibraryCardDetail(cardId: cardId)
+    }
 
-        detail = await detailOptional
+    func toggleBookmark() async {
+        guard let current = detail else { return }
+        let optimistic = !current.isBookmarked
+        detail = current.updatingBookmark(optimistic)
 
-        if let commentList = await commentsOptional {
-            comments = commentList.comments
-            commentCount = commentList.totalCount
-        } else {
-            comments = []
-            commentCount = 0
+        do {
+            let serverValue = try await libraryService.toggleLibraryCardBookmark(cardId: cardId)
+            detail = detail?.updatingBookmark(serverValue)
+            NotificationCenter.default.post(name: .libraryCardEngagementChanged, object: nil)
+        } catch {
+            detail = detail?.updatingBookmark(current.isBookmarked)
+        }
+    }
+
+    @discardableResult
+    func toggleReaction(_ reaction: LibraryCardReaction) async -> Bool? {
+        guard let current = detail else { return nil }
+        let optimistic = !current.activeReactions.contains(reaction)
+        detail = current.updatingReaction(reaction, active: optimistic)
+
+        do {
+            let active = try await libraryService.toggleLibraryCardReaction(
+                cardId: cardId,
+                reaction: reaction
+            )
+            detail = detail?.updatingReaction(reaction, active: active)
+            NotificationCenter.default.post(name: .libraryCardEngagementChanged, object: nil)
+            return active
+        } catch {
+            detail = detail?.updatingReaction(
+                reaction,
+                active: current.activeReactions.contains(reaction)
+            )
+            return nil
         }
     }
 

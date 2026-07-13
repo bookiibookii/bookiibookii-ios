@@ -14,6 +14,8 @@ final class LibraryCardListViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published var sortType: SortType = .latest
     @Published var showOnlyMine = true
+    @Published private(set) var isRepresentative: Bool?
+    @Published private(set) var isRepresentativeMutating = false
 
     /// 함께읽기 메타: `GET /api/library/memberbooks` 에서 동일 `groupId` 책을 찾아 갱신.
     @Published private(set) var togetherMyReadingRate: Int?
@@ -27,20 +29,28 @@ final class LibraryCardListViewModel: ObservableObject {
     @Published var toastMessage: String?
 
     private let groupId: Int
+    private let memberBookId: Int?
+    private let bookTitle: String
     private let isTogetherGroup: Bool
     private let libraryService: LibraryService
+    private let userService: UserService
     private let groupService: GroupService
     private let trackerService: TrackerService
+    private var representativeUserBookId: Int?
 
     init(
         book: LibraryBook,
         libraryService: LibraryService,
+        userService: UserService,
         groupService: GroupService,
         trackerService: TrackerService
     ) {
         self.groupId = book.groupId
+        self.memberBookId = book.userBookId
+        self.bookTitle = book.title
         self.isTogetherGroup = (book.groupType ?? "").uppercased() == "TOGETHER"
         self.libraryService = libraryService
+        self.userService = userService
         self.groupService = groupService
         self.trackerService = trackerService
         togetherMyReadingRate = book.togetherMyReadingRate
@@ -111,6 +121,53 @@ final class LibraryCardListViewModel: ObservableObject {
         } catch {
             topComments = []
             cards = []
+        }
+
+        await refreshRepresentativeStatus(showError: false)
+    }
+
+    func refreshRepresentativeStatus(showError: Bool = true) async {
+        do {
+            let bookshelf = try await userService.getBookshelf()
+            let representative = bookshelf.representativeBooks.first { candidate in
+                if let candidateMemberBookId = candidate.memberBookId,
+                   let memberBookId {
+                    return candidateMemberBookId == memberBookId
+                }
+                return candidate.title == bookTitle
+            }
+            representativeUserBookId = representative?.userBookId
+            isRepresentative = representative != nil
+        } catch {
+            isRepresentative = nil
+            if showError {
+                toastMessage = error.localizedDescription
+            }
+        }
+    }
+
+    func toggleRepresentative() async {
+        guard let memberBookId else {
+            toastMessage = "대표 도서로 등록할 책 정보를 찾지 못했습니다."
+            return
+        }
+
+        isRepresentativeMutating = true
+        defer { isRepresentativeMutating = false }
+
+        do {
+            if isRepresentative == true {
+                guard let representativeUserBookId else {
+                    await refreshRepresentativeStatus()
+                    return
+                }
+                try await userService.deleteRepresentativeBook(userBookId: representativeUserBookId)
+            } else {
+                try await userService.addRepresentativeBook(memberBookId: memberBookId)
+            }
+            await refreshRepresentativeStatus()
+        } catch {
+            toastMessage = error.localizedDescription
         }
     }
 
@@ -223,6 +280,7 @@ final class LibraryCardListViewModel: ObservableObject {
                     creatorProfileImageURL: card.creatorProfileImageURL,
                     isMine: card.isMine,
                     isBookmarked: bookmarked,
+                    activeReactions: card.activeReactions,
                     createdAt: card.createdAt,
                     messageCount: card.messageCount
                 )
@@ -238,6 +296,62 @@ final class LibraryCardListViewModel: ObservableObject {
         } catch {
             guard let idx = cards.firstIndex(where: { $0.id == cardId }) else { return }
             cards = replacingCard(at: idx, bookmarked: previous)
+        }
+    }
+
+    func toggleReaction(cardId: Int, reaction: LibraryCardReaction) async {
+        guard let index = cards.firstIndex(where: { $0.id == cardId }) else { return }
+        let previous = cards[index].activeReactions
+        let optimistic = !previous.contains(reaction)
+
+        func replacingCard(
+            at targetIndex: Int,
+            reactionActive: Bool
+        ) -> [LibraryCard] {
+            cards.enumerated().map { index, card in
+                guard index == targetIndex else { return card }
+                var reactions = card.activeReactions
+                if reactionActive {
+                    reactions.insert(reaction)
+                } else {
+                    reactions.remove(reaction)
+                }
+                return LibraryCard(
+                    id: card.id,
+                    isBookmarkable: card.isBookmarkable,
+                    memberBookId: card.memberBookId,
+                    cardType: card.cardType,
+                    bookTitle: card.bookTitle,
+                    page: card.page,
+                    memo: card.memo,
+                    quotation: card.quotation,
+                    imageURL: card.imageURL,
+                    creatorName: card.creatorName,
+                    creatorProfileImageURL: card.creatorProfileImageURL,
+                    isMine: card.isMine,
+                    isBookmarked: card.isBookmarked,
+                    activeReactions: reactions,
+                    createdAt: card.createdAt,
+                    messageCount: card.messageCount
+                )
+            }
+        }
+
+        cards = replacingCard(at: index, reactionActive: optimistic)
+
+        do {
+            let active = try await libraryService.toggleLibraryCardReaction(
+                cardId: cardId,
+                reaction: reaction
+            )
+            guard let currentIndex = cards.firstIndex(where: { $0.id == cardId }) else { return }
+            cards = replacingCard(at: currentIndex, reactionActive: active)
+        } catch {
+            guard let currentIndex = cards.firstIndex(where: { $0.id == cardId }) else { return }
+            cards = replacingCard(
+                at: currentIndex,
+                reactionActive: previous.contains(reaction)
+            )
         }
     }
 }

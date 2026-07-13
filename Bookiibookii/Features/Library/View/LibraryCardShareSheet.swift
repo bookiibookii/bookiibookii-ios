@@ -151,13 +151,22 @@ struct LibraryCardShareSheet: View {
     LibraryCardShareSheet(
         detail: LibraryCardDetail(
             cardId: 1,
+            memberBookId: 1,
+            cardType: .image,
             page: 122,
             memo: "감각이 살아 있는 문장들이 가득. 다시 읽고 싶은 책.",
+            quotation: nil,
             imageURL: nil,
             imageS3Key: nil,
             creatorName: "noshel",
+            creatorProfileImageURL: nil,
             bookTitle: "괴테는 모든 것을 말했다",
+            totalPages: 300,
+            genre: "소설",
+            completedAt: nil,
+            isMine: true,
             isBookmarked: false,
+            activeReactions: [],
             createdAt: nil
         ),
         onClose: {}

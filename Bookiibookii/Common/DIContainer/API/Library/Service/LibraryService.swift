@@ -78,6 +78,31 @@ final class LibraryService {
         return dto.bookmarked
     }
 
+    func toggleLibraryCardReaction(
+        cardId: Int,
+        reaction: LibraryCardReaction
+    ) async throws -> Bool {
+        let request = LibraryAPITarget.toggleCardReaction(
+            cardId: cardId,
+            body: CardReactionToggleRequestBody(reaction: reaction)
+        ).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(
+            ApiResponseDTO<CardReactionToggleResponseDTO>.self,
+            from: data
+        ) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess, let result = response.result else {
+            throw LibraryServiceError.server(response.message)
+        }
+        return result.active
+    }
+
     func fetchLibraryCardDetail(cardId: Int) async throws -> LibraryCardDetail {
         let request = LibraryAPITarget.fetchCardDetail(cardId: cardId).asURLRequest()
         let (data, http) = try await interceptor.request(request)
