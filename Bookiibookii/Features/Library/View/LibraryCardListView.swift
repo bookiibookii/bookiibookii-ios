@@ -486,6 +486,7 @@ private struct StarRow: View {
             id: 1,
             userBookId: 1,
             groupId: 1,
+            groupName: "함께 읽는 모임",
             groupType: nil,
             title: "괴테는 모든 것을 말했다",
             author: "스즈키 유이",
@@ -496,6 +497,8 @@ private struct StarRow: View {
             status: .completed,
             rating: 3.5,
             isCreatedByMe: true,
+            progressRate: 100,
+            completedAtISO: "2026-01-12T00:00:00Z",
             togetherMyReadingRate: nil,
             togetherGroupReadingRate: nil,
             togetherReadingCompletedAtISO: nil

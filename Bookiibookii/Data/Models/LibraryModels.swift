@@ -2,7 +2,9 @@ import Foundation
 
 struct LibraryBookResponseDTO: Decodable {
     let userBookId: Int?
+    let memberBookId: Int?
     let groupId: Int?
+    let groupName: String?
     let bookId: Int?
     let bookTitle: String?
     let bookImage: String?
@@ -18,6 +20,9 @@ struct LibraryBookResponseDTO: Decodable {
     let groupStatus: String?
     let rating: Double?
     let comment: String?
+    let isMine: Bool?
+    let progressRate: Int?
+    let completedAt: String?
     /// 함께읽기: 서재 책 목록 응답에 포함될 때만 (스펙별 키 별칭은 디코더에서 처리).
     let myReadingRate: Int?
     let groupReadingRate: Int?
@@ -25,7 +30,9 @@ struct LibraryBookResponseDTO: Decodable {
 
     private enum CodingKeys: String, CodingKey {
         case userBookId
+        case memberBookId
         case groupId
+        case groupName
         case bookId
         case bookTitle
         case title
@@ -46,6 +53,9 @@ struct LibraryBookResponseDTO: Decodable {
         case groupStatus
         case rating
         case comment
+        case isMine
+        case progressRate
+        case completedAt
         case myReadingRate
         case groupReadingRate
         case togetherReadingCompletedAt
@@ -56,7 +66,9 @@ struct LibraryBookResponseDTO: Decodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         userBookId = try container.decodeIfPresent(Int.self, forKey: .userBookId)
+        memberBookId = try container.decodeIfPresent(Int.self, forKey: .memberBookId)
         groupId = try container.decodeIfPresent(Int.self, forKey: .groupId)
+        groupName = try container.decodeIfPresent(String.self, forKey: .groupName)
         bookId = try container.decodeIfPresent(Int.self, forKey: .bookId)
         bookTitle =
             try container.decodeIfPresent(String.self, forKey: .bookTitle)
@@ -81,12 +93,18 @@ struct LibraryBookResponseDTO: Decodable {
         groupStatus = try container.decodeIfPresent(String.self, forKey: .groupStatus)
         rating = try container.decodeIfPresent(Double.self, forKey: .rating)
         comment = try container.decodeIfPresent(String.self, forKey: .comment)
-        myReadingRate = try container.decodeIfPresent(Int.self, forKey: .myReadingRate)
+        isMine = try container.decodeIfPresent(Bool.self, forKey: .isMine)
+        progressRate = try container.decodeIfPresent(Int.self, forKey: .progressRate)
+        completedAt = try container.decodeIfPresent(String.self, forKey: .completedAt)
+        myReadingRate =
+            try container.decodeIfPresent(Int.self, forKey: .myReadingRate)
+            ?? container.decodeIfPresent(Int.self, forKey: .progressRate)
         groupReadingRate = try container.decodeIfPresent(Int.self, forKey: .groupReadingRate)
         togetherReadingCompletedAt =
             try container.decodeIfPresent(String.self, forKey: .togetherReadingCompletedAt)
             ?? (try container.decodeIfPresent(String.self, forKey: .readingCompletedAt))
             ?? (try container.decodeIfPresent(String.self, forKey: .myTogetherReadingCompletedAt))
+            ?? (try container.decodeIfPresent(String.self, forKey: .completedAt))
     }
 }
 
@@ -105,7 +123,8 @@ struct LibraryBook: Identifiable, Equatable, Hashable {
     /// 독서카드 생성 등 `/api/cards/{userBookId}` 에 사용. 서버 미전달 시 `nil`.
     let userBookId: Int?
     let groupId: Int
-    /// `/api/library/books` 의 `groupType` (예: `RELAY`, `TOGETHER`).
+    let groupName: String
+    /// `/api/library/memberbooks` 의 `groupType` (예: `RELAY`, `TOGETHER`).
     let groupType: String?
     let title: String
     let author: String?
@@ -116,7 +135,9 @@ struct LibraryBook: Identifiable, Equatable, Hashable {
     let status: LibraryGroupStatus
     let rating: Double?
     let isCreatedByMe: Bool
-    /// 함께읽기: `GET /api/library/books`(및 검색)에서만 채워짐.
+    let progressRate: Int
+    let completedAtISO: String?
+    /// 함께읽기: 라이브러리 멤버북 목록(및 검색)에서만 채워짐.
     let togetherMyReadingRate: Int?
     let togetherGroupReadingRate: Int?
     let togetherReadingCompletedAtISO: String?
@@ -167,9 +188,10 @@ extension LibraryBookResponseDTO {
         let createdByMe = (hostId != nil && currentUserId != nil) ? (hostId == currentUserId) : false
 
         return LibraryBook(
-            id: userBookId ?? groupId ?? Int.random(in: 100_000...999_999),
-            userBookId: userBookId,
+            id: memberBookId ?? userBookId ?? groupId ?? Int.random(in: 100_000...999_999),
+            userBookId: memberBookId ?? userBookId,
             groupId: groupId ?? 0,
+            groupName: groupName ?? "-",
             groupType: groupType,
             title: bookTitle ?? "-",
             author: author,
@@ -179,7 +201,9 @@ extension LibraryBookResponseDTO {
             endDate: endDate,
             status: LibraryGroupStatus(rawValue: groupStatus),
             rating: rating,
-            isCreatedByMe: createdByMe,
+            isCreatedByMe: isMine ?? createdByMe,
+            progressRate: min(max(progressRate ?? myReadingRate ?? 0, 0), 100),
+            completedAtISO: completedAt,
             togetherMyReadingRate: myReadingRate,
             togetherGroupReadingRate: groupReadingRate,
             togetherReadingCompletedAtISO: togetherReadingCompletedAt

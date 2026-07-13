@@ -2,10 +2,8 @@ import Foundation
 
 /// 함께읽기(`TOGETHER`) 그룹의 완독 처리 결과를 로컬에 저장합니다.
 ///
-/// 서버 `/api/library/books` 응답 DTO에는 현재 `myReadingRate / completedAt` 필드가
-/// 포함되어 있지 않아, 화면을 닫았다가 다시 열면 서버에서 다시 받아올 수 없습니다.
-/// (서버를 변경하지 않는 정책이라, `MatchedMember.currentReadingRate`를 직접 읽을 수 있는
-/// 별도 GET API도 없는 상태입니다.)
+/// 서버 응답의 진행률/완독시각이 아직 갱신되지 않았거나 구버전 응답에서 누락된 경우에도
+/// 화면을 닫았다가 다시 열었을 때 직전 완독 상태를 유지하기 위한 폴백입니다.
 ///
 /// `PATCH /api/groups/{groupId}/together/members/me/complete` 응답(`currentReadingRate`,
 /// `completedAt`)을 사용자별 + 그룹별 키에 저장해, 재진입 시에도 "후기 작성하기" 라벨/

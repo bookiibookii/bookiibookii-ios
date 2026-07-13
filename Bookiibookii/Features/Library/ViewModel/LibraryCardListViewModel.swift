@@ -14,7 +14,7 @@ final class LibraryCardListViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published var sortType: SortType = .latest
 
-    /// 함께읽기 메타: `GET /api/library/books` 에서 동일 `groupId` 책을 찾아 갱신.
+    /// 함께읽기 메타: `GET /api/library/memberbooks` 에서 동일 `groupId` 책을 찾아 갱신.
     @Published private(set) var togetherMyReadingRate: Int?
     @Published private(set) var togetherGroupReadingRate: Int?
     @Published private(set) var togetherReadingCompletedAtISO: String?
@@ -46,8 +46,8 @@ final class LibraryCardListViewModel: ObservableObject {
         togetherGroupReadingRate = book.togetherGroupReadingRate
         togetherReadingCompletedAtISO = book.togetherReadingCompletedAtISO
 
-        // 서버 `/api/library/books`가 함께읽기 독서율/완독시각 필드를 아직 내려주지 않아,
-        // 완독 결과를 로컬에 저장해두고 재진입 시 복원합니다.
+        // 구버전 응답 또는 네트워크 지연으로 진행률/완독시각이 비어 있을 때
+        // 직전에 저장한 완독 결과를 폴백으로 복원합니다.
         if isTogetherGroup, let cached = TogetherReadingLocalStore.snapshot(
             userId: TokenManager.shared.userId,
             groupId: groupId

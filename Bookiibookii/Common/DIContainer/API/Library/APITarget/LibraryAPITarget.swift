@@ -19,9 +19,9 @@ enum LibraryAPITarget: APITargetType {
     var path: String {
         switch self {
         case .fetchBooks:
-            return API.Path.library + "/books"
+            return API.Path.library + "/memberbooks"
         case .searchBooks:
-            return API.Path.library + "/search"
+            return API.Path.library + "/memberbooks/search"
         case .fetchCards(let groupId):
             return "/api/cards/group/\(groupId)"
         case .fetchBookmarkedCards:
