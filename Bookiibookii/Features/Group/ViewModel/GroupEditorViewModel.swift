@@ -37,7 +37,7 @@ final class GroupEditorViewModel: ObservableObject {
     @Published var submitError: String?
     @Published var prefillFailed: String?
 
-    // 컨트롤러 확정: 주소 미등록/"주소 관리" 링크 탭 → 준비 중 토스트 (GroupDetailViewModel.manageAddress 선례)
+    // 사용자 안내용 토스트 (제출 에러·알림 등)
     @Published var toast: String?
 
     // 수정 모드 프리필 원본 스냅샷 (isDirty 판정용)
@@ -191,8 +191,7 @@ final class GroupEditorViewModel: ObservableObject {
         Task { await loadPlaces(type) }
     }
 
-    // 주소지 관리 화면에서 복귀 시 호출하는 훅. iOS에 주소관리 화면이 아직 없어 현재 호출 지점 없음
-    // (향후 화면 추가 시 연결).
+    // 주소관리 화면에서 복귀 시 호출하는 훅(GroupEditorView.onAppear). tradeType 미선택이면 no-op.
     func reloadPlaces() {
         guard let type = tradeType else { return }
         Task { await loadPlaces(type, preserveSelection: true) }
