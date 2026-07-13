@@ -230,12 +230,9 @@ final class GroupDetailViewModel: ObservableObject {
         }
     }
 
-    // MARK: - 주소지 관리 (임시)
-
-    // iOS에 주소지 관리 화면이 아직 없어 임시 토스트로 대체.
-    // 화면 추가 시 tradeType(DIRECT/DELIVERY)에 맞는 탭으로 네비게이션 연결 필요(안드 onManageAddress(ExchangeType) 대응).
-    func manageAddress() {
-        toast = "주소지 관리는 준비 중입니다"
+    // 주소관리 진입 시 열 탭. 그룹 교환유형 DIRECT=희망교환장소, 그 외/nil=배송지.
+    var addressManagementTab: AddressManagementTab {
+        detail?.tradeType == "DIRECT" ? .exchange : .delivery
     }
 
     // MARK: - 신청자 관리 (기존 GroupApplicantView 재사용)

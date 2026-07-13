@@ -265,7 +265,7 @@ struct GroupDetailView: View {
                     onDismiss: { viewModel.showAddressRequiredDialog = false },
                     onManageAddress: {
                         viewModel.showAddressRequiredDialog = false
-                        viewModel.manageAddress()
+                        container.navigationRouter.push(to: .addressManagement(initialTab: viewModel.addressManagementTab))
                     }
                 )
                 .padding(.horizontal, 24)
