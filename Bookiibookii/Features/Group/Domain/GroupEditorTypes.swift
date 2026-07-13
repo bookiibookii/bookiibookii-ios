@@ -9,6 +9,16 @@ enum ExchangeType {
     case direct, delivery
 }
 
+extension ExchangeType {
+    // 주소관리 화면 진입 시 열 탭. direct=희망교환장소, delivery=배송지.
+    var addressManagementTab: AddressManagementTab {
+        switch self {
+        case .direct:   return .exchange
+        case .delivery: return .delivery
+        }
+    }
+}
+
 // MARK: - 그룹 규칙 프리셋
 
 enum ReadingStyle: CaseIterable, Equatable {

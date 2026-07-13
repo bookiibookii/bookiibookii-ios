@@ -46,8 +46,8 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .addressManagement:
-            AddressManagementView(locationService: container.api.location)
+        case .addressManagement(let initialTab):
+            AddressManagementView(locationService: container.api.location, initialTab: initialTab)
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)

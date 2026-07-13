@@ -3,6 +3,7 @@ import SwiftUI
 // 그룹 생성/수정 통합 화면. 안드 group/ui/editor/GroupEditorScreen.kt(Route+Screen) 대응.
 struct GroupEditorView: View {
     @StateObject private var viewModel: GroupEditorViewModel
+    @EnvironmentObject private var container: DIContainer
     // 에디터는 홈에서 push, 그룹 상세에서 fullScreenCover로 진입한다.
     // router.pop()은 push 진입만 닫고 cover는 못 닫으므로, 양쪽 모두에서 동작하는 dismiss 사용.
     @Environment(\.dismiss) private var dismiss
@@ -53,8 +54,8 @@ struct GroupEditorView: View {
                                     places: viewModel.places,
                                     selectedPlaceId: viewModel.selectedPlaceId,
                                     onPlaceSelect: viewModel.onPlaceSelect,
-                                    onManageAddress: { _ in
-                                        viewModel.toast = "주소 관리는 준비 중입니다"
+                                    onManageAddress: { type in
+                                        container.navigationRouter.push(to: .addressManagement(initialTab: type.addressManagementTab))
                                     }
                                 )
                             }
@@ -108,6 +109,7 @@ struct GroupEditorView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
         }
+        .onAppear { viewModel.reloadPlaces() }
         .background(Color("white"))
         .toast($viewModel.toast)
         .dismissKeyboardOnTap()

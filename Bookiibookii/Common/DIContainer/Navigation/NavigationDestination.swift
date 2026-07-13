@@ -11,7 +11,7 @@ enum NavigationDestination: Hashable {
     case accountWithdrawal
     case myReviews(initialTab: MyReviewTab, nickname: String)
     case profileChange
-    case addressManagement
+    case addressManagement(initialTab: AddressManagementTab = .delivery)
     case notice
     case noticeDetail(noticeId: Int)
     case faq
