@@ -23,7 +23,7 @@ enum LibraryAPITarget: APITargetType {
         case .searchBooks:
             return API.Path.library + "/memberbooks/search"
         case .fetchCards(let groupId):
-            return "/api/cards/group/\(groupId)"
+            return "/api/member-books/group/\(groupId)/cards"
         case .fetchBookmarkedCards:
             return "/api/cards/bookmarks"
         case .toggleCardBookmark(let cardId):

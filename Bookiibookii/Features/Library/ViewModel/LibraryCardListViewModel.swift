@@ -13,6 +13,7 @@ final class LibraryCardListViewModel: ObservableObject {
     @Published private(set) var cards: [LibraryCard] = []
     @Published private(set) var isLoading = false
     @Published var sortType: SortType = .latest
+    @Published var showOnlyMine = true
 
     /// 함께읽기 메타: `GET /api/library/memberbooks` 에서 동일 `groupId` 책을 찾아 갱신.
     @Published private(set) var togetherMyReadingRate: Int?
@@ -80,11 +81,16 @@ final class LibraryCardListViewModel: ObservableObject {
         return togetherComments.contains(where: { $0.id == String(uid) && $0.hasWrittenComment })
     } 
     var sortedCards: [LibraryCard] {
+        let visibleCards = showOnlyMine ? cards.filter(\.isMine) : cards
         switch sortType {
         case .latest:
-            return cards.sorted { ($0.createdAt ?? "") > ($1.createdAt ?? "") }
+            return visibleCards.sorted { ($0.createdAt ?? "") > ($1.createdAt ?? "") }
         case .page:
-            return cards.sorted { $0.page < $1.page }
+            return visibleCards.sorted {
+                $0.page == $1.page
+                    ? ($0.createdAt ?? "") > ($1.createdAt ?? "")
+                    : $0.page < $1.page
+            }
         }
     }
 
@@ -206,11 +212,16 @@ final class LibraryCardListViewModel: ObservableObject {
                 return LibraryCard(
                     id: card.id,
                     isBookmarkable: card.isBookmarkable,
+                    memberBookId: card.memberBookId,
+                    cardType: card.cardType,
                     bookTitle: card.bookTitle,
                     page: card.page,
                     memo: card.memo,
+                    quotation: card.quotation,
                     imageURL: card.imageURL,
                     creatorName: card.creatorName,
+                    creatorProfileImageURL: card.creatorProfileImageURL,
+                    isMine: card.isMine,
                     isBookmarked: bookmarked,
                     createdAt: card.createdAt,
                     messageCount: card.messageCount

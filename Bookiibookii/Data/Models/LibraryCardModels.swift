@@ -22,13 +22,21 @@ struct TogetherCommentDTO: Decodable {
 
 struct GroupCardResponseDTO: Decodable {
     let cardId: Int?
+    let memberBookId: Int?
+    let cardType: String?
     let page: Int?
     let memo: String?
+    let quotation: String?
     let cardImage: CardImageResponseDTO?
     let createdAt: String?
     let bookTitle: String?
+    let totalPages: Int?
+    let genre: String?
+    let completedAt: String?
+    let isMine: Bool?
     let isBookmarked: Bool?
     let creatorName: String?
+    let creatorProfileImageUrl: String?
 }
 
 struct CardImageResponseDTO: Decodable {
@@ -109,14 +117,28 @@ struct LibraryTopComment: Equatable, Identifiable {
 struct LibraryCard: Equatable, Identifiable {
     let id: Int
     let isBookmarkable: Bool
+    let memberBookId: Int?
+    let cardType: LibraryCardType
     let bookTitle: String?
     let page: Int
     let memo: String
+    let quotation: String?
     let imageURL: String?
     let creatorName: String
+    let creatorProfileImageURL: String?
+    let isMine: Bool
     let isBookmarked: Bool
     let createdAt: String?
     let messageCount: Int
+}
+
+enum LibraryCardType: Equatable {
+    case image
+    case text
+
+    init(rawValue: String?) {
+        self = rawValue?.uppercased() == "TEXT" ? .text : .image
+    }
 }
 
 struct LibraryCardDetail: Equatable {
@@ -154,11 +176,16 @@ extension GroupCardResponseDTO {
         return LibraryCard(
             id: rowId,
             isBookmarkable: serverCardId != nil,
+            memberBookId: memberBookId,
+            cardType: LibraryCardType(rawValue: cardType),
             bookTitle: (title?.isEmpty == false) ? title : nil,
             page: page ?? 0,
             memo: memo ?? "",
+            quotation: quotation,
             imageURL: cardImage?.presignedGetUrl,
             creatorName: (creatorName ?? "").isEmpty ? "-" : (creatorName ?? ""),
+            creatorProfileImageURL: creatorProfileImageUrl,
+            isMine: isMine ?? false,
             isBookmarked: isBookmarked ?? false,
             createdAt: createdAt,
             messageCount: 0

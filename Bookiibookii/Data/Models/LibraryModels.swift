@@ -14,6 +14,7 @@ struct LibraryBookResponseDTO: Decodable {
     let hostProfileImageUrl: String?
     let groupType: String?
     let author: String?
+    let genre: String?
     let startDate: String?
     let endDate: String?
     let duration: Int?
@@ -47,6 +48,7 @@ struct LibraryBookResponseDTO: Decodable {
         case groupType
         case nickname
         case author
+        case genre
         case startDate
         case endDate
         case duration
@@ -87,6 +89,7 @@ struct LibraryBookResponseDTO: Decodable {
         hostProfileImageUrl = try container.decodeIfPresent(String.self, forKey: .hostProfileImageUrl)
         groupType = try container.decodeIfPresent(String.self, forKey: .groupType)
         author = try container.decodeIfPresent(String.self, forKey: .author)
+        genre = try container.decodeIfPresent(String.self, forKey: .genre)
         startDate = try container.decodeIfPresent(String.self, forKey: .startDate)
         endDate = try container.decodeIfPresent(String.self, forKey: .endDate)
         duration = try container.decodeIfPresent(Int.self, forKey: .duration)
@@ -128,6 +131,7 @@ struct LibraryBook: Identifiable, Equatable, Hashable {
     let groupType: String?
     let title: String
     let author: String?
+    let genre: String?
     let coverImageURL: String?
     let hostNickname: String
     let startDate: String?
@@ -195,6 +199,7 @@ extension LibraryBookResponseDTO {
             groupType: groupType,
             title: bookTitle ?? "-",
             author: author,
+            genre: genre,
             coverImageURL: bookImage,
             hostNickname: hostNickname ?? hostNickName ?? "-",
             startDate: startDate,
