@@ -13,8 +13,11 @@ final class LibraryCardListViewModel: ObservableObject {
     @Published private(set) var cards: [LibraryCard] = []
     @Published private(set) var isLoading = false
     @Published var sortType: SortType = .latest
+    @Published var showOnlyMine = true
+    @Published private(set) var isRepresentative: Bool?
+    @Published private(set) var isRepresentativeMutating = false
 
-    /// 함께읽기 메타: `GET /api/library/books` 에서 동일 `groupId` 책을 찾아 갱신.
+    /// 함께읽기 메타: `GET /api/library/memberbooks` 에서 동일 `groupId` 책을 찾아 갱신.
     @Published private(set) var togetherMyReadingRate: Int?
     @Published private(set) var togetherGroupReadingRate: Int?
     @Published private(set) var togetherReadingCompletedAtISO: String?
@@ -26,28 +29,36 @@ final class LibraryCardListViewModel: ObservableObject {
     @Published var toastMessage: String?
 
     private let groupId: Int
+    private let memberBookId: Int?
+    private let bookTitle: String
     private let isTogetherGroup: Bool
     private let libraryService: LibraryService
+    private let userService: UserService
     private let groupService: GroupService
     private let trackerService: TrackerService
+    private var representativeUserBookId: Int?
 
     init(
         book: LibraryBook,
         libraryService: LibraryService,
+        userService: UserService,
         groupService: GroupService,
         trackerService: TrackerService
     ) {
         self.groupId = book.groupId
+        self.memberBookId = book.userBookId
+        self.bookTitle = book.title
         self.isTogetherGroup = (book.groupType ?? "").uppercased() == "TOGETHER"
         self.libraryService = libraryService
+        self.userService = userService
         self.groupService = groupService
         self.trackerService = trackerService
         togetherMyReadingRate = book.togetherMyReadingRate
         togetherGroupReadingRate = book.togetherGroupReadingRate
         togetherReadingCompletedAtISO = book.togetherReadingCompletedAtISO
 
-        // 서버 `/api/library/books`가 함께읽기 독서율/완독시각 필드를 아직 내려주지 않아,
-        // 완독 결과를 로컬에 저장해두고 재진입 시 복원합니다.
+        // 구버전 응답 또는 네트워크 지연으로 진행률/완독시각이 비어 있을 때
+        // 직전에 저장한 완독 결과를 폴백으로 복원합니다.
         if isTogetherGroup, let cached = TogetherReadingLocalStore.snapshot(
             userId: TokenManager.shared.userId,
             groupId: groupId
@@ -80,11 +91,16 @@ final class LibraryCardListViewModel: ObservableObject {
         return togetherComments.contains(where: { $0.id == String(uid) && $0.hasWrittenComment })
     } 
     var sortedCards: [LibraryCard] {
+        let visibleCards = showOnlyMine ? cards.filter(\.isMine) : cards
         switch sortType {
         case .latest:
-            return cards.sorted { ($0.createdAt ?? "") > ($1.createdAt ?? "") }
+            return visibleCards.sorted { ($0.createdAt ?? "") > ($1.createdAt ?? "") }
         case .page:
-            return cards.sorted { $0.page < $1.page }
+            return visibleCards.sorted {
+                $0.page == $1.page
+                    ? ($0.createdAt ?? "") > ($1.createdAt ?? "")
+                    : $0.page < $1.page
+            }
         }
     }
 
@@ -105,6 +121,53 @@ final class LibraryCardListViewModel: ObservableObject {
         } catch {
             topComments = []
             cards = []
+        }
+
+        await refreshRepresentativeStatus(showError: false)
+    }
+
+    func refreshRepresentativeStatus(showError: Bool = true) async {
+        do {
+            let bookshelf = try await userService.getBookshelf()
+            let representative = bookshelf.representativeBooks.first { candidate in
+                if let candidateMemberBookId = candidate.memberBookId,
+                   let memberBookId {
+                    return candidateMemberBookId == memberBookId
+                }
+                return candidate.title == bookTitle
+            }
+            representativeUserBookId = representative?.userBookId
+            isRepresentative = representative != nil
+        } catch {
+            isRepresentative = nil
+            if showError {
+                toastMessage = error.localizedDescription
+            }
+        }
+    }
+
+    func toggleRepresentative() async {
+        guard let memberBookId else {
+            toastMessage = "대표 도서로 등록할 책 정보를 찾지 못했습니다."
+            return
+        }
+
+        isRepresentativeMutating = true
+        defer { isRepresentativeMutating = false }
+
+        do {
+            if isRepresentative == true {
+                guard let representativeUserBookId else {
+                    await refreshRepresentativeStatus()
+                    return
+                }
+                try await userService.deleteRepresentativeBook(userBookId: representativeUserBookId)
+            } else {
+                try await userService.addRepresentativeBook(memberBookId: memberBookId)
+            }
+            await refreshRepresentativeStatus()
+        } catch {
+            toastMessage = error.localizedDescription
         }
     }
 
@@ -206,12 +269,19 @@ final class LibraryCardListViewModel: ObservableObject {
                 return LibraryCard(
                     id: card.id,
                     isBookmarkable: card.isBookmarkable,
+                    memberBookId: card.memberBookId,
+                    cardType: card.cardType,
                     bookTitle: card.bookTitle,
                     page: card.page,
                     memo: card.memo,
+                    quotation: card.quotation,
                     imageURL: card.imageURL,
                     creatorName: card.creatorName,
+                    creatorProfileImageURL: card.creatorProfileImageURL,
+                    isMine: card.isMine,
                     isBookmarked: bookmarked,
+                    activeReactions: card.activeReactions,
+                    reactionCounts: card.reactionCounts,
                     createdAt: card.createdAt,
                     messageCount: card.messageCount
                 )
@@ -227,6 +297,71 @@ final class LibraryCardListViewModel: ObservableObject {
         } catch {
             guard let idx = cards.firstIndex(where: { $0.id == cardId }) else { return }
             cards = replacingCard(at: idx, bookmarked: previous)
+        }
+    }
+
+    func toggleReaction(cardId: Int, reaction: LibraryCardReaction) async {
+        guard let index = cards.firstIndex(where: { $0.id == cardId }) else { return }
+        let previous = cards[index].activeReactions
+        let optimistic = !previous.contains(reaction)
+
+        func replacingCard(
+            at targetIndex: Int,
+            reactionActive: Bool
+        ) -> [LibraryCard] {
+            cards.enumerated().map { index, card in
+                guard index == targetIndex else { return card }
+                var reactions = card.activeReactions
+                let wasActive = reactions.contains(reaction)
+                if reactionActive {
+                    reactions.insert(reaction)
+                } else {
+                    reactions.remove(reaction)
+                }
+                var reactionCounts = card.reactionCounts
+                let currentCount = reactionCounts[reaction] ?? 0
+                if wasActive != reactionActive {
+                    reactionCounts[reaction] = reactionActive
+                        ? currentCount + 1
+                        : max(0, currentCount - 1)
+                }
+                return LibraryCard(
+                    id: card.id,
+                    isBookmarkable: card.isBookmarkable,
+                    memberBookId: card.memberBookId,
+                    cardType: card.cardType,
+                    bookTitle: card.bookTitle,
+                    page: card.page,
+                    memo: card.memo,
+                    quotation: card.quotation,
+                    imageURL: card.imageURL,
+                    creatorName: card.creatorName,
+                    creatorProfileImageURL: card.creatorProfileImageURL,
+                    isMine: card.isMine,
+                    isBookmarked: card.isBookmarked,
+                    activeReactions: reactions,
+                    reactionCounts: reactionCounts,
+                    createdAt: card.createdAt,
+                    messageCount: card.messageCount
+                )
+            }
+        }
+
+        cards = replacingCard(at: index, reactionActive: optimistic)
+
+        do {
+            let active = try await libraryService.toggleLibraryCardReaction(
+                cardId: cardId,
+                reaction: reaction
+            )
+            guard let currentIndex = cards.firstIndex(where: { $0.id == cardId }) else { return }
+            cards = replacingCard(at: currentIndex, reactionActive: active)
+        } catch {
+            guard let currentIndex = cards.firstIndex(where: { $0.id == cardId }) else { return }
+            cards = replacingCard(
+                at: currentIndex,
+                reactionActive: previous.contains(reaction)
+            )
         }
     }
 }

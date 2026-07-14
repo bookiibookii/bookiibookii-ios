@@ -8,6 +8,7 @@ enum UserAPITarget: APITargetType {
     case updateMypage(MypageUpdateRequest)
     case updateIntroduction(UpdateIntroductionRequest)
     case bookshelf
+    case addRepresentativeBook(AddRepresentativeBookRequest)
     case deleteRepresentativeBook(userBookId: Int)
     case reorderRepresentativeBooks(ReorderRepresentativeRequest)
     case addFavoriteBook(FavoriteBookISBNRequest)
@@ -37,6 +38,8 @@ enum UserAPITarget: APITargetType {
             return API.Path.mypageIntroduction
         case .bookshelf:
             return API.Path.mypageBookshelf
+        case .addRepresentativeBook:
+            return API.Path.mypageBookshelf + "/representatives"
         case .deleteRepresentativeBook(let userBookId):
             return API.Path.mypageBookshelfRepresentative(userBookId: userBookId)
         case .reorderRepresentativeBooks:
@@ -74,7 +77,8 @@ enum UserAPITarget: APITargetType {
         case .updateMypage, .updateIntroduction, .reorderRepresentativeBooks, .replaceFavoriteBook: return .patch
         case .deleteRepresentativeBook, .deleteFavoriteBook: return .delete
         case .updateProfileChangeInfo: return .put
-        case .checkNickname, .presignedURL, .completeOnboarding, .addFavoriteBook, .withdraw: return .post
+        case .checkNickname, .presignedURL, .completeOnboarding, .addRepresentativeBook,
+             .addFavoriteBook, .withdraw: return .post
         }
     }
 
@@ -103,6 +107,8 @@ enum UserAPITarget: APITargetType {
             return try? JSONEncoder().encode(request)
         case .updateIntroduction(let request):
             return try? JSONEncoder().encode(request)
+        case .addRepresentativeBook(let request):
+            return try? JSONEncoder().encode(request)
         case .reorderRepresentativeBooks(let request):
             return try? JSONEncoder().encode(request)
         case .addFavoriteBook(let request), .replaceFavoriteBook(_, let request):
@@ -118,7 +124,9 @@ enum UserAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .presignedURL, .completeOnboarding, .updateMypage, .updateIntroduction, .updateProfileChangeInfo, .reorderRepresentativeBooks, .addFavoriteBook, .replaceFavoriteBook, .withdraw:
+        case .presignedURL, .completeOnboarding, .updateMypage, .updateIntroduction,
+             .updateProfileChangeInfo, .addRepresentativeBook, .reorderRepresentativeBooks,
+             .addFavoriteBook, .replaceFavoriteBook, .withdraw:
             return ["Content-Type": "application/json"]
         default:
             return [:]

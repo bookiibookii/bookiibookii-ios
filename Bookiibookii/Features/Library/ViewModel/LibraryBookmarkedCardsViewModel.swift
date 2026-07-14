@@ -5,7 +5,7 @@ import Foundation
 final class LibraryBookmarkedCardsViewModel: ObservableObject {
     enum SortType {
         case latest
-        case page
+        case oldest
     }
 
     @Published private(set) var cards: [LibraryCard] = []
@@ -24,8 +24,8 @@ final class LibraryBookmarkedCardsViewModel: ObservableObject {
         switch sortType {
         case .latest:
             return cards.sorted { ($0.createdAt ?? "") > ($1.createdAt ?? "") }
-        case .page:
-            return cards.sorted { $0.page < $1.page }
+        case .oldest:
+            return cards.sorted { ($0.createdAt ?? "") < ($1.createdAt ?? "") }
         }
     }
 

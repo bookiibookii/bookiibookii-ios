@@ -1,419 +1,507 @@
 import SwiftUI
 
 struct LibraryCardDetailView: View {
+    private enum ImageLayout {
+        case overlay
+        case split
+    }
+
+    private enum TextTheme {
+        case t1
+        case t2
+    }
+
+    private struct FlyingReaction: Identifiable {
+        let id = UUID()
+        let reaction: LibraryCardReaction
+        let xOffset: CGFloat
+        var yOffset: CGFloat = 0
+        var opacity: Double = 1
+    }
+
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: LibraryCardDetailViewModel
-    @State private var isShareSheetPresented = false
+    @State private var imageLayout: ImageLayout = .overlay
+    @State private var textTheme: TextTheme = .t1
+    @State private var flyingReactions: [FlyingReaction] = []
 
-    /// 독서카드 수정 화면 진입·presigned 업로드용. 목록에서 넘겨 주며 없으면 수정 버튼을 비활성화합니다.
-    private let userBookId: Int?
+    private let showsMoreActions: Bool
 
-    init(cardId: Int, userBookId: Int?, libraryService: LibraryService) {
-        self.userBookId = userBookId
+    init(
+        cardId: Int,
+        userBookId: Int?,
+        showsMoreActions: Bool = true,
+        libraryService: LibraryService
+    ) {
+        self.showsMoreActions = showsMoreActions
         _viewModel = StateObject(
             wrappedValue: LibraryCardDetailViewModel(cardId: cardId, libraryService: libraryService)
         )
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Color("white").ignoresSafeArea()
+        ZStack {
+            Color("uiBg").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 header
-                ScrollView(showsIndicators: false) {
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .padding(.top, 80)
-                            .frame(maxWidth: .infinity)
-                    } else if let detail = viewModel.detail {
-                        detailContent(detail)
-                            .padding(.top, 16)
-                            .padding(.bottom, 140)
-                    }
+
+                if viewModel.isLoading {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let detail = viewModel.detail {
+                    detailContent(detail)
+                } else {
+                    Text("독서카드를 불러오지 못했어요.")
+                        .pretendardText(size: 16)
+                        .foregroundColor(Color("grey600"))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-
-            bottomCommentBar
-                .ignoresSafeArea(edges: .bottom)
         }
         .task { await viewModel.load() }
         .onReceive(NotificationCenter.default.publisher(for: .libraryCardMutationFinished)) { _ in
             Task { await viewModel.load() }
-        }
-        .sheet(isPresented: $viewModel.isCommentSheetPresented) {
-            commentSheet
-                .presentationDetents([.height(336)])
-                .presentationDragIndicator(.visible)
-        }
-        .sheet(isPresented: $isShareSheetPresented) {
-            if let detail = viewModel.detail {
-                LibraryCardShareSheet(
-                    detail: detail,
-                    onClose: { isShareSheetPresented = false }
-                )
-                .presentationDetents([.large])
-                .presentationDragIndicator(.hidden)
-            }
         }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
     }
 
     private var header: some View {
-        HStack {
-            Button {
-                container.navigationRouter.pop()
-            } label: {
-                Image("ic_back")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 24, height: 24)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Color("grey900"))
-                    .frame(width: 40, height: 40)
+        HStack(spacing: 0) {
+            HStack {
+                Button {
+                    container.navigationRouter.pop()
+                } label: {
+                    Image("ic_back")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 24)
+                        .frame(width: 40, height: 40)
+                }
+                .buttonStyle(.plain)
+                Spacer(minLength: 0)
             }
-            .buttonStyle(.plain)
+            .frame(width: 88)
 
-            Spacer()
+            Spacer(minLength: 0)
+
             Text("독서카드")
                 .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
-            Spacer()
 
-            Button {
-                guard viewModel.detail != nil else { return }
-                isShareSheetPresented = true
-            } label: {
-                Image("ic_share")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 24, height: 24)
-                    .frame(width: 40, height: 40)
+            Spacer(minLength: 0)
+
+            HStack(spacing: 8) {
+                if !showsMoreActions {
+                    Color.clear
+                        .frame(width: 40, height: 40)
+                }
+
+                Button(action: {}) {
+                    Image("ic_share")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 32, height: 32)
+                        .frame(width: 40, height: 40)
+                }
+                .buttonStyle(.plain)
+
+                if showsMoreActions {
+                    Button(action: {}) {
+                        Image("ic_meetball")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 32, height: 32)
+                            .frame(width: 40, height: 40)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
-            .buttonStyle(.plain)
-            .disabled(viewModel.detail == nil)
-            .opacity(viewModel.detail == nil ? 0.4 : 1)
+            .frame(width: 88)
         }
         .padding(.horizontal, 16)
         .frame(height: 68)
         .background(Color("white"))
         .overlay(alignment: .bottom) {
-            Rectangle().fill(Color("grey200")).frame(height: 1)
+            Rectangle()
+                .fill(Color("grey200"))
+                .frame(height: 1)
         }
     }
 
     private func detailContent(_ detail: LibraryCardDetail) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            userSection(detail)
-                .padding(.horizontal, 24)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 16) {
+                metadataSection(detail)
 
-            infoRow(detail)
-                .padding(.horizontal, 24)
+                cardWithReactionAnimation(detail)
 
-            cardImage(detail)
-                .padding(.horizontal, 24)
+                if detail.cardType == .image {
+                    imageLayoutButtons
+                } else {
+                    textThemeButtons
+                }
 
-            memoSection(detail)
-                .padding(.horizontal, 24)
-                .padding(.top, 0)
-
-            commentSummaryRow
-                .padding(.horizontal, 24)
-        }
-    }
-
-    private var commentSummaryRow: some View {
-        Button {
-            viewModel.openComments()
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "bubble.left")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(Color("main200"))
-                Text("댓글 \(viewModel.commentCount)개 보기")
-                    .pretendardText(size: 14, weight: .medium)
-                    .foregroundColor(Color("grey900"))
-                Spacer(minLength: 0)
+                reactionButtons(detail)
             }
-            .contentShape(Rectangle())
+            .padding(.bottom, 48)
         }
-        .buttonStyle(.plain)
     }
 
-    private func userSection(_ detail: LibraryCardDetail) -> some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(Color("grey200"))
-                .frame(width: 28, height: 28)
-
-            Text(detail.creatorName)
-                .pretendardText(size: 20, weight: .medium)
-                .foregroundColor(Color("grey900"))
-
-            Spacer()
-
-            Button {
-                // TODO: bookmark toggle
-            } label: {
-                Image("ic_bookmark")
-                    .renderingMode(.template)
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundColor(detail.isBookmarked ? Color("main200") : Color("grey900"))
-                    .frame(width: 14, height: 14)
-                    .frame(width: 32, height: 32)
-                    .background(Color("grey100"))
-                    .overlay(
-                        Circle().stroke(Color("grey200"), lineWidth: 1)
+    private func metadataSection(_ detail: LibraryCardDetail) -> some View {
+        VStack(spacing: 16) {
+            HStack(spacing: 12) {
+                GeometryReader { proxy in
+                    let ratio = min(
+                        max(CGFloat(detail.page) / CGFloat(max(detail.totalPages ?? detail.page, 1)), 0),
+                        1
                     )
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-        }
-    }
 
-    private func infoRow(_ detail: LibraryCardDetail) -> some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .center) {
-                HStack(spacing: 4) {
-                    if let title = detail.bookTitle, !title.isEmpty {
-                        Text(title)
-                            .pretendardText(size: 14, weight: .regular)
-                            .foregroundColor(Color("grey500"))
-                            .lineLimit(1)
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color("grey200"))
+                            .frame(height: 10)
+                        Capsule()
+                            .fill(Color("main200"))
+                            .frame(width: max(10, proxy.size.width * ratio), height: 10)
                     }
+                }
+                .frame(height: 10)
+
+                Text(detail.cardType == .text ? "| 최신순" : "| 페이지순")
+                    .pretendardText(size: 14)
+                    .foregroundColor(Color("grey700"))
+            }
+
+            VStack(spacing: 10) {
+                HStack(spacing: 8) {
+                    CardCreatorProfileImage(urlString: detail.creatorProfileImageURL)
+
+                    Text(detail.creatorName)
+                        .pretendardText(size: 16, weight: .medium)
+                        .foregroundColor(Color("grey800"))
+
+                    Spacer()
+
+                    Button {
+                        Task { await viewModel.toggleBookmark() }
+                    } label: {
+                        Image("ic_bookmark_fill")
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundColor(
+                                detail.isBookmarked ? Color("main200") : Color("grey300")
+                            )
+                            .frame(width: 24, height: 24)
+                            .frame(width: 32, height: 32)
+                            .background(
+                                detail.isBookmarked ? Color("main100") : Color("grey100")
+                            )
+                            .clipShape(Circle())
+                            .overlay {
+                                Circle()
+                                    .stroke(
+                                        detail.isBookmarked ? Color("main200") : Color("grey200"),
+                                        lineWidth: 0.5
+                                    )
+                            }
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                HStack(spacing: 8) {
+                    Text(detail.bookTitle ?? "-")
+                        .pretendardText(size: 16, weight: .semibold)
+                        .foregroundColor(Color("grey800"))
+                        .lineLimit(1)
+
                     Text("p.\(detail.page)")
-                        .pretendardText(size: 14, weight: .regular)
+                        .pretendardText(size: 16)
+                        .foregroundColor(Color("grey700"))
+
+                    Spacer(minLength: 8)
+
+                    Text(formatDate(detail.createdAt))
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey500"))
                 }
-
-                Spacer()
-
-                Text(formatDate(detail.createdAt))
-                    .pretendardText(size: 14, weight: .regular)
-                    .foregroundColor(Color("grey500"))
             }
-            .padding(.bottom, 16)
-
-            Rectangle()
-                .fill(Color("grey100"))
-                .frame(height: 1)
         }
-    }
-
-    private func cardImage(_ detail: LibraryCardDetail) -> some View {
-        Color("grey200")
-            .aspectRatio(1, contentMode: .fit)
-            .overlay(
-                AsyncImage(url: URL(string: detail.imageURL ?? "")) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().scaledToFill()
-                    case .empty, .failure:
-                        EmptyView()
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
-            )
-            .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .overlay(alignment: .topTrailing) {
-                HStack(spacing: 8) {
-                    Button {
-                        // TODO: delete
-                    } label: {
-                        pdfAssetImage("ic_trash", side: 32)
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        guard let uid = userBookId else { return }
-                        container.navigationRouter.push(to: .libraryCardEdit(cardId: detail.cardId, userBookId: uid))
-                    } label: {
-                        pdfAssetImage("ic_edit", side: 32)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(userBookId == nil)
-                    .opacity(userBookId == nil ? 0.35 : 1)
-                }
-                .padding(16)
-            }
-    }
-
-    private func memoSection(_ detail: LibraryCardDetail) -> some View {
-        Text(detail.memo.isEmpty ? "메모가 없어요." : detail.memo)
-            .pretendardText(size: 16, weight: .regular)
-            .foregroundColor(Color("grey900"))
-            .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var bottomCommentBar: some View {
-        Button {
-            viewModel.openComments()
-        } label: {
-            VStack(spacing: 20) {
-                Capsule()
-                    .fill(Color("grey200"))
-                    .frame(width: 44, height: 4)
-
-                HStack(spacing: 8) {
-                    Text("댓글")
-                        .pretendardText(size: 20, weight: .medium)
-                        .foregroundColor(Color("grey900"))
-                    Text("\(viewModel.commentCount)")
-                        .pretendardText(size: 14, weight: .regular)
-                        .foregroundColor(Color("main200"))
-                    Spacer()
-                }
-                .padding(.bottom, 12)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 24)
-            .padding(.bottom, 24)
-            .frame(maxWidth: .infinity)
-            .background(Color("white"))
-            .clipShape(RoundedCorner(radius: 24, corners: [.topLeft, .topRight]))
-            .shadow(color: Color.black.opacity(0.1), radius: 17.5, x: 0, y: 0)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var commentSheet: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Text("댓글")
-                    .pretendardText(size: 20, weight: .medium)
-                    .foregroundColor(Color("grey900"))
-                Text("\(viewModel.commentCount)")
-                    .pretendardText(size: 14, weight: .regular)
-                    .foregroundColor(Color("main200"))
-                Spacer()
-                Button {
-                    Task { await viewModel.reloadComments() }
-                } label: {
-                    pdfAssetImage("ic_reload", side: 28)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
-
-            Rectangle()
-                .fill(Color("grey100"))
-                .frame(height: 1)
-                .padding(.top, 24)
-
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 16) {
-                    if viewModel.comments.isEmpty {
-                        Text("아직 댓글이 없어요.")
-                            .pretendardText(size: 14, weight: .regular)
-                            .foregroundColor(Color("grey500"))
-                            .padding(.top, 40)
-                    } else {
-                        ForEach(viewModel.comments) { comment in
-                            commentRow(comment)
-                        }
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 16)
-            }
-            .frame(minHeight: 0, maxHeight: .infinity)
-
-            Rectangle()
-                .fill(Color("grey100"))
-                .frame(height: 1)
-
-            commentSheetInputBar
-                .padding(.horizontal, 24)
-                .padding(.top, 24)
-                .padding(.bottom, 24)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(16)
         .background(Color("white"))
     }
 
-    private var commentSheetInputBar: some View {
-        let trimmed = viewModel.commentInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        let canSubmit = !trimmed.isEmpty && !viewModel.isSubmittingComment
+    private func cardWithReactionAnimation(_ detail: LibraryCardDetail) -> some View {
+        ZStack {
+            if detail.cardType == .image {
+                imageCard(detail)
+            } else {
+                textCard(detail)
+            }
 
-        return HStack(spacing: 12) {
-            pdfAssetImage("ic_lock", side: 40)
+            GeometryReader { proxy in
+                ForEach(flyingReactions) { item in
+                    Image(item.reaction.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 40, height: 40)
+                        .position(
+                            x: proxy.size.width - 68 + item.xOffset,
+                            y: proxy.size.height - 32
+                        )
+                        .offset(y: item.yOffset)
+                        .opacity(item.opacity)
+                }
+            }
+            .allowsHitTesting(false)
+            .padding(.horizontal, 16)
+        }
+        .frame(height: 464)
+    }
 
-            TextField("텍스트 입력 전", text: $viewModel.commentInput)
-                .pretendardText(size: 15, weight: .regular)
-                .foregroundColor(Color("grey900"))
-                .textInputAutocapitalization(.never)
-                .frame(maxWidth: .infinity)
+    @ViewBuilder
+    private func imageCard(_ detail: LibraryCardDetail) -> some View {
+        switch imageLayout {
+        case .overlay:
+            ZStack(alignment: .topLeading) {
+                CardDetailRemoteImage(urlString: detail.imageURL)
 
+                CardDetailRemoteImage(urlString: detail.imageURL)
+                    .blur(radius: 6)
+                    .mask {
+                        LinearGradient(
+                            colors: [.black, .black.opacity(0.25), .clear],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    }
+
+                LinearGradient(
+                    stops: [
+                        .init(color: .white, location: 0),
+                        .init(color: .white.opacity(0.9), location: 0.16),
+                        .init(color: .clear, location: 0.48)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+                Text(detail.memo)
+                    .pretendardText(size: 16)
+                    .foregroundColor(Color("grey800"))
+                    .lineLimit(5)
+                    .padding(20)
+            }
+            .frame(height: 464)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: Color.black.opacity(0.1), radius: 10)
+            .padding(.horizontal, 16)
+
+        case .split:
+            VStack(spacing: 0) {
+                CardDetailRemoteImage(urlString: detail.imageURL)
+                    .frame(height: 336)
+
+                Text(detail.memo)
+                    .pretendardText(size: 16)
+                    .foregroundColor(Color("grey800"))
+                    .lineLimit(5)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(20)
+                    .background(Color("white"))
+            }
+            .frame(height: 464)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .shadow(color: Color.black.opacity(0.1), radius: 10)
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private var imageLayoutButtons: some View {
+        HStack(spacing: 12) {
             Button {
-                Task { await viewModel.submitComment() }
+                imageLayout = .overlay
             } label: {
-                pdfAssetImage("ic_upload", side: 40)
+                Image("ic_overlay")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .opacity(imageLayout == .overlay ? 1 : 0.45)
             }
             .buttonStyle(.plain)
-            .disabled(!canSubmit)
-            .opacity(canSubmit ? 1 : 0.45)
-        }
-        .padding(4)
-        .background(Color.white)
-        .clipShape(
-            UnevenRoundedRectangle(
-                topLeadingRadius: 20,
-                bottomLeadingRadius: 20,
-                bottomTrailingRadius: 30,
-                topTrailingRadius: 30,
-                style: .continuous
-            )
-        )
-        .overlay(
-            UnevenRoundedRectangle(
-                topLeadingRadius: 20,
-                bottomLeadingRadius: 20,
-                bottomTrailingRadius: 30,
-                topTrailingRadius: 30,
-                style: .continuous
-            )
-            .strokeBorder(Color("grey300"), lineWidth: 0.5)
-        )
-    }
 
-    /// 피그마에서 추출한 PDF 에셋(외곽 원·테두리·색 포함)을 그대로 표시할 때 사용합니다.
-    @ViewBuilder
-    private func pdfAssetImage(_ name: String, side: CGFloat) -> some View {
-        Image(name)
-            .renderingMode(.original)
-            .resizable()
-            .interpolation(.high)
-            .scaledToFit()
-            .frame(width: side, height: side)
-    }
-
-    private func commentRow(_ comment: LibraryCardComment) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Circle()
-                .fill(Color("grey200"))
-                .frame(width: 28, height: 28)
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(comment.writerName)
-                        .pretendardText(size: 13, weight: .medium)
-                        .foregroundColor(Color("grey900"))
-                    Text(formatDate(comment.createdAt))
-                        .pretendardText(size: 11, weight: .regular)
-                        .foregroundColor(Color("grey500"))
-                }
-
-                Text(comment.content)
-                    .pretendardText(size: 14, weight: .regular)
-                    .foregroundColor(Color("grey900"))
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            Button {
+                imageLayout = .split
+            } label: {
+                Image("ic_split")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .opacity(imageLayout == .split ? 1 : 0.45)
             }
-            Spacer()
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func textCard(_ detail: LibraryCardDetail) -> some View {
+        VStack(spacing: 0) {
+            ZStack(alignment: .topLeading) {
+                textGradient
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Image("ic_quote")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundColor(textTheme == .t1 ? Color("main200") : .white)
+                        .frame(width: 28, height: 28)
+
+                    Text(detail.quotation ?? "")
+                        .font(.custom("MaruBuri-Bold", size: 20))
+                        .foregroundColor(textTheme == .t1 ? Color("main200") : .white)
+                        .lineSpacing(8)
+                        .lineLimit(8)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 40)
+            }
+            .frame(height: 336)
+
+            Text(detail.memo)
+                .pretendardText(size: 16)
+                .foregroundColor(Color("grey800"))
+                .lineLimit(5)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding(20)
+                .background(Color("white"))
+        }
+        .frame(height: 464)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: Color.black.opacity(0.1), radius: 10)
+        .padding(.horizontal, 16)
+    }
+
+    private var textGradient: LinearGradient {
+        switch textTheme {
+        case .t1:
+            return LinearGradient(
+                colors: [Color("white"), Color("main100")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        case .t2:
+            return LinearGradient(
+                colors: [
+                    Color(red: 1, green: 0.31, blue: 0.09),
+                    Color("main200"),
+                    Color("main100")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+
+    private var textThemeButtons: some View {
+        HStack(spacing: 12) {
+            Button {
+                textTheme = .t1
+            } label: {
+                Image("ic_t1")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .opacity(textTheme == .t1 ? 1 : 0.45)
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                textTheme = .t2
+            } label: {
+                Image("ic_t2")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .opacity(textTheme == .t2 ? 1 : 0.45)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func reactionButtons(_ detail: LibraryCardDetail) -> some View {
+        HStack(spacing: 16) {
+            ForEach(LibraryCardReaction.allCases) { reaction in
+                reactionButton(
+                    reaction,
+                    active: detail.activeReactions.contains(reaction)
+                )
+            }
+        }
+        .padding(.horizontal, 16)
+    }
+
+    private func reactionButton(
+        _ reaction: LibraryCardReaction,
+        active: Bool
+    ) -> some View {
+        Button {
+            Task {
+                if await viewModel.toggleReaction(reaction) == true {
+                    playReactionAnimation(reaction)
+                }
+            }
+        } label: {
+            VStack(spacing: 8) {
+                Image(reaction.iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 63)
+                    .background(Color("white"))
+                    .clipShape(Capsule())
+                    .overlay {
+                        Capsule()
+                            .stroke(active ? Color("main200") : Color.clear, lineWidth: 2)
+                    }
+
+                Text(reaction.title)
+                    .pretendardText(size: 14, weight: .medium)
+                    .foregroundColor(active ? Color("main200") : Color("grey800"))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+    }
+
+    private func playReactionAnimation(_ reaction: LibraryCardReaction) {
+        let offsets: [CGFloat] = [-40, 0, -40, 0]
+
+        for index in offsets.indices {
+            let item = FlyingReaction(
+                reaction: reaction,
+                xOffset: offsets[index]
+            )
+            flyingReactions.append(item)
+
+            let delay = Double(index) * 0.13
+            DispatchQueue.main.async {
+                withAnimation(.easeOut(duration: 0.9).delay(delay)) {
+                    guard let itemIndex = flyingReactions.firstIndex(where: { $0.id == item.id }) else {
+                        return
+                    }
+                    flyingReactions[itemIndex].yOffset = -CGFloat(105 + index * 55)
+                    flyingReactions[itemIndex].opacity = 0
+                }
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay + 1) {
+                flyingReactions.removeAll { $0.id == item.id }
+            }
         }
     }
 
@@ -422,38 +510,56 @@ struct LibraryCardDetailView: View {
 
         let parser = ISO8601DateFormatter()
         parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = parser.date(from: value) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy. MM. dd."
-            return formatter.string(from: date)
+        let date = parser.date(from: value) ?? {
+            parser.formatOptions = [.withInternetDateTime]
+            return parser.date(from: value)
+        }()
+
+        guard let date else {
+            return String(value.prefix(10)).replacingOccurrences(of: "-", with: ". ") + "."
         }
 
-        parser.formatOptions = [.withInternetDateTime]
-        if let date = parser.date(from: value) {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy. MM. dd."
-            return formatter.string(from: date)
-        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy. MM. dd."
+        return formatter.string(from: date)
+    }
+}
 
-        return value.replacingOccurrences(of: "T", with: " ").prefix(10).description
+private struct CardCreatorProfileImage: View {
+    let urlString: String?
+
+    var body: some View {
+        AsyncImage(url: URL(string: urlString ?? "")) { phase in
+            switch phase {
+            case .success(let image):
+                image.resizable().scaledToFill()
+            default:
+                Color("grey200")
+            }
+        }
+        .frame(width: 32, height: 32)
+        .clipShape(Circle())
+    }
+}
+
+private struct CardDetailRemoteImage: View {
+    let urlString: String?
+
+    var body: some View {
+        AsyncImage(url: URL(string: urlString ?? "")) { phase in
+            switch phase {
+            case .success(let image):
+                image.resizable().scaledToFill()
+            default:
+                Color("grey200")
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
     }
 }
 
 extension Notification.Name {
-    /// 독서카드 생성·수정 후 상세 등에서 목록을 새로고침할 때 사용합니다.
     static let libraryCardMutationFinished = Notification.Name("libraryCardMutationFinished")
-}
-
-private struct RoundedCorner: Shape {
-    var radius: CGFloat
-    var corners: UIRectCorner
-
-    func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
-    }
+    static let libraryCardEngagementChanged = Notification.Name("libraryCardEngagementChanged")
 }
