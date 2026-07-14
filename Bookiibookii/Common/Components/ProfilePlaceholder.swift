@@ -40,12 +40,14 @@ struct ProfilePlaceholder: View {
             Image("ic_profile_placeholder")
                 .resizable()
                 .scaledToFill()
+                .frame(width: size, height: size)
             if let imageUrl, !imageUrl.isEmpty {
                 KFImage(URL(string: imageUrl))
                     .retry(maxCount: 2)
                     .cancelOnDisappear(true)
                     .resizable()
                     .scaledToFill()
+                    .frame(width: size, height: size)
             }
         }
         .frame(width: size, height: size)

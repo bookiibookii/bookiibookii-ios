@@ -1,5 +1,4 @@
 import SwiftUI
-import Kingfisher
 
 // 안드 HomeGroupCard / 카드 매핑 대응 — 탐색 탭 리스트형 그룹 카드.
 
@@ -81,20 +80,6 @@ struct HomeBookCover: View {
     }
 }
 
-struct HomeProfileCircle: View {
-    let imageUrl: String?
-    var size: CGFloat = 20
-
-    var body: some View {
-        KFImage(imageUrl.flatMap(URL.init(string:)))
-            .placeholder { Circle().fill(Color("grey300")) }
-            .resizable()
-            .scaledToFill()
-            .frame(width: size, height: size)
-            .clipShape(Circle())
-    }
-}
-
 struct HomeExchangeBadge: View {
     let text: String
     var body: some View {
@@ -155,7 +140,7 @@ struct HomeGroupCard: View {
                             .pretendardText(size: 14)
                         }
                         HStack(spacing: 4) {
-                            HomeProfileCircle(imageUrl: data.hostProfileImageUrl)
+                            ProfilePlaceholder(imageUrl: data.hostProfileImageUrl, size: 20)
                             Text(data.hostNickname ?? "")
                                 .pretendardText(size: 15)
                                 .foregroundColor(Color("grey700"))

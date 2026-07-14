@@ -14,7 +14,12 @@ struct BookCover: View {
         RoundedRectangle(cornerRadius: 8, style: .continuous)
             .fill(Color("white"))
             .overlay(
-                BookCoverImage(imageUrl: imageUrl, placeholderColor: .clear)
+                // Color.clear가 프레임을 고정 → scaledToFill 오버플로우를 이 컨테이너 경계에서 클립.
+                // (이미지에 직접 clipShape를 걸면 scaledToFill이 부풀린 자기 프레임 기준으로 클립돼 밖으로 넘침)
+                Color.clear
+                    .overlay(
+                        BookCoverImage(imageUrl: imageUrl, placeholderColor: .clear)
+                    )
                     .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                     .padding(1)
             )
