@@ -190,9 +190,8 @@ private struct BookSearchResultRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            BookCoverImage(imageUrl: book.image)
+            BookCover(imageUrl: book.image)
                 .frame(width: 48, height: 60)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(book.title.stripBookSubtitle())

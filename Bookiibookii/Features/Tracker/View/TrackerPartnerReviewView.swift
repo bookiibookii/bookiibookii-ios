@@ -1,5 +1,4 @@
 import SwiftUI
-import Kingfisher
 
 private let partnerCommentMaxLength = 20
 

@@ -76,9 +76,8 @@ struct HomeBookCover: View {
     var height: CGFloat
 
     var body: some View {
-        BookCoverImage(imageUrl: imageUrl)
+        BookCover(imageUrl: imageUrl)
             .frame(width: width, height: height)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 }
 

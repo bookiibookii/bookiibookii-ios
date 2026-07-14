@@ -1,5 +1,4 @@
 import SwiftUI
-import Kingfisher
 
 // 그룹 상세: 책정보 + 교환뱃지 / 소개·규칙 카드 + 점선 구분선 / 참여 멤버 카드
 // 안드 GroupDetailScreen.kt(582-908) 대응
@@ -12,9 +11,8 @@ struct GroupDetailBookInfo: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
-            BookCoverImage(imageUrl: detail.bookImage)
+            BookCover(imageUrl: detail.bookImage)
                 .frame(width: 72, height: 100)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
 
             VStack(alignment: .leading, spacing: 0) {
                 topBlock
@@ -58,14 +56,7 @@ struct GroupDetailBookInfo: View {
                     .foregroundColor(Color("grey700"))
             }
             HStack(spacing: 4) {
-                KFImage(detail.hostProfileImageUrl.flatMap(URL.init(string:)))
-                    .placeholder { Image("ic_profile_placeholder").resizable() }
-                    .retry(maxCount: 2)
-                    .cancelOnDisappear(true)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 20, height: 20)
-                    .clipShape(Circle())
+                ProfilePlaceholder(imageUrl: detail.hostProfileImageUrl, size: 20)
                 Text(detail.hostNickname)
                     .pretendardText(size: 15)
                     .foregroundColor(Color("grey700"))
@@ -260,14 +251,7 @@ private struct ParticipantSlotRow: View {
 
     var body: some View {
         let content = HStack(spacing: 12) {
-            KFImage(slot.profileImageUrl.flatMap(URL.init(string:)))
-                .placeholder { Image("ic_profile_placeholder").resizable() }
-                .retry(maxCount: 2)
-                .cancelOnDisappear(true)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 40, height: 40)
-                .clipShape(Circle())
+            ProfilePlaceholder(imageUrl: slot.profileImageUrl, size: 40)
 
             switch slot.role {
             case "HOST":

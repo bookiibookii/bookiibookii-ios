@@ -1,5 +1,4 @@
 import SwiftUI
-import Kingfisher
 
 struct GroupApplicantView: View {
     @ObservedObject var viewModel: GroupDetailViewModel
@@ -86,14 +85,7 @@ struct GroupApplicantView: View {
                 }
             } label: {
                 HStack(alignment: .center, spacing: 12) {
-                    KFImage(item.profileImageUrl.flatMap(URL.init(string:)))
-                        .placeholder { Color("grey300") }
-                        .retry(maxCount: 2)
-                        .cancelOnDisappear(true)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 48, height: 48)
-                        .clipShape(Circle())
+                    ProfilePlaceholder(imageUrl: item.profileImageUrl, size: 48)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.name ?? "")
                             .pretendardText(size: 15, weight: .medium)
@@ -117,7 +109,7 @@ struct GroupApplicantView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
 
             HStack(alignment: .top, spacing: 12) {
-                BookCoverImage(imageUrl: item.bookImage)
+                BookCover(imageUrl: item.bookImage)
                     .frame(width: 48, height: 60)
                 VStack(alignment: .leading, spacing: 2) {
                     Text((item.bookTitle ?? "").stripBookSubtitle())
