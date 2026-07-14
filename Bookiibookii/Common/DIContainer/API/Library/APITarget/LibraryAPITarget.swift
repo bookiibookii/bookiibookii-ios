@@ -6,40 +6,39 @@ enum LibraryAPITarget: APITargetType {
     case fetchCards(groupId: Int)
     case fetchBookmarkedCards
     case toggleCardBookmark(cardId: Int)
+    case toggleCardReaction(cardId: Int, body: CardReactionToggleRequestBody)
     case fetchCardDetail(cardId: Int)
     case fetchCardComments(cardId: Int)
     case createCardComment(cardId: Int, body: CardCommentCreateRequestBody)
     case cardPresignedPutURL(userBookId: Int)
-    /// 카드 이미지 변경 시 (`CardController` 문서). 신규 카드용은 `cardPresignedPutURL(userBookId:)`.
-    case cardPresignedPutURLForImageUpdate(cardId: Int)
     case createCard(userBookId: Int, body: CardCreateRequestBody)
-    case updateCard(cardId: Int, body: CardCreateRequestBody)
+    case updateCard(cardId: Int, body: CardUpdateRequestBody)
     case postRelayReview(userBookId: Int, body: RelayReviewRequestBody)
 
     var path: String {
         switch self {
         case .fetchBooks:
-            return API.Path.library + "/books"
+            return API.Path.library + "/memberbooks"
         case .searchBooks:
-            return API.Path.library + "/search"
+            return API.Path.library + "/memberbooks/search"
         case .fetchCards(let groupId):
-            return "/api/cards/group/\(groupId)"
+            return "/api/member-books/group/\(groupId)/cards"
         case .fetchBookmarkedCards:
-            return "/api/cards/bookmarks"
+            return "/api/member-books/cards/bookmarks"
         case .toggleCardBookmark(let cardId):
-            return "/api/cards/\(cardId)/bookmark"
+            return "/api/member-books/cards/\(cardId)/bookmark"
+        case .toggleCardReaction(let cardId, _):
+            return "/api/member-books/cards/\(cardId)/reactions"
         case .fetchCardDetail(let cardId):
-            return "/api/cards/detail/\(cardId)"
+            return "/api/member-books/cards/detail/\(cardId)"
         case .fetchCardComments(let cardId), .createCardComment(let cardId, _):
             return "/api/cards/\(cardId)/comments"
         case .cardPresignedPutURL(let userBookId):
-            return "/api/cards/\(userBookId)/presigned-url"
-        case .cardPresignedPutURLForImageUpdate(let cardId):
-            return "/api/cards/\(cardId)/images/presigned-url"
+            return "/api/member-books/\(userBookId)/cards/presigned-url"
         case .createCard(let userBookId, _):
-            return "/api/cards/\(userBookId)"
+            return "/api/member-books/\(userBookId)/cards"
         case .updateCard(let cardId, _):
-            return "/api/cards/\(cardId)"
+            return "/api/member-books/cards/\(cardId)"
         case .postRelayReview(let userBookId, _):
             return API.Path.relayReview(userBookId: userBookId)
         }
@@ -49,9 +48,9 @@ enum LibraryAPITarget: APITargetType {
         switch self {
         case .fetchBooks, .searchBooks, .fetchCards, .fetchBookmarkedCards, .fetchCardDetail, .fetchCardComments:
             return .get
-        case .toggleCardBookmark, .updateCard:
+        case .toggleCardBookmark, .toggleCardReaction, .updateCard:
             return .patch
-        case .createCardComment, .cardPresignedPutURL, .cardPresignedPutURLForImageUpdate, .createCard, .postRelayReview:
+        case .createCardComment, .cardPresignedPutURL, .createCard, .postRelayReview:
             return .post
         }
     }
@@ -67,9 +66,13 @@ enum LibraryAPITarget: APITargetType {
 
     var body: Data? {
         switch self {
-        case .createCard(_, let body), .updateCard(_, let body):
+        case .createCard(_, let body):
+            return try? JSONEncoder().encode(body)
+        case .updateCard(_, let body):
             return try? JSONEncoder().encode(body)
         case .createCardComment(_, let body):
+            return try? JSONEncoder().encode(body)
+        case .toggleCardReaction(_, let body):
             return try? JSONEncoder().encode(body)
         case .postRelayReview(_, let body):
             return try? JSONEncoder().encode(body)
@@ -82,7 +85,7 @@ enum LibraryAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .createCard, .createCardComment, .updateCard, .postRelayReview:
+        case .createCard, .createCardComment, .toggleCardReaction, .updateCard, .postRelayReview:
             return ["Content-Type": "application/json"]
         default:
             return [:]

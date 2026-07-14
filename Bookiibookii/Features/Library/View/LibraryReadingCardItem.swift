@@ -2,87 +2,159 @@ import SwiftUI
 
 struct LibraryReadingCardItem: View {
     let card: LibraryCard
-    let onToggleBookmark: () -> Void
+    var onToggleBookmark: (() -> Void)? = nil
+    var onToggleReaction: ((LibraryCardReaction) -> Void)? = nil
     var onTap: (() -> Void)? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                HStack(spacing: 8) {
-                    Circle().fill(Color("grey300")).frame(width: 16, height: 16)
-                    Text(card.creatorName)
-                        .pretendardText(size: 11, weight: .regular)
-                        .foregroundColor(Color("grey700"))
-                }
-                Spacer()
-                Button(action: onToggleBookmark) {
-                    Image("ic_bookmark")
-                        .renderingMode(.template)
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundColor(card.isBookmarked ? Color("main200") : Color("grey300"))
-                        .frame(width: 11, height: 11)
-                        .frame(width: 20, height: 20)
-                        .background(card.isBookmarked ? Color("main100") : Color("grey100"))
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .disabled(!card.isBookmarkable)
-                .opacity(card.isBookmarkable ? 1 : 0.35)
-            }
+        VStack(spacing: 0) {
+            cardSummary
+                .padding(12)
+                .frame(height: 147, alignment: .top)
 
-            if let title = card.bookTitle, !title.isEmpty {
-                Text(title)
-                    .pretendardText(size: 10, weight: .medium)
-                    .foregroundColor(Color("grey500"))
-                    .lineLimit(1)
-            }
-
-            Text(card.memo)
-                .pretendardText(size: 11, weight: .medium)
-                .foregroundColor(Color("grey800"))
-                .lineLimit(3)
-
-            HStack {
-                HStack(spacing: 2) {
-                    Image(systemName: "bubble.left")
-                        .font(.system(size: 10, weight: .regular))
-                        .foregroundColor(Color("main200"))
-                    Text("\(card.messageCount)")
-                        .pretendardText(size: 10, weight: .regular)
-                        .foregroundColor(Color("grey600"))
-                }
-                Spacer()
-                Text("\(card.page)pg")
-                    .pretendardText(size: 10, weight: .regular)
-                    .foregroundColor(Color("grey400"))
-            }
-
-            Color("grey200")
-                .frame(maxWidth: .infinity)
-                .frame(height: 100)
-                .overlay(
-                    AsyncImage(url: URL(string: card.imageURL ?? "")) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image.resizable().scaledToFill()
-                        case .empty, .failure:
-                            EmptyView()
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                )
-                .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: 5))
+            cardContent
+                .frame(height: 128)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
+        .frame(height: 275)
         .background(Color("white"))
-        .clipShape(RoundedRectangle(cornerRadius: 15))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .contentShape(Rectangle())
         .onTapGesture {
             onTap?()
+        }
+    }
+
+    private var cardSummary: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                profileImage
+
+                Text(card.creatorName)
+                    .pretendardText(size: 14, weight: .medium)
+                    .foregroundColor(Color("grey800"))
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+
+                if card.isBookmarked {
+                    Button {
+                        onToggleBookmark?()
+                    } label: {
+                        Image("ic_bookmark_fill")
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundColor(Color("main200"))
+                            .frame(width: 16, height: 16)
+                            .frame(width: 20, height: 20)
+                            .background(Color("main100"))
+                            .clipShape(Circle())
+                            .overlay {
+                                Circle()
+                                    .stroke(Color("main200"), lineWidth: 0.5)
+                            }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Text(card.memo)
+                .pretendardText(size: 14)
+                .foregroundColor(Color("grey800"))
+                .lineLimit(3)
+                .frame(maxWidth: .infinity, minHeight: 59, alignment: .topLeading)
+
+            HStack {
+                if let reaction = card.displayedReaction {
+                    Button {
+                        onToggleReaction?(reaction)
+                    } label: {
+                        Image(reaction.iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Spacer()
+                Text("p.\(card.page)")
+                    .pretendardText(size: 14)
+                    .foregroundColor(Color("grey400"))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var profileImage: some View {
+        if let urlString = card.creatorProfileImageURL,
+           let url = URL(string: urlString) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image.resizable().scaledToFill()
+                default:
+                    Color("grey300")
+                }
+            }
+            .frame(width: 24, height: 24)
+            .clipShape(Circle())
+        } else {
+            Circle()
+                .fill(Color("grey300"))
+                .frame(width: 24, height: 24)
+        }
+    }
+
+    @ViewBuilder
+    private var cardContent: some View {
+        switch card.cardType {
+        case .image:
+            Color("grey200")
+                .overlay {
+                    if let urlString = card.imageURL,
+                       let url = URL(string: urlString) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image.resizable().scaledToFill()
+                            default:
+                                Color.clear
+                            }
+                        }
+                    }
+                }
+                .clipped()
+
+        case .text:
+            ZStack(alignment: .topLeading) {
+                LinearGradient(
+                    colors: [
+                        Color(red: 1, green: 78 / 255, blue: 24 / 255),
+                        Color("main200"),
+                        Color(red: 1, green: 201 / 255, blue: 164 / 255)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Image("ic_text")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundColor(Color("white"))
+                        .frame(width: 16, height: 16)
+
+                    Text(card.quotation ?? "")
+                        .font(.custom("MaruBuri-Bold", size: 12, relativeTo: .caption))
+                        .foregroundColor(Color("white"))
+                        .lineSpacing(3)
+                        .lineLimit(4)
+                }
+                .padding(8)
+            }
         }
     }
 }
