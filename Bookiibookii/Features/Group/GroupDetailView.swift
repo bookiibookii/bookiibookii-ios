@@ -7,6 +7,7 @@ struct GroupDetailView: View {
     @StateObject private var viewModel: GroupDetailViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var editGroupId: Int? = nil
+    @State private var showAddressManagement = false
     @StateObject private var commentVM: GroupCommentViewModel
     @StateObject private var keyboard = KeyboardObserver()
     @State private var sheetExpanded = false
@@ -100,6 +101,14 @@ struct GroupDetailView: View {
                 groupId: groupId,
                 groupService: container.api.group,
                 locationService: container.api.location
+            )
+            .environmentObject(container)
+        }
+        // 상세는 모달 루트라 router.push가 안 되므로 주소관리도 fullScreenCover로 present.
+        .fullScreenCover(isPresented: $showAddressManagement) {
+            AddressManagementView(
+                locationService: container.api.location,
+                initialTab: viewModel.addressManagementTab
             )
             .environmentObject(container)
         }
@@ -265,7 +274,7 @@ struct GroupDetailView: View {
                     onDismiss: { viewModel.showAddressRequiredDialog = false },
                     onManageAddress: {
                         viewModel.showAddressRequiredDialog = false
-                        viewModel.manageAddress()
+                        showAddressManagement = true
                     }
                 )
                 .padding(.horizontal, 24)

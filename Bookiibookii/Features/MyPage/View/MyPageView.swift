@@ -148,7 +148,7 @@ struct MyPageView: View {
             }
 
             outlineButton("주소지 관리") {
-                container.navigationRouter.push(to: .addressManagement)
+                container.navigationRouter.push(to: .addressManagement(initialTab: .delivery))
             }
 
             Button {

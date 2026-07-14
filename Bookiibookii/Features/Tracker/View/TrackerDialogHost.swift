@@ -72,9 +72,59 @@ struct TrackerDialogHost: ViewModifier {
                 onDismiss: { coordinator.dismiss() },
                 onConfirmClick: { coordinator.confirmReceive(groupId: groupId) }
             )
-        // 직접교환 (PR-C)
-        case .meeting, .meetingInfo, .exchangeConfirm, .exchangeFail:
-            EmptyView()
+        case let .meeting(groupId, step, editMode):
+            switch step {
+            case 1:
+                TrackerDirectMeetingTimeDialog(
+                    onDismiss: { coordinator.dismiss() },
+                    onNextClick: { iso in
+                        coordinator.setMeetingScheduledAt(iso)
+                        coordinator.goMeetingStep(2)
+                    },
+                    initialScheduledAt: editMode ? coordinator.meetingDraft.scheduledAt : nil
+                )
+            case 2:
+                TrackerDirectMeetingPlaceDialog(
+                    address: coordinator.meetingDraft.place?.address ?? "",
+                    addressDetail: coordinator.meetingDraft.addressDetail,
+                    onAddressDetailChange: { coordinator.updateMeetingAddressDetail($0) },
+                    onSelectPlace: { coordinator.setMeetingPlace($0.toMeetingPlace()) },
+                    onLoadMyPlaceClick: { coordinator.loadMyExchangePlace() },
+                    onDismiss: { coordinator.dismiss() },
+                    onPreviousClick: { coordinator.goMeetingStep(1) },
+                    onNextClick: { coordinator.goMeetingStep(3) }
+                )
+            default:
+                TrackerDirectMeetingConfirmDialog(
+                    scheduledAt: coordinator.meetingDraft.scheduledAt ?? "",
+                    address: coordinator.meetingDraft.place?.address ?? "",
+                    addressDetail: coordinator.meetingDraft.addressDetail,
+                    onDismiss: { coordinator.dismiss() },
+                    onConfirmClick: { coordinator.submitMeeting(groupId: groupId, editMode: editMode) }
+                )
+            }
+        case let .meetingInfo(groupId):
+            TrackerDirectMeetingInfoDialog(
+                scheduledAt: coordinator.meetingInfo?.meetingAt ?? "",
+                address: coordinator.meetingInfo?.location?.address ?? "",
+                addressDetail: coordinator.meetingInfo?.addressDetail ?? "",
+                isHost: cardFor(groupId)?.isHost ?? false,
+                onDismiss: { coordinator.dismiss() },
+                onConfirmClick: { coordinator.dismiss() },
+                onEditClick: { coordinator.openMeetingEdit(groupId: groupId) }
+            )
+        case let .exchangeConfirm(groupId):
+            TrackerDirectExchangeConfirmDialog(
+                onDismiss: { coordinator.dismiss() },
+                onNotYetClick: { coordinator.openExchangeFail(groupId: groupId) },
+                onConfirmClick: { coordinator.completeMeeting(groupId: groupId) }
+            )
+        case .exchangeFail:
+            TrackerDirectExchangeFailDialog(
+                onDismiss: { coordinator.dismiss() },
+                onReportClick: { toastMessage = "신고 기능은 준비 중이에요." },
+                onGoToCommentsClick: { coordinator.dismiss() }
+            )
         }
     }
 }

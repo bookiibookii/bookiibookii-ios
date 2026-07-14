@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct AddressManagementView: View {
-    @EnvironmentObject private var container: DIContainer
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: AddressManagementViewModel
 
-    init(locationService: LocationService) {
-        _viewModel = StateObject(wrappedValue: AddressManagementViewModel(locationService: locationService))
+    init(locationService: LocationService, initialTab: AddressManagementTab = .delivery) {
+        _viewModel = StateObject(wrappedValue: AddressManagementViewModel(locationService: locationService, initialTab: initialTab))
     }
 
     var body: some View {
@@ -76,7 +76,7 @@ struct AddressManagementView: View {
 
     private var header: some View {
         HStack {
-            Button { container.navigationRouter.pop() } label: {
+            Button { dismiss() } label: {
                 Image("ic_back")
                     .resizable()
                     .scaledToFit()
