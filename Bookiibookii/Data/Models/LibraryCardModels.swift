@@ -96,28 +96,30 @@ enum LibraryCardReaction: String, Codable, CaseIterable, Hashable, Identifiable 
 }
 
 struct CardCreateRequestBody: Encodable {
-    let s3Key: String
+    let cardType: String
+    let quotation: String?
+    let s3Key: String?
     let page: Int
     let memo: String?
+}
 
-    func encode(to encoder: Encoder) throws {
-        var c = encoder.container(keyedBy: CodingKeys.self)
-        try c.encode(s3Key, forKey: .s3Key)
-        try c.encode(page, forKey: .page)
-        try c.encodeIfPresent(memo, forKey: .memo)
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case s3Key, page, memo
-    }
+struct CardUpdateRequestBody: Encodable {
+    let s3Key: String?
+    let page: Int?
+    let memo: String?
+    let quotation: String?
 }
 
 struct CardCreateResponseDTO: Decodable {
     let cardId: Int?
+    let cardType: String?
     let page: Int?
     let memo: String?
+    let quotation: String?
     let cardImage: CardImageResponseDTO?
     let createdAt: String?
+    let creatorName: String?
+    let creatorProfileImageUrl: String?
 }
 
 struct CardCommentCreateRequestBody: Encodable {
@@ -179,7 +181,7 @@ struct LibraryCard: Equatable, Identifiable {
     let messageCount: Int
 }
 
-enum LibraryCardType: Equatable {
+enum LibraryCardType: Equatable, Hashable {
     case image
     case text
 

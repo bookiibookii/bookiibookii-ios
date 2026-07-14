@@ -153,15 +153,9 @@ final class LibraryService {
         }
     }
 
-    /// POST `/api/cards/{userBookId}/presigned-url` — 신규 카드 등록 전 이미지 업로드. 응답의 `presignedPutUrl`로 PUT (Authorization 없음).
+    /// POST `/api/member-books/{userBookId}/cards/presigned-url` — 카드 이미지 업로드 URL 발급.
     func requestCardImagePresignedURL(userBookId: Int) async throws -> PresignedUrlResult {
         let request = LibraryAPITarget.cardPresignedPutURL(userBookId: userBookId).asURLRequest()
-        return try await decodePresignedUrlResponse(await interceptor.request(request))
-    }
-
-    /// POST `/api/cards/{cardId}/images/presigned-url` — 기존 카드 이미지 교체 시 (카드 소유자만).
-    func requestCardImagePresignedURLForUpdate(cardId: Int) async throws -> PresignedUrlResult {
-        let request = LibraryAPITarget.cardPresignedPutURLForImageUpdate(cardId: cardId).asURLRequest()
         return try await decodePresignedUrlResponse(await interceptor.request(request))
     }
 
@@ -197,8 +191,21 @@ final class LibraryService {
         }
     }
 
-    func createLibraryCard(userBookId: Int, s3Key: String, page: Int, memo: String?) async throws -> CardCreateResponseDTO {
-        let body = CardCreateRequestBody(s3Key: s3Key, page: page, memo: memo)
+    func createLibraryCard(
+        userBookId: Int,
+        cardType: LibraryCardType,
+        s3Key: String?,
+        quotation: String?,
+        page: Int,
+        memo: String?
+    ) async throws -> CardCreateResponseDTO {
+        let body = CardCreateRequestBody(
+            cardType: cardType == .image ? "IMAGE" : "TEXT",
+            quotation: quotation,
+            s3Key: s3Key,
+            page: page,
+            memo: memo
+        )
         let request = LibraryAPITarget.createCard(userBookId: userBookId, body: body).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
@@ -214,9 +221,9 @@ final class LibraryService {
         return result
     }
 
-    /// PATCH `/api/cards/{cardId}` — 본문은 생성과 동일(`s3Key`, `page`, `memo`). 서버 스펙이 다르면 경로·메서드를 맞춰 주세요.
+    /// PATCH `/api/member-books/cards/{cardId}` — 전달한 필드만 수정.
     func updateLibraryCard(cardId: Int, s3Key: String, page: Int, memo: String?) async throws {
-        let body = CardCreateRequestBody(s3Key: s3Key, page: page, memo: memo)
+        let body = CardUpdateRequestBody(s3Key: s3Key, page: page, memo: memo, quotation: nil)
         let request = LibraryAPITarget.updateCard(cardId: cardId, body: body).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {

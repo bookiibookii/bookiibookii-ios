@@ -279,12 +279,12 @@ struct LibraryCardListView: View {
             if isAddMenuExpanded {
                 addMenuButton(title: "이미지 카드 추가", icon: "ic_image") {
                     isAddMenuExpanded = false
-                    navigateToImageCardAdd()
+                    navigateToCardAdd(type: .image)
                 }
 
                 addMenuButton(title: "인용구 카드 추가", icon: "ic_text") {
                     isAddMenuExpanded = false
-                    viewModel.toastMessage = "인용구 카드 추가 화면은 준비 중입니다."
+                    navigateToCardAdd(type: .text)
                 }
             }
 
@@ -447,12 +447,18 @@ struct LibraryCardListView: View {
         .buttonStyle(.plain)
     }
 
-    private func navigateToImageCardAdd() {
+    private func navigateToCardAdd(type: LibraryCardType) {
         guard let memberBookId = book.userBookId else {
             viewModel.toastMessage = "독서카드를 추가할 수 없습니다."
             return
         }
-        container.navigationRouter.push(to: .libraryCardAdd(userBookId: memberBookId))
+        container.navigationRouter.push(
+            to: .libraryCardAdd(
+                userBookId: memberBookId,
+                cardType: type,
+                bookTitle: book.title
+            )
+        )
     }
 
     private func dismissBookActions(with message: String) {
