@@ -102,9 +102,8 @@ private struct TrackerProfileColumn: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             VStack(spacing: 8) {
-                BookCoverImage(imageUrl: profile.bookCoverUrl)
+                BookCover(imageUrl: profile.bookCoverUrl)
                     .frame(width: 100, height: 132)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
 
                 VStack(spacing: 16) {
                     VStack(spacing: 4) {
@@ -131,9 +130,7 @@ private struct TrackerProfileColumn: View {
             .frame(maxWidth: .infinity)
             .padding(.top, 12)
 
-            // 아직 iOS 공용 컴포넌트가 없어 이 파일 내부 private 뷰로만 구현.
-            TrackerProfileAvatar(imageUrl: profile.profileImageUrl, innerStroke: true)
-                .frame(width: 44, height: 44)
+            ProfilePlaceholder(imageUrl: profile.profileImageUrl, size: 44, innerStroke: true)
                 .offset(x: 17, y: 0)
         }
     }
@@ -154,28 +151,6 @@ private struct TrackerProgressBar: View {
         }
         .frame(height: 6)
         .clipShape(RoundedRectangle(cornerRadius: 4))
-    }
-}
-
-// squircle은 continuous corner RoundedRectangle로 근사.
-private struct TrackerProfileAvatar: View {
-    let imageUrl: String?
-    var innerStroke: Bool = false
-
-    var body: some View {
-        KFImage(imageUrl.flatMap { $0.isEmpty ? nil : URL(string: $0) })
-            .placeholder { Image("ic_profile_placeholder").resizable() }
-            .resizable()
-            .scaledToFill()
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .overlay(
-                Group {
-                    if innerStroke {
-                        RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .stroke(Color("grey100"), lineWidth: 1)
-                    }
-                }
-            )
     }
 }
 

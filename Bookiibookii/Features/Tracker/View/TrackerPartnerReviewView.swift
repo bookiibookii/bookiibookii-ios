@@ -107,9 +107,8 @@ struct TrackerPartnerReviewView: View {
                 VStack {
                     Spacer(minLength: 0)
                     ZStack(alignment: .bottomTrailing) {
-                        BookCoverImage(imageUrl: coverUrl)
+                        BookCover(imageUrl: coverUrl)
                             .frame(width: 100, height: 132)
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
                         if isMyBook {
                             Text("내 책")
                                 .pretendardText(size: 10, weight: .regular)
@@ -125,7 +124,7 @@ struct TrackerPartnerReviewView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 144)
                 // 파트너 프로필 오버레이 (좌상단)
-                ReviewProfileAvatar(imageUrl: profileUrl, size: 44, innerStroke: true)
+                ProfilePlaceholder(imageUrl: profileUrl, size: 44, innerStroke: true)
                     .padding(.leading, 17)
             }
             .frame(maxWidth: .infinity)
@@ -149,7 +148,7 @@ struct TrackerPartnerReviewView: View {
     private var reviewCard: some View {
         VStack(spacing: 16) {
             HStack(spacing: 4) {
-                ReviewProfileAvatar(imageUrl: s.partnerProfileImageUrl, size: 20)
+                ProfilePlaceholder(imageUrl: s.partnerProfileImageUrl, size: 20)
                 (
                     Text(s.partnerNickname).foregroundColor(Color("main200"))
                     + Text("님과의 교환독서는 어떠셨나요?").foregroundColor(Color("grey900"))
@@ -220,28 +219,6 @@ struct TrackerPartnerReviewView: View {
             .clipShape(RoundedRectangle(cornerRadius: 20))
         }
         .buttonStyle(.plain)
-    }
-}
-
-// 임시 빈 프로필 아바타 — 안드 ProfilePlaceholder 대응 공통 컴포넌트는 후속 작업에서 통일.
-private struct ReviewProfileAvatar: View {
-    let imageUrl: String?
-    let size: CGFloat
-    var innerStroke: Bool = false
-
-    var body: some View {
-        KFImage(imageUrl.flatMap { $0.isEmpty ? nil : URL(string: $0) })
-            .placeholder { Color("grey200") }
-            .resizable()
-            .scaledToFill()
-            .frame(width: size, height: size)
-            .clipShape(RoundedRectangle(cornerRadius: size / 2, style: .continuous))
-            .overlay {
-                if innerStroke {
-                    RoundedRectangle(cornerRadius: size / 2, style: .continuous)
-                        .stroke(Color("grey100"), lineWidth: 1)
-                }
-            }
     }
 }
 
