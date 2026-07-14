@@ -125,7 +125,24 @@ struct TrackerDialogHost: ViewModifier {
                 onReportClick: { toastMessage = "신고 기능은 준비 중이에요." },
                 onGoToCommentsClick: { coordinator.dismiss() }
             )
+        case let .readingPeriod(groupId, originalEndDate):
+            TrackerReadingPeriodEditDialog(
+                originalEndDate: originalEndDate,
+                onConfirm: { newDate in
+                    coordinator.updateReadingPeriod(groupId: groupId, newEndDate: Self.isoDate(newDate))
+                },
+                onDismiss: { coordinator.dismiss() }
+            )
         }
+    }
+}
+
+extension TrackerDialogHost {
+    static func isoDate(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f.string(from: date)
     }
 }
 

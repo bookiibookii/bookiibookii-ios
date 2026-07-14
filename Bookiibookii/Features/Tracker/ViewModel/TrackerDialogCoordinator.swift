@@ -78,6 +78,9 @@ final class TrackerDialogCoordinator: ObservableObject {
     }
     func openExchangeConfirm(groupId: Int) { route = .exchangeConfirm(groupId: groupId) }
     func openExchangeFail(groupId: Int) { route = .exchangeFail(groupId: groupId) }
+    func openReadingPeriod(groupId: Int, originalEndDate: Date?) {
+        route = .readingPeriod(groupId: groupId, originalEndDate: originalEndDate)
+    }
 
     // MARK: - 열기 인텐트 (로드 후 route)
     func openDeliveryInfo(groupId: Int) {
@@ -134,6 +137,10 @@ final class TrackerDialogCoordinator: ObservableObject {
         Task {
             do { _ = try await trackerService.completeMeeting(groupId: groupId); dismiss(); await onChanged() } catch {}
         }
+    }
+
+    func updateReadingPeriod(groupId: Int, newEndDate: String) {
+        Task { do { _ = try await trackerService.updateReadingPeriod(groupId: groupId, newEndDate: newEndDate); dismiss(); await onChanged() } catch {} }
     }
 
     func dismiss() {

@@ -14,4 +14,6 @@ enum TrackerDialogRoute: Equatable {
     case meetingInfo(groupId: Int)
     case exchangeConfirm(groupId: Int)
     case exchangeFail(groupId: Int)
+    // 예상 독서 기간 수정(더보기 > 독서 기간 수정, 호스트 전용)
+    case readingPeriod(groupId: Int, originalEndDate: Date?)
 }
