@@ -32,4 +32,6 @@ enum NavigationDestination: Hashable {
     case userReviews(nickname: String, initialTab: MyReviewTab)
     case userBookShelf(nickname: String)
     case notification
+    case trackerBookReview(groupId: Int, isEdit: Bool)
+    case trackerPartnerReview(groupId: Int)
 }

@@ -189,6 +189,23 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .trackerBookReview(let groupId, let isEdit):
+            TrackerBookReviewView(
+                groupId: groupId,
+                isEdit: isEdit,
+                trackerService: container.api.tracker
+            )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .trackerPartnerReview(let groupId):
+            TrackerPartnerReviewView(
+                groupId: groupId,
+                trackerService: container.api.tracker
+            )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         }
     }
 }
