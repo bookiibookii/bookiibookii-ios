@@ -25,7 +25,15 @@ struct LibraryCardDetailView: View {
     @State private var textTheme: TextTheme = .t1
     @State private var flyingReactions: [FlyingReaction] = []
 
-    init(cardId: Int, userBookId: Int?, libraryService: LibraryService) {
+    private let showsMoreActions: Bool
+
+    init(
+        cardId: Int,
+        userBookId: Int?,
+        showsMoreActions: Bool = true,
+        libraryService: LibraryService
+    ) {
+        self.showsMoreActions = showsMoreActions
         _viewModel = StateObject(
             wrappedValue: LibraryCardDetailViewModel(cardId: cardId, libraryService: libraryService)
         )
@@ -85,6 +93,11 @@ struct LibraryCardDetailView: View {
             Spacer(minLength: 0)
 
             HStack(spacing: 8) {
+                if !showsMoreActions {
+                    Color.clear
+                        .frame(width: 40, height: 40)
+                }
+
                 Button(action: {}) {
                     Image("ic_share")
                         .resizable()
@@ -94,14 +107,16 @@ struct LibraryCardDetailView: View {
                 }
                 .buttonStyle(.plain)
 
-                Button(action: {}) {
-                    Image("ic_meetball")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 32, height: 32)
-                        .frame(width: 40, height: 40)
+                if showsMoreActions {
+                    Button(action: {}) {
+                        Image("ic_meetball")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 32, height: 32)
+                            .frame(width: 40, height: 40)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .frame(width: 88)
         }

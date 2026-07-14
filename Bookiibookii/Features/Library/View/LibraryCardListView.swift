@@ -294,8 +294,10 @@ struct LibraryCardListView: View {
                 }
             } label: {
                 Image(isAddMenuExpanded ? "ic_x" : "ic_plus")
+                    .renderingMode(.template)
                     .resizable()
                     .scaledToFit()
+                    .foregroundColor(Color("white"))
                     .frame(width: 28, height: 28)
                     .frame(width: 56, height: 56)
                     .background(Color("grey900"))
@@ -397,8 +399,10 @@ struct LibraryCardListView: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Image(icon)
+                    .renderingMode(.template)
                     .resizable()
                     .scaledToFit()
+                    .foregroundColor(Color("white"))
                     .frame(width: 24, height: 24)
                 Text(title)
                     .pretendardText(size: 14, weight: .medium)

@@ -47,10 +47,9 @@ struct LibraryView: View {
             Button {
                 container.navigationRouter.push(to: .libraryBookmarkedCards)
             } label: {
-                Image("ic_bookmark")
+                Image("ic_bookmark_empty")
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 32, height: 32)
                     .frame(width: 40, height: 40)
                     .contentShape(Rectangle())
             }
