@@ -98,14 +98,7 @@ struct CommentItemRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Button(action: onProfileTap) {
-                KFImage(comment.writer.profileImage.flatMap(URL.init(string:)))
-                    .placeholder { Color("grey300") }
-                    .retry(maxCount: 2)
-                    .cancelOnDisappear(true)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: profileSize, height: profileSize)
-                    .clipShape(Circle())
+                ProfilePlaceholder(imageUrl: comment.writer.profileImage, size: profileSize)
             }
             .buttonStyle(.plain)
 

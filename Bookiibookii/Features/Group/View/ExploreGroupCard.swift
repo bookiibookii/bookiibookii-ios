@@ -75,14 +75,7 @@ struct ExploreGroupCard: View {
                     .foregroundColor(Color("grey700"))
             }
             HStack(spacing: 4) {
-                KFImage(item.hostProfileImageUrl.flatMap(URL.init(string:)))
-                    .placeholder { Image("ic_profile_placeholder").resizable() }
-                    .retry(maxCount: 2)
-                    .cancelOnDisappear(true)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 20, height: 20)
-                    .clipShape(Circle())
+                ProfilePlaceholder(imageUrl: item.hostProfileImageUrl, size: 20)
                 Text(item.displayNickname)
                     .pretendardText(size: 15)
                     .foregroundColor(Color("grey700"))

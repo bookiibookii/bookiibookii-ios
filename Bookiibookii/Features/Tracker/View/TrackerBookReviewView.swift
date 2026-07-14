@@ -79,9 +79,8 @@ struct TrackerBookReviewView: View {
 
     private var card: some View {
         VStack(spacing: 16) {
-            BookCoverImage(imageUrl: viewModel.state.bookImageUrl)
+            BookCover(imageUrl: viewModel.state.bookImageUrl)
                 .frame(width: 122, height: 180)
-                .clipShape(RoundedRectangle(cornerRadius: 4))
 
             (
                 Text(viewModel.state.bookTitle).foregroundColor(Color("main200"))

@@ -1,5 +1,4 @@
 import SwiftUI
-import Kingfisher
 
 // 안드 homeRecommendContent + HomeRecommendGroupCard + HomeRecommendBookSections 대응.
 
@@ -160,7 +159,7 @@ private struct HomeRecommendGroupCard: View {
                                 .pretendardText(size: 14)
                             }
                             HStack(spacing: 4) {
-                                HomeProfileCircle(imageUrl: data.hostProfileImageUrl)
+                                ProfilePlaceholder(imageUrl: data.hostProfileImageUrl, size: 20)
                                 Text(data.hostNickname ?? "")
                                     .pretendardText(size: 15)
                                     .foregroundColor(Color("grey700"))
@@ -224,13 +223,8 @@ private struct HomeBookThumbnail: View {
 private struct KFImageCover: View {
     let imageUrl: String?
     var body: some View {
-        Rectangle()
-            .fill(Color("grey200"))
+        BookCover(imageUrl: imageUrl)
             .aspectRatio(120.0 / 168.0, contentMode: .fit)
-            .overlay(
-                BookCoverImage(imageUrl: imageUrl)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 }
 
