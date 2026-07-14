@@ -174,7 +174,11 @@ struct LibraryView: View {
 
                     LazyVGrid(
                         columns: Array(
-                            repeating: GridItem(.flexible(), spacing: 12, alignment: .top),
+                            repeating: GridItem(
+                                .flexible(minimum: 0, maximum: .infinity),
+                                spacing: 8,
+                                alignment: .top
+                            ),
                             count: 3
                         ),
                         alignment: .leading,
@@ -231,7 +235,14 @@ struct LibraryView: View {
     private func bookCollection(_ books: [LibraryBook]) -> some View {
         if viewModel.layoutStyle == .album {
             LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), spacing: 8, alignment: .top), count: 3),
+                columns: Array(
+                    repeating: GridItem(
+                        .flexible(minimum: 0, maximum: .infinity),
+                        spacing: 8,
+                        alignment: .top
+                    ),
+                    count: 3
+                ),
                 alignment: .leading,
                 spacing: 24
             ) {
@@ -310,11 +321,18 @@ private struct LibraryAlbumBookItem: View {
     var body: some View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 8) {
-                BookCoverImage(imageUrl: book.coverImageURL)
-                    .aspectRatio(119 / 160, contentMode: .fit)
-                    .frame(maxWidth: .infinity)
-                    .background(Color("grey200"))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                GeometryReader { proxy in
+                    BookCoverImage(imageUrl: book.coverImageURL)
+                        .frame(
+                            width: proxy.size.width,
+                            height: proxy.size.height
+                        )
+                        .clipped()
+                }
+                .aspectRatio(119 / 160, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .background(Color("grey200"))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(book.groupName)

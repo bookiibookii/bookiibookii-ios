@@ -281,6 +281,7 @@ final class LibraryCardListViewModel: ObservableObject {
                     isMine: card.isMine,
                     isBookmarked: bookmarked,
                     activeReactions: card.activeReactions,
+                    reactionCounts: card.reactionCounts,
                     createdAt: card.createdAt,
                     messageCount: card.messageCount
                 )
@@ -311,10 +312,18 @@ final class LibraryCardListViewModel: ObservableObject {
             cards.enumerated().map { index, card in
                 guard index == targetIndex else { return card }
                 var reactions = card.activeReactions
+                let wasActive = reactions.contains(reaction)
                 if reactionActive {
                     reactions.insert(reaction)
                 } else {
                     reactions.remove(reaction)
+                }
+                var reactionCounts = card.reactionCounts
+                let currentCount = reactionCounts[reaction] ?? 0
+                if wasActive != reactionActive {
+                    reactionCounts[reaction] = reactionActive
+                        ? currentCount + 1
+                        : max(0, currentCount - 1)
                 }
                 return LibraryCard(
                     id: card.id,
@@ -331,6 +340,7 @@ final class LibraryCardListViewModel: ObservableObject {
                     isMine: card.isMine,
                     isBookmarked: card.isBookmarked,
                     activeReactions: reactions,
+                    reactionCounts: reactionCounts,
                     createdAt: card.createdAt,
                     messageCount: card.messageCount
                 )

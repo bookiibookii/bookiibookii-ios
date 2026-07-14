@@ -177,8 +177,25 @@ struct LibraryCard: Equatable, Identifiable {
     let isMine: Bool
     let isBookmarked: Bool
     let activeReactions: Set<LibraryCardReaction>
+    let reactionCounts: [LibraryCardReaction: Int]
     let createdAt: String?
     let messageCount: Int
+}
+
+extension LibraryCard {
+    var displayedReaction: LibraryCardReaction? {
+        if let myReaction = LibraryCardReaction.allCases.first(
+            where: { activeReactions.contains($0) }
+        ) {
+            return myReaction
+        }
+
+        return LibraryCardReaction.allCases
+            .filter { (reactionCounts[$0] ?? 0) > 0 }
+            .max {
+                (reactionCounts[$0] ?? 0) < (reactionCounts[$1] ?? 0)
+            }
+    }
 }
 
 enum LibraryCardType: Equatable, Hashable {
@@ -305,6 +322,17 @@ extension GroupCardResponseDTO {
             isBookmarked: isBookmarked ?? false,
             activeReactions: Set(
                 (myReactions ?? []).compactMap(LibraryCardReaction.init(rawValue:))
+            ),
+            reactionCounts: Dictionary(
+                uniqueKeysWithValues: (reactionCounts ?? []).compactMap { item in
+                    guard let rawValue = item.reaction,
+                          let reaction = LibraryCardReaction(rawValue: rawValue),
+                          let count = item.count,
+                          count > 0 else {
+                        return nil
+                    }
+                    return (reaction, count)
+                }
             ),
             createdAt: createdAt,
             messageCount: 0

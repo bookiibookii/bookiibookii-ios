@@ -243,11 +243,11 @@ struct LibraryCardListView: View {
                     onToggleBookmark: {
                         Task { await viewModel.toggleBookmark(cardId: card.id) }
                     },
-                    onToggleEmpathy: {
+                    onToggleReaction: { reaction in
                         Task {
                             await viewModel.toggleReaction(
                                 cardId: card.id,
-                                reaction: .empathy
+                                reaction: reaction
                             )
                         }
                     },
