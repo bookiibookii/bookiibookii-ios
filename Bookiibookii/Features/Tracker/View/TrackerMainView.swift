@@ -8,6 +8,7 @@ struct TrackerMainScreen: View {
     let onCardClick: (Int) -> Void
     let onPrimaryAction: (Int) -> Void
     let onSecondaryAction: (Int) -> Void
+    let onRefresh: () async -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -56,6 +57,7 @@ struct TrackerMainScreen: View {
                     .padding(.top, 12)
                 }
             }
+            .refreshable { await onRefresh() }
         }
         .background(Color("uiBg"))
     }
@@ -104,7 +106,8 @@ struct TrackerMainRoute: View {
                     coordinator: viewModel.coordinator,
                     nav: TrackerNavActions()
                 )
-            }
+            },
+            onRefresh: { await viewModel.onAppear() }
         )
         .task { await viewModel.onAppear() }
         .trackerDialogHost(viewModel.coordinator, cardFor: { id in viewModel.state.cards.first { $0.groupId == id } })

@@ -50,6 +50,7 @@ struct HomeView: View {
                     }
                 }
             }
+            .refreshable { await viewModel.refreshCurrentTab() }
         }
         .background(Color("grey100"))
         .task { await viewModel.onAppear() }
