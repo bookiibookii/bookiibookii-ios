@@ -113,6 +113,9 @@ final class TrackerDialogCoordinator: ObservableObject {
     func changeDeliveryAddressSaved(groupId: Int, userDeliveryId: Int) {
         Task { do { _ = try await trackerService.updateDeliveryAddressSaved(groupId: groupId, userDeliveryId: userDeliveryId); dismiss(); await onChanged() } catch {} }
     }
+    func changeDeliveryAddressDirect(groupId: Int, zipCode: String, address: String, addressDetail: String) {
+        Task { do { _ = try await trackerService.updateDeliveryAddressDirect(groupId: groupId, body: .init(zipCode: zipCode, address: address, addressDetail: addressDetail)); dismiss(); await onChanged() } catch {} }
+    }
     func confirmReceive(groupId: Int) {
         Task { do { try await trackerService.confirmPartnerReceive(groupId: groupId); dismiss(); await onChanged() } catch {} }
     }

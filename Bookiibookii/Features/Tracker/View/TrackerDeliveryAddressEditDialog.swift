@@ -1,39 +1,67 @@
 import SwiftUI
 
-// 택배 배송 정보 수정 다이얼로그 (택배 교환 전용) — 저장된 "나의 배송지" 중 선택.
+// 택배 배송 정보 수정 다이얼로그 (택배 교환 전용)
+// - 나의 배송지 선택 → 기존 배송지 선택 API
+// - 직접 입력(주소 검색) → 직접 입력 API
 // 카드 컨텐츠만 담당 — 스크림/오버레이는 호스트 담당.
 struct TrackerDeliveryAddressEditDialog: View {
     let savedAddresses: [DeliveryAddressOption]
     let initialSelectedUserDeliveryId: Int?
     let onDismiss: () -> Void
     let onConfirmSaved: (_ userDeliveryId: Int) -> Void
+    let onConfirmDirect: (_ zipCode: String, _ address: String, _ addressDetail: String) -> Void
 
     @State private var selectedUserDeliveryId: Int?
+    @State private var isDirectMode = false
+    @State private var directAddress = ""
+    @State private var directZipCode = ""
+    @State private var directDetail = ""
+    @State private var showAddressSearch = false
 
     init(
         savedAddresses: [DeliveryAddressOption],
         initialSelectedUserDeliveryId: Int?,
         onDismiss: @escaping () -> Void,
-        onConfirmSaved: @escaping (_ userDeliveryId: Int) -> Void
+        onConfirmSaved: @escaping (_ userDeliveryId: Int) -> Void,
+        onConfirmDirect: @escaping (_ zipCode: String, _ address: String, _ addressDetail: String) -> Void
     ) {
         self.savedAddresses = savedAddresses
         self.initialSelectedUserDeliveryId = initialSelectedUserDeliveryId
         self.onDismiss = onDismiss
         self.onConfirmSaved = onConfirmSaved
+        self.onConfirmDirect = onConfirmDirect
         _selectedUserDeliveryId = State(initialValue: initialSelectedUserDeliveryId)
     }
 
-    private var canConfirm: Bool { selectedUserDeliveryId != nil }
+    private var canConfirm: Bool {
+        isDirectMode ? !directAddress.isEmpty : selectedUserDeliveryId != nil
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             header
-            savedAddressSection
+            if !savedAddresses.isEmpty {
+                savedAddressSection
+            }
+            directInputSection
             buttonRow
         }
         .padding(20)
         .background(Color("white"))
         .clipShape(RoundedRectangle(cornerRadius: 24))
+        .fullScreenCover(isPresented: $showAddressSearch) {
+            AddressSearchOverlay(
+                title: "주소 검색",
+                onClose: { showAddressSearch = false },
+                onSelect: { result in
+                    directAddress = result.roadAddress
+                    directZipCode = result.zonecode
+                    isDirectMode = true
+                    selectedUserDeliveryId = nil
+                }
+            )
+            .presentationBackground(.clear)
+        }
     }
 
     // MARK: - 헤더
@@ -65,26 +93,50 @@ struct TrackerDeliveryAddressEditDialog: View {
                 .pretendardText(size: 16)
                 .foregroundColor(Color("grey900"))
 
-            if savedAddresses.isEmpty {
-                Text("배송지를 등록해주세요")
-                    .pretendardText(size: 16)
-                    .foregroundColor(Color("grey400"))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(RoundedRectangle(cornerRadius: 16).fill(Color("grey200")))
-                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color("grey300"), lineWidth: 1))
-            } else {
-                VStack(spacing: 8) {
-                    ForEach(savedAddresses) { option in
-                        AddressButton(
-                            title: option.title,
-                            address: option.displayAddress,
-                            selected: selectedUserDeliveryId == option.userDeliveryId,
-                            onClick: { selectedUserDeliveryId = option.userDeliveryId }
-                        )
-                    }
+            VStack(spacing: 8) {
+                ForEach(savedAddresses) { option in
+                    AddressButton(
+                        title: option.title,
+                        address: option.displayAddress,
+                        selected: !isDirectMode && selectedUserDeliveryId == option.userDeliveryId,
+                        onClick: {
+                            selectedUserDeliveryId = option.userDeliveryId
+                            isDirectMode = false
+                            // 선택한 배송지 주소를 직접 입력 칸에도 반영
+                            directAddress = option.address
+                            directZipCode = option.zipCode
+                            directDetail = option.addressDetail
+                        }
+                    )
                 }
             }
+        }
+    }
+
+    // MARK: - 직접 입력
+
+    private var directInputSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("직접 입력")
+                    .pretendardText(size: 16)
+                    .foregroundColor(Color("grey900"))
+                // 주소: 탭하면 우편번호 검색으로 이동 (직접 타이핑 불가)
+                AddressSearchBox(
+                    value: directAddress,
+                    placeholder: "건물명, 도로명, 지번으로 검색",
+                    onClick: { showAddressSearch = true }
+                )
+            }
+            // 상세 주소: 직접 입력
+            AddressDetailInputBox(
+                value: $directDetail,
+                placeholder: "상세 주소",
+                onChange: {
+                    isDirectMode = true
+                    selectedUserDeliveryId = nil
+                }
+            )
         }
     }
 
@@ -97,8 +149,12 @@ struct TrackerDeliveryAddressEditDialog: View {
                 text: "확인",
                 style: .main,
                 action: {
-                    guard let selectedUserDeliveryId else { return }
-                    onConfirmSaved(selectedUserDeliveryId)
+                    guard canConfirm else { return }
+                    if isDirectMode {
+                        onConfirmDirect(directZipCode, directAddress, directDetail)
+                    } else if let selectedUserDeliveryId {
+                        onConfirmSaved(selectedUserDeliveryId)
+                    }
                 }
             )
             .disabled(!canConfirm)
@@ -140,6 +196,51 @@ private struct AddressButton: View {
     }
 }
 
+// 주소 검색 진입 박스 (클릭 전용)
+private struct AddressSearchBox: View {
+    let value: String
+    let placeholder: String
+    let onClick: () -> Void
+
+    var body: some View {
+        Button(action: onClick) {
+            Text(value.isEmpty ? placeholder : value)
+                .pretendardText(size: 16)
+                .foregroundColor(value.isEmpty ? Color("grey500") : Color("grey900"))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color("white")))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color("grey300"), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// 상세 주소 입력 박스 (직접 타이핑)
+private struct AddressDetailInputBox: View {
+    @Binding var value: String
+    let placeholder: String
+    let onChange: () -> Void
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            if value.isEmpty {
+                Text(placeholder)
+                    .pretendardText(size: 16)
+                    .foregroundColor(Color("grey500"))
+            }
+            TextField("", text: $value)
+                .font(.pretendard(size: 16))
+                .foregroundColor(Color("grey900"))
+                .tint(Color("main200"))
+                .onChange(of: value) { _, _ in onChange() }
+        }
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color("white")))
+        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color("grey300"), lineWidth: 1))
+    }
+}
+
 #Preview {
     TrackerDeliveryAddressEditDialog(
         savedAddresses: [
@@ -148,7 +249,8 @@ private struct AddressButton: View {
         ],
         initialSelectedUserDeliveryId: 1,
         onDismiss: {},
-        onConfirmSaved: { _ in }
+        onConfirmSaved: { _ in },
+        onConfirmDirect: { _, _, _ in }
     )
     .padding(24)
     .background(Color("uiBg"))

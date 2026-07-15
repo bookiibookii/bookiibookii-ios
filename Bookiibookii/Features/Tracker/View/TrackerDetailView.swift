@@ -203,10 +203,11 @@ private struct DetailProfileColumn: View {
                             .lineLimit(1).truncationMode(.tail)
                     }
                     if showProgress {
-                        VStack(spacing: 6) {
+                        VStack(alignment: .leading, spacing: 6) {
                             DetailProgressBar(percent: profile.progressPercent)
                             Text(profile.progressLabelOverride ?? "\(profile.progressPercent)%")
                                 .pretendardText(size: 14).foregroundColor(Color("grey800"))
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .padding(.horizontal, 4)
                     }

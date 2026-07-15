@@ -46,7 +46,8 @@ struct TrackerDialogHost: ViewModifier {
                 savedAddresses: coordinator.savedDeliveries.map { $0.toDeliveryAddressOption() },
                 initialSelectedUserDeliveryId: coordinator.savedDeliveries.matchUserDeliveryId(coordinator.deliveryAddress?.myAddress),
                 onDismiss: { coordinator.dismiss() },
-                onConfirmSaved: { userDeliveryId in coordinator.changeDeliveryAddressSaved(groupId: groupId, userDeliveryId: userDeliveryId) }
+                onConfirmSaved: { userDeliveryId in coordinator.changeDeliveryAddressSaved(groupId: groupId, userDeliveryId: userDeliveryId) },
+                onConfirmDirect: { zipCode, address, addressDetail in coordinator.changeDeliveryAddressDirect(groupId: groupId, zipCode: zipCode, address: address, addressDetail: addressDetail) }
             )
         case let .tracking(groupId):
             TrackerDeliveryTrackingNumberDialog(
