@@ -25,8 +25,9 @@ struct TrackerMoreMenuDropdown: View {
 
     private func menuItem(text: String, icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 16) {
+            HStack(spacing: 0) {
                 Text(text).pretendardText(size: 14, weight: .medium).foregroundColor(Color("grey700"))
+                Spacer(minLength: 16)
                 Image(icon).renderingMode(.template).resizable().scaledToFit()
                     .frame(width: 24, height: 24).foregroundColor(Color("grey700"))
             }

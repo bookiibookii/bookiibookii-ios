@@ -11,13 +11,17 @@ struct TrackerDetailScreen: View {
     let onPrimaryAction: () -> Void
     let onSecondaryAction: () -> Void
 
+    @State private var showMenu = false
+
     var body: some View {
         VStack(spacing: 0) {
             TrackerDetailHeader(
-                isHost: state.isHost,
-                onBack: onBack, onMessage: onMessage,
-                onEditPeriod: onEditPeriod, onGoToLibrary: onGoToLibrary, onReport: onReport
+                showMenu: $showMenu,
+                onBack: onBack, onMessage: onMessage
             )
+            // 미트볼 메뉴 드롭다운이 헤더 경계 아래(콘텐츠 영역)로 넘쳐 그려지므로,
+            // 헤더를 ScrollView보다 위에 합성해 드롭다운이 가려지지 않게 함.
+            .zIndex(1)
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 12) {
                     VStack(spacing: 20) {
@@ -35,6 +39,28 @@ struct TrackerDetailScreen: View {
             }
         }
         .background(Color("uiBg"))
+        .overlay { menuOverlay }
+    }
+
+    // MARK: 미트볼 더보기 메뉴 — 스크림을 화면 전체 콘텐츠 영역에 깔아 바깥 어디를 눌러도 닫히게 함
+    @ViewBuilder
+    private var menuOverlay: some View {
+        if showMenu {
+            ZStack(alignment: .topTrailing) {
+                Color.clear
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture { showMenu = false }
+                    .ignoresSafeArea()
+                TrackerMoreMenuDropdown(
+                    isHost: state.isHost,
+                    onEditPeriod: { showMenu = false; onEditPeriod() },
+                    onGoToLibrary: { showMenu = false; onGoToLibrary() },
+                    onReport: { showMenu = false; onReport() }
+                )
+                .padding(.trailing, 16).padding(.top, 56)
+            }
+        }
     }
 
     // MARK: 그룹 정보(그룹명 · dDay칩 · statusLabel · 4단계 진행바)
@@ -100,13 +126,9 @@ struct TrackerDetailScreen: View {
 
 // MARK: - 헤더 (뒤로 · "교환 현황" · 메시지 · 미트볼→드롭다운)
 private struct TrackerDetailHeader: View {
-    let isHost: Bool
+    @Binding var showMenu: Bool
     let onBack: () -> Void
     let onMessage: () -> Void
-    let onEditPeriod: () -> Void
-    let onGoToLibrary: () -> Void
-    let onReport: () -> Void
-    @State private var showMenu = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -138,24 +160,6 @@ private struct TrackerDetailHeader: View {
             Rectangle().fill(Color("grey200")).frame(height: 1)
         }
         .background(Color("white"))
-        .overlay(alignment: .topTrailing) { menuOverlay }
-    }
-
-    @ViewBuilder
-    private var menuOverlay: some View {
-        if showMenu {
-            ZStack(alignment: .topTrailing) {
-                Color.clear.frame(maxWidth: .infinity, maxHeight: .infinity).contentShape(Rectangle()).ignoresSafeArea()
-                    .onTapGesture { showMenu = false }
-                TrackerMoreMenuDropdown(
-                    isHost: isHost,
-                    onEditPeriod: { showMenu = false; onEditPeriod() },
-                    onGoToLibrary: { showMenu = false; onGoToLibrary() },
-                    onReport: { showMenu = false; onReport() }
-                )
-                .padding(.trailing, 16).padding(.top, 56)
-            }
-        }
     }
 }
 
