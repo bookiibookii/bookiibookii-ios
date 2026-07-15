@@ -50,6 +50,8 @@ struct HomeView: View {
                     }
                 }
             }
+            // 콘텐츠가 짧아도 세로 바운스를 항상 허용해 pull-to-refresh가 쉽게 걸리도록 함
+            .scrollBounceBehavior(.always, axes: .vertical)
             .refreshable { await viewModel.refreshCurrentTab() }
         }
         .background(Color("grey100"))
