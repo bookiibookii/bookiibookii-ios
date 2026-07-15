@@ -357,19 +357,6 @@ struct GroupDeleteResultWrapper: Codable {
     let message: String
 }
 
-/// PATCH `/api/groups/{groupId}/together/members/me/complete` 의 `result`.
-struct TogetherCompleteReadingResultDTO: Decodable {
-    let matchedMemberId: Int?
-    let currentReadingRate: Int?
-    let completedAt: String?
-}
-
-/// POST `/api/reviews/together/{userBookId}` request body.
-struct TogetherReviewCreateRequest: Encodable {
-    let rating: Double
-    let comment: String?
-}
-
 // MARK: - 홈 그룹 (GET /api/groups/home)
 
 struct HomeGroupsResponse: Decodable {

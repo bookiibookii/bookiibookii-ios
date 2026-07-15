@@ -86,13 +86,54 @@ final class LibraryViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
+            let fetchedBooks: [LibraryBook]
             if let keyword {
-                books = try await libraryService.searchLibraryBooks(keyword: keyword)
+                fetchedBooks = try await libraryService.searchLibraryBooks(keyword: keyword)
             } else {
-                books = try await libraryService.fetchLibraryBooks()
+                fetchedBooks = try await libraryService.fetchLibraryBooks()
             }
+            books = await mergingCardProgress(into: fetchedBooks)
         } catch {
             errorMessage = (error as? LocalizedError)?.errorDescription ?? "서재를 불러오지 못했습니다."
+        }
+    }
+
+    private func mergingCardProgress(into books: [LibraryBook]) async -> [LibraryBook] {
+        var maxCardPageByMemberBookId: [Int: Int] = [:]
+        let groupIds = Set(
+            books
+                .filter { $0.status != .completed }
+                .map(\.groupId)
+                .filter { $0 > 0 }
+        )
+
+        for groupId in groupIds {
+            guard let cardList = try? await libraryService.fetchLibraryCards(groupId: groupId) else {
+                continue
+            }
+
+            for card in cardList.cards {
+                guard let memberBookId = card.memberBookId, card.page > 0 else { continue }
+                maxCardPageByMemberBookId[memberBookId] = max(
+                    maxCardPageByMemberBookId[memberBookId] ?? 0,
+                    card.page
+                )
+            }
+        }
+
+        return books.map { book in
+            guard let memberBookId = book.userBookId,
+                  let totalPages = book.totalPages,
+                  totalPages > 0,
+                  let maxCardPage = maxCardPageByMemberBookId[memberBookId] else {
+                return book
+            }
+
+            var updatedBook = book
+            let normalizedPage = min(max(maxCardPage, 0), totalPages)
+            let cardProgressRate = normalizedPage * 100 / totalPages
+            updatedBook.progressRate = max(book.progressRate, cardProgressRate)
+            return updatedBook
         }
     }
 

@@ -3,7 +3,7 @@ import Foundation
 
 enum CardAddMode: Equatable {
     case create(userBookId: Int, cardType: LibraryCardType)
-    case edit(cardId: Int, userBookId: Int)
+    case edit(cardId: Int, userBookId: Int, cardType: LibraryCardType)
 
     var isEdit: Bool {
         if case .edit = self { return true }
@@ -11,7 +11,7 @@ enum CardAddMode: Equatable {
     }
 
     var editCardId: Int? {
-        if case .edit(let cid, _) = self { return cid }
+        if case .edit(let cid, _, _) = self { return cid }
         return nil
     }
 }
@@ -37,6 +37,7 @@ final class CardAddViewModel: ObservableObject {
     private var baselinePage: Int?
     private var baselineMemo: String?
     private var baselineS3Key: String?
+    private var baselineQuotation: String?
 
     private var replaceBackup: (Data?, String?)?
 
@@ -57,15 +58,19 @@ final class CardAddViewModel: ObservableObject {
     }
 
     var submitButtonTitle: String {
-        mode.isEdit ? "완료하기" : "등록"
+        mode.isEdit ? "수정" : "등록"
     }
+
+    var isEditMode: Bool { mode.isEdit }
+
+    @Published private(set) var isLoadingEditState = false
 
     var cardType: LibraryCardType {
         switch mode {
         case .create(_, let cardType):
             return cardType
-        case .edit:
-            return .image
+        case .edit(_, _, let cardType):
+            return cardType
         }
     }
 
@@ -74,15 +79,26 @@ final class CardAddViewModel: ObservableObject {
         guard !isUploading && !isSubmitting else { return false }
 
         if mode.isEdit {
-            guard let key = uploadedS3Key, !key.isEmpty else { return false }
             guard let bp = baselinePage,
-                  let bm = baselineMemo,
-                  let bk = baselineS3Key else {
+                  let bm = baselineMemo else {
                 return false
             }
             let memoNow = memo.trimmingCharacters(in: .whitespacesAndNewlines)
-            let changed = page != bp || memoNow != bm || key != bk
-            return changed
+            let quotationNow = quotation.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            switch cardType {
+            case .image:
+                guard let key = uploadedS3Key, !key.isEmpty,
+                      let bk = baselineS3Key else {
+                    return false
+                }
+                let changed = page != bp || memoNow != bm || key != bk
+                return changed
+            case .text:
+                guard let bq = baselineQuotation else { return false }
+                let changed = page != bp || memoNow != bm || quotationNow != bq
+                return !quotationNow.isEmpty && changed
+            }
         }
 
         switch cardType {
@@ -100,22 +116,30 @@ final class CardAddViewModel: ObservableObject {
     }
 
     func loadEditInitialStateIfNeeded() async {
-        guard case .edit(let cardId, _) = mode else { return }
+        guard case .edit(let cardId, _, _) = mode else { return }
         guard baselinePage == nil else { return }
+
+        isLoadingEditState = true
+        defer { isLoadingEditState = false }
 
         do {
             let detail = try await libraryService.fetchLibraryCardDetail(cardId: cardId)
             pageText = "\(detail.page)"
             memo = detail.memo
+            quotation = detail.quotation ?? ""
 
             let trimmedMemo = memo.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedQuotation = quotation.trimmingCharacters(in: .whitespacesAndNewlines)
             baselinePage = detail.page
             baselineMemo = trimmedMemo
+            baselineQuotation = trimmedQuotation
             let key = detail.imageS3Key ?? ""
             baselineS3Key = key
             uploadedS3Key = detail.imageS3Key
 
-            if let urlStr = detail.imageURL, let url = URL(string: urlStr) {
+            if detail.cardType == .image,
+               let urlStr = detail.imageURL,
+               let url = URL(string: urlStr) {
                 let (data, _) = try await URLSession.shared.data(from: url)
                 if !data.isEmpty {
                     previewImageData = data
@@ -178,7 +202,7 @@ final class CardAddViewModel: ObservableObject {
         switch mode {
         case .create(let userBookId, _):
             presigned = try await libraryService.requestCardImagePresignedURL(userBookId: userBookId)
-        case .edit(_, let userBookId):
+        case .edit(_, let userBookId, _):
             presigned = try await libraryService.requestCardImagePresignedURL(userBookId: userBookId)
         }
         try await libraryService.uploadCardImageToS3(presignedPutUrl: presigned.presignedPutUrl, imageData: uploadData)
@@ -209,14 +233,26 @@ final class CardAddViewModel: ObservableObject {
                     page: page,
                     memo: memoPayload
                 )
-            case .edit(let cardId, _):
-                guard let key = uploadedS3Key else { return false }
-                try await libraryService.updateLibraryCard(
-                    cardId: cardId,
-                    s3Key: key,
-                    page: page,
-                    memo: memoPayload
-                )
+            case .edit(let cardId, _, let cardType):
+                switch cardType {
+                case .image:
+                    guard let key = uploadedS3Key else { return false }
+                    try await libraryService.updateLibraryCard(
+                        cardId: cardId,
+                        s3Key: key,
+                        page: page,
+                        memo: memoPayload,
+                        quotation: nil
+                    )
+                case .text:
+                    try await libraryService.updateLibraryCard(
+                        cardId: cardId,
+                        s3Key: nil,
+                        page: page,
+                        memo: memoPayload,
+                        quotation: quotationPayload
+                    )
+                }
             }
             return true
         } catch {

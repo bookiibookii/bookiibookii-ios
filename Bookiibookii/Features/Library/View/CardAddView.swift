@@ -51,11 +51,16 @@ struct CardAddView: View {
             VStack(spacing: 0) {
                 header
 
-                ScrollView(showsIndicators: false) {
-                    formContent
-                        .padding(.horizontal, 16)
-                        .padding(.top, 16)
-                        .padding(.bottom, 104)
+                if viewModel.isLoadingEditState {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView(showsIndicators: false) {
+                        formContent
+                            .padding(.horizontal, 16)
+                            .padding(.top, 16)
+                            .padding(.bottom, 104)
+                    }
                 }
             }
 
@@ -221,13 +226,17 @@ struct CardAddView: View {
                         replaceHadSelection = false
                         showReplacePicker = true
                     } label: {
-                        Image("ic_edit")
+                        Image("ic_pencil")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 24, height: 24)
                             .frame(width: 32, height: 32)
                             .background(Color("white"))
                             .clipShape(Circle())
+                            .overlay {
+                                Circle()
+                                    .stroke(Color("grey200"), lineWidth: 1)
+                            }
                     }
                     .buttonStyle(.plain)
                     .padding(16)
@@ -276,10 +285,11 @@ struct CardAddView: View {
             multilineField(
                 text: $viewModel.quotation,
                 placeholder: "인상 깊은 문장을 작성해주세요",
-                height: viewModel.quotation.isEmpty ? 52 : 118
+                height: viewModel.quotation.isEmpty ? 52 : 140
             )
 
-            if viewModel.quotation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if !viewModel.isEditMode,
+               viewModel.quotation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 Text("인용구를 입력해주세요")
                     .pretendardText(size: 12)
                     .foregroundColor(Color("pointRed"))
@@ -322,7 +332,7 @@ struct CardAddView: View {
             multilineField(
                 text: $viewModel.memo,
                 placeholder: "어떤 책을 읽어볼까요?",
-                height: viewModel.memo.isEmpty ? 52 : 96
+                height: viewModel.memo.isEmpty ? 52 : 120
             )
         }
     }
@@ -386,46 +396,63 @@ struct CardAddView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 12) {
-            Button {
-                isPreviewPresented = true
-            } label: {
-                Text("미리보기")
-                    .pretendardText(size: 16)
-                    .foregroundColor(Color("grey900"))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(Color("grey200"))
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
-            }
-            .buttonStyle(.plain)
-            .disabled(!viewModel.canSubmit)
-
-            Button {
-                Task {
-                    let succeeded = await viewModel.submit()
-                    if succeeded {
-                        NotificationCenter.default.post(
-                            name: .libraryCardMutationFinished,
-                            object: nil
-                        )
-                        container.navigationRouter.pop()
+        Group {
+            if viewModel.isEditMode {
+                FooterButton(
+                    text: viewModel.submitButtonTitle,
+                    enabled: viewModel.canSubmit,
+                    isLoading: viewModel.isSubmitting,
+                    action: submitCard
+                )
+                .padding(16)
+                .background(Color("uiBg"))
+            } else {
+                HStack(spacing: 12) {
+                    Button {
+                        isPreviewPresented = true
+                    } label: {
+                        Text("미리보기")
+                            .pretendardText(size: 16)
+                            .foregroundColor(Color("grey900"))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(Color("grey200"))
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
                     }
+                    .buttonStyle(.plain)
+                    .disabled(!viewModel.canSubmit)
+
+                    Button(action: submitCard) {
+                        Text(viewModel.submitButtonTitle)
+                            .pretendardText(size: 16)
+                            .foregroundColor(Color("white"))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(
+                                viewModel.canSubmit ? Color("grey900") : Color("grey200")
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!viewModel.canSubmit)
                 }
-            } label: {
-                Text(viewModel.submitButtonTitle)
-                    .pretendardText(size: 16)
-                    .foregroundColor(Color("white"))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(Color("grey900"))
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                .padding(16)
+                .background(Color("uiBg"))
             }
-            .buttonStyle(.plain)
-            .disabled(!viewModel.canSubmit)
         }
-        .padding(16)
-        .background(Color("uiBg"))
+    }
+
+    private func submitCard() {
+        Task {
+            let succeeded = await viewModel.submit()
+            if succeeded {
+                NotificationCenter.default.post(
+                    name: .libraryCardMutationFinished,
+                    object: nil
+                )
+                container.navigationRouter.pop()
+            }
+        }
     }
 
     private var cardPreview: some View {

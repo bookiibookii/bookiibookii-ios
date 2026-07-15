@@ -71,11 +71,6 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .librarySearch:
-            LibrarySearchView(libraryService: container.api.library)
-                .environmentObject(container)
-                .toolbar(.hidden, for: .navigationBar)
-                .navigationBarBackButtonHidden(true)
         case .libraryBookmarkedCards:
             LibraryBookmarkedCardsView(libraryService: container.api.library)
                 .environmentObject(container)
@@ -85,8 +80,23 @@ struct NavigationRoutingView: View {
             LibraryCardListView(
                 book: book,
                 libraryService: container.api.library,
-                userService: container.api.user,
-                groupService: container.api.group,
+                userService: container.api.user
+            )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .libraryGroupReviews(let book):
+            LibraryGroupReviewView(
+                book: book,
+                libraryService: container.api.library
+            )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
+        case .libraryGroupReviewEdit(let book):
+            LibraryGroupReviewEditView(
+                book: book,
+                libraryService: container.api.library,
                 trackerService: container.api.tracker
             )
                 .environmentObject(container)
@@ -118,21 +128,12 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .libraryCardEdit(let cardId, let userBookId):
+        case .libraryCardEdit(let cardId, let userBookId, let bookTitle, let cardType):
             CardAddView(
-                mode: .edit(cardId: cardId, userBookId: userBookId),
-                bookTitle: "",
+                mode: .edit(cardId: cardId, userBookId: userBookId, cardType: cardType),
+                bookTitle: bookTitle,
                 libraryService: container.api.library,
                 userService: container.api.user
-            )
-                .environmentObject(container)
-                .toolbar(.hidden, for: .navigationBar)
-                .navigationBarBackButtonHidden(true)
-        case .togetherReview(let userBookId, let bookTitle):
-            TogetherReviewView(
-                userBookId: userBookId,
-                bookTitle: bookTitle,
-                groupService: container.api.group
             )
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
