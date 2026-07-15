@@ -69,17 +69,20 @@ struct TrackerMainRoute: View {
     var onProfileTap: () -> Void
     var onNotificationTap: () -> Void
     var onCreateGroupTap: () -> Void
+    var onCardTap: (Int) -> Void
 
     init(
         viewModel: TrackerMainViewModel,
         onProfileTap: @escaping () -> Void = {},
         onNotificationTap: @escaping () -> Void = {},
-        onCreateGroupTap: @escaping () -> Void = {}
+        onCreateGroupTap: @escaping () -> Void = {},
+        onCardTap: @escaping (Int) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.onProfileTap = onProfileTap
         self.onNotificationTap = onNotificationTap
         self.onCreateGroupTap = onCreateGroupTap
+        self.onCardTap = onCardTap
     }
 
     var body: some View {
@@ -88,7 +91,7 @@ struct TrackerMainRoute: View {
             onProfileTap: onProfileTap,
             onNotificationTap: onNotificationTap,
             onCreateGroupTap: onCreateGroupTap,
-            onCardClick: { _ in },   // PR-A 플레이스홀더 (상세 화면은 #5·#8)
+            onCardClick: onCardTap,
             onPrimaryAction: { groupId in
                 guard let card = viewModel.state.cards.first(where: { $0.groupId == groupId }) else { return }
                 dispatchTrackerAction(

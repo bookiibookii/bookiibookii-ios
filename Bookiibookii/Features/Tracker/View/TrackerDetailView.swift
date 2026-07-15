@@ -263,6 +263,62 @@ private struct Line: Shape {
     }
 }
 
+// stateful: VM 주입 + 액션 디스패치 + 다이얼로그 호스트 + 네비 배선
+struct TrackerDetailRoute: View {
+    @EnvironmentObject private var container: DIContainer
+    @StateObject private var viewModel: TrackerDetailViewModel
+    private let groupId: Int
+    @State private var reportToast: String?
+
+    init(groupId: Int, trackerService: TrackerService, locationService: LocationService) {
+        self.groupId = groupId
+        _viewModel = StateObject(wrappedValue: TrackerDetailViewModel(
+            trackerService: trackerService, locationService: locationService, groupId: groupId
+        ))
+    }
+
+    var body: some View {
+        TrackerDetailScreen(
+            state: viewModel.state,
+            onBack: { container.navigationRouter.pop() },
+            onMessage: {},            // 댓글 화면은 작업 C — no-op 플레이스홀더
+            onEditPeriod: {
+                let original = viewModel.state.dDayCount.flatMap {
+                    Calendar.current.date(byAdding: .day, value: $0, to: Calendar.current.startOfDay(for: Date()))
+                }
+                viewModel.coordinator.openReadingPeriod(groupId: groupId, originalEndDate: original)
+            },
+            onGoToLibrary: {},        // 라이브러리 도메인 — 이월(no-op)
+            onReport: { reportToast = "신고 기능은 준비 중이에요." },
+            onPrimaryAction: { dispatch(viewModel.state.primaryAction) },
+            onSecondaryAction: { dispatch(viewModel.state.secondaryAction) }
+        )
+        .task { await viewModel.load() }
+        .trackerDialogHost(viewModel.coordinator, cardFor: { _ in
+            TrackerCardModel(
+                groupId: groupId, groupName: "", displayBookTitle: "", bookTitle: "",
+                progressLabel: "", dDay: "",
+                left: viewModel.state.myProfile,
+                right: viewModel.state.partnerProfile,
+                isHost: viewModel.state.isHost
+            )
+        })
+        .toast($reportToast)
+    }
+
+    private func dispatch(_ action: TrackerAction) {
+        dispatchTrackerAction(
+            action, groupId: groupId, coordinator: viewModel.coordinator,
+            nav: TrackerNavActions(
+                onNavigateBookReview: { gid, edit in container.navigationRouter.push(to: .trackerBookReview(groupId: gid, isEdit: edit)) },
+                onNavigatePartnerReview: { gid in container.navigationRouter.push(to: .trackerPartnerReview(groupId: gid)) },
+                onNavigateComment: { _, _ in },   // 작업 C
+                onWriteReadingCard: { _ in }       // 라이브러리 이월
+            )
+        )
+    }
+}
+
 #Preview {
     TrackerDetailScreen(
         state: TrackerDetailUiState(

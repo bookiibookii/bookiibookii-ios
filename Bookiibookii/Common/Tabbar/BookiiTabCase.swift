@@ -42,7 +42,8 @@ enum BookiiTabCase: Int, CaseIterable {
                 ),
                 onProfileTap: { container.navigationRouter.push(to: .myPage) },
                 onNotificationTap: { container.navigationRouter.push(to: .notification) },
-                onCreateGroupTap: { container.navigationRouter.push(to: .groupEditor(groupId: nil)) }
+                onCreateGroupTap: { container.navigationRouter.push(to: .groupEditor(groupId: nil)) },
+                onCardTap: { groupId in container.navigationRouter.push(to: .trackerDetail(groupId: groupId)) }
             )
         case .library:
             LibraryView(libraryService: container.api.library)
