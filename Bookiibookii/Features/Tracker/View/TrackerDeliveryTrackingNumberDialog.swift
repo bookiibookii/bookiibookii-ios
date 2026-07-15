@@ -17,6 +17,8 @@ struct TrackerDeliveryTrackingNumberDialog: View {
         VStack(alignment: .leading, spacing: 24) {
             header
             DeliveryCompanyField(selected: selectedCompany, onSelect: { selectedCompany = $0 })
+                // 드롭다운 overlay가 아래 필드/버튼보다 앞에 그려지도록
+                .zIndex(1)
             TrackingNumberField(
                 value: $trackingInput,
                 onChange: { newValue in trackingInput = newValue.filter { $0.isNumber } }
@@ -24,8 +26,8 @@ struct TrackerDeliveryTrackingNumberDialog: View {
             submitButton
         }
         .padding(20)
-        .background(Color("white"))
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        // 드롭다운이 카드 밖으로 떠도 잘리지 않도록 clip 대신 배경만 라운드 처리
+        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color("white")))
     }
 
     // MARK: - 헤더
@@ -92,33 +94,33 @@ private struct DeliveryCompanyField: View {
         VStack(alignment: .leading, spacing: 8) {
             RequiredLabel(text: "택배사")
 
-            ZStack(alignment: .top) {
-                Button(action: { expanded.toggle() }) {
-                    HStack(spacing: 8) {
-                        Text(selected?.label ?? "택배사를 선택해주세요")
-                            .pretendardText(size: 16, weight: .medium)
-                            .foregroundColor(selected == nil ? Color("grey500") : Color("grey900"))
-                            .lineLimit(1)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+            Button(action: { expanded.toggle() }) {
+                HStack(spacing: 8) {
+                    Text(selected?.label ?? "택배사를 선택해주세요")
+                        .pretendardText(size: 16, weight: .medium)
+                        .foregroundColor(selected == nil ? Color("grey500") : Color("grey900"))
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                        Image("ic_chevron")
-                            .renderingMode(.template)
-                            .resizable()
-                            .frame(width: 24, height: 24)
-                            .foregroundColor(Color("grey500"))
-                            .rotationEffect(.degrees(-90))
-                    }
-                    .padding(.leading, 16)
-                    .padding(.trailing, 12)
-                    .frame(height: 48)
-                    .background(RoundedRectangle(cornerRadius: 20).fill(Color("grey100")))
-                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color("grey200"), lineWidth: 1))
+                    Image("ic_chevron")
+                        .renderingMode(.template)
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .foregroundColor(Color("grey500"))
+                        .rotationEffect(.degrees(-90))
                 }
-                .buttonStyle(.plain)
-
+                .padding(.leading, 16)
+                .padding(.trailing, 12)
+                .frame(height: 48)
+                .background(RoundedRectangle(cornerRadius: 20).fill(Color("grey100")))
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color("grey200"), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            // 드롭다운은 레이아웃에 영향 주지 않는 overlay로 띄운다(다이얼로그가 커지지 않도록).
+            .overlay(alignment: .top) {
                 if expanded {
                     dropdownList
-                        .padding(.top, 56)
+                        .offset(y: 52)
                         .zIndex(1)
                 }
             }
@@ -126,32 +128,32 @@ private struct DeliveryCompanyField: View {
     }
 
     private var dropdownList: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 8) {
             ForEach(Array(DeliveryCompany.allCases.enumerated()), id: \.element.id) { index, company in
                 Button(action: {
                     onSelect(company)
                     expanded = false
                 }) {
                     Text(company.label)
-                        .pretendardText(size: 16, weight: .medium)
+                        .pretendardText(size: 14)
                         .foregroundColor(Color("grey900"))
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 12)
+                        .frame(height: 44)
+                        .overlay(alignment: .bottom) {
+                            if index < DeliveryCompany.allCases.count - 1 {
+                                Rectangle().fill(Color("grey100")).frame(height: 1)
+                            }
+                        }
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-
-                if index < DeliveryCompany.allCases.count - 1 {
-                    Rectangle()
-                        .fill(Color("grey100"))
-                        .frame(height: 1)
-                }
             }
         }
         .padding(.horizontal, 16)
-        .background(Color("white"))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color("grey200"), lineWidth: 1))
-        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .padding(.vertical, 8)
+        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color("white")))
+        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(Color("grey200"), lineWidth: 1))
+        .shadow(color: Color.black.opacity(0.06), radius: 5, x: 0, y: 0)
     }
 }
 

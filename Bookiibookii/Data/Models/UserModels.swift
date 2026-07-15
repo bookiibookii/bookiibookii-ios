@@ -85,6 +85,21 @@ struct MypageBookReview: Decodable, Equatable, Identifiable {
     let reviewDate: String
 
     var id: String { "\(bookTitle)-\(reviewDate)" }
+
+    private enum CodingKeys: String, CodingKey {
+        case bookTitle, bookAuthor, tradeType, rating, comment, reviewDate
+    }
+
+    // 서버가 comment/reviewDate를 null로 내려도 디코딩이 실패하지 않도록 빈 문자열로 대체.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        bookTitle = try c.decode(String.self, forKey: .bookTitle)
+        bookAuthor = try c.decode(String.self, forKey: .bookAuthor)
+        tradeType = try c.decode(String.self, forKey: .tradeType)
+        rating = try c.decode(Double.self, forKey: .rating)
+        comment = try c.decodeIfPresent(String.self, forKey: .comment) ?? ""
+        reviewDate = try c.decodeIfPresent(String.self, forKey: .reviewDate) ?? ""
+    }
 }
 
 struct MypageReceivedReview: Decodable, Equatable, Identifiable {
@@ -95,6 +110,20 @@ struct MypageReceivedReview: Decodable, Equatable, Identifiable {
     let createdAt: String
 
     var id: String { "\(reviewerNickname)-\(createdAt)" }
+
+    private enum CodingKeys: String, CodingKey {
+        case reviewerNickname, reviewerProfileUrl, reaction, comment, createdAt
+    }
+
+    // 서버가 comment/createdAt를 null로 내려도 디코딩이 실패하지 않도록 빈 문자열로 대체.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        reviewerNickname = try c.decode(String.self, forKey: .reviewerNickname)
+        reviewerProfileUrl = try c.decodeIfPresent(String.self, forKey: .reviewerProfileUrl)
+        reaction = try c.decode(String.self, forKey: .reaction)
+        comment = try c.decodeIfPresent(String.self, forKey: .comment) ?? ""
+        createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt) ?? ""
+    }
 }
 
 struct MypageUpdateRequest: Encodable {

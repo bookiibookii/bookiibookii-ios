@@ -60,6 +60,8 @@ struct BookSearchSection: View {
                         .foregroundColor(Color("grey900"))
                         .tint(Color("main200"))
                         .disabled(bookSelected)
+                        // 책 선택 후에는 텍스트 필드 탭-편집을 완전히 차단(X로만 초기화)
+                        .allowsHitTesting(!bookSelected)
                         .submitLabel(.search)
                         .onSubmit(onSearchClick)
 

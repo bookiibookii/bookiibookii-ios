@@ -4,51 +4,38 @@ struct TrackerNotificationCard: View {
     let notifications: [TrackerNotificationItem]
     let onItemClick: (Int) -> Void
 
-    @State private var currentPage: Int = 0
-    @State private var pageHeight: CGFloat = 0
+    @State private var currentIndex: Int? = 0
 
     var body: some View {
         if notifications.isEmpty {
             EmptyView()
         } else {
             ZStack(alignment: .topTrailing) {
-                TabView(selection: $currentPage) {
-                    ForEach(Array(notifications.enumerated()), id: \.offset) { index, item in
-                        TrackerNotificationPage(
-                            item: item,
-                            onTap: { onItemClick(item.groupId) }
-                        )
-                        .background(
-                            GeometryReader { proxy in
-                                Color.clear.preference(key: TrackerPageHeightKey.self, value: proxy.size.height)
-                            }
-                        )
-                        .tag(index)
+                // 가로 페이징 스크롤. 가로 스크롤뷰는 세로로 콘텐츠(가장 큰 배너) 높이에 맞춰진다.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 0) {
+                        ForEach(Array(notifications.enumerated()), id: \.offset) { index, item in
+                            TrackerNotificationPage(
+                                item: item,
+                                onTap: { onItemClick(item.groupId) }
+                            )
+                            .containerRelativeFrame(.horizontal)
+                            .id(index)
+                        }
                     }
+                    .scrollTargetLayout()
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .onPreferenceChange(TrackerPageHeightKey.self) { pageHeight = $0 }
-                .onChange(of: notifications.count) { _, count in
-                    if currentPage >= count { currentPage = max(0, count - 1) }
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: pageHeight > 0 ? pageHeight : nil)
+                .scrollTargetBehavior(.viewAligned)
+                .scrollPosition(id: $currentIndex, anchor: .leading)
 
                 if notifications.count > 1 {
-                    TrackerCarouselIndicator(total: notifications.count, current: currentPage)
+                    TrackerCarouselIndicator(total: notifications.count, current: currentIndex ?? 0)
                         .padding(.top, 24)
                         .padding(.trailing, 24)
                 }
             }
             .background(Color("white"))
         }
-    }
-}
-
-private struct TrackerPageHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = max(value, nextValue())
     }
 }
 

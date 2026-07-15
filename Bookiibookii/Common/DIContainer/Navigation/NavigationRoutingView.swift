@@ -207,6 +207,15 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .trackerDetail(let groupId):
+            TrackerDetailRoute(
+                groupId: groupId,
+                trackerService: container.api.tracker,
+                locationService: container.api.location
+            )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         }
     }
 }

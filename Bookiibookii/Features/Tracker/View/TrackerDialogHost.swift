@@ -10,6 +10,8 @@ struct TrackerDialogHost: ViewModifier {
         content
             .overlay { dialogOverlay }
             .toast($toastMessage)
+            // 다이얼로그가 떠 있는 동안 하단 탭바 숨김
+            .preference(key: TabBarHiddenKey.self, value: coordinator.route != nil)
     }
 
     @ViewBuilder private var dialogOverlay: some View {
@@ -46,7 +48,8 @@ struct TrackerDialogHost: ViewModifier {
                 savedAddresses: coordinator.savedDeliveries.map { $0.toDeliveryAddressOption() },
                 initialSelectedUserDeliveryId: coordinator.savedDeliveries.matchUserDeliveryId(coordinator.deliveryAddress?.myAddress),
                 onDismiss: { coordinator.dismiss() },
-                onConfirmSaved: { userDeliveryId in coordinator.changeDeliveryAddressSaved(groupId: groupId, userDeliveryId: userDeliveryId) }
+                onConfirmSaved: { userDeliveryId in coordinator.changeDeliveryAddressSaved(groupId: groupId, userDeliveryId: userDeliveryId) },
+                onConfirmDirect: { zipCode, address, addressDetail in coordinator.changeDeliveryAddressDirect(groupId: groupId, zipCode: zipCode, address: address, addressDetail: addressDetail) }
             )
         case let .tracking(groupId):
             TrackerDeliveryTrackingNumberDialog(
@@ -125,7 +128,24 @@ struct TrackerDialogHost: ViewModifier {
                 onReportClick: { toastMessage = "신고 기능은 준비 중이에요." },
                 onGoToCommentsClick: { coordinator.dismiss() }
             )
+        case let .readingPeriod(groupId, originalEndDate):
+            TrackerReadingPeriodEditDialog(
+                originalEndDate: originalEndDate,
+                onConfirm: { newDate in
+                    coordinator.updateReadingPeriod(groupId: groupId, newEndDate: Self.isoDate(newDate))
+                },
+                onDismiss: { coordinator.dismiss() }
+            )
         }
+    }
+}
+
+extension TrackerDialogHost {
+    static func isoDate(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f.string(from: date)
     }
 }
 

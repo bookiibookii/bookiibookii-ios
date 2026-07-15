@@ -57,6 +57,8 @@ struct TrackerMainScreen: View {
                     .padding(.top, 12)
                 }
             }
+            // 콘텐츠가 짧아도 세로 바운스를 항상 허용해 pull-to-refresh가 쉽게 걸리도록 함
+            .scrollBounceBehavior(.always, axes: .vertical)
             .refreshable { await onRefresh() }
         }
         .background(Color("uiBg"))
@@ -69,17 +71,34 @@ struct TrackerMainRoute: View {
     var onProfileTap: () -> Void
     var onNotificationTap: () -> Void
     var onCreateGroupTap: () -> Void
+    var onCardTap: (Int) -> Void
+    var onNavigateBookReview: (Int, Bool) -> Void
+    var onNavigatePartnerReview: (Int) -> Void
 
     init(
         viewModel: TrackerMainViewModel,
         onProfileTap: @escaping () -> Void = {},
         onNotificationTap: @escaping () -> Void = {},
-        onCreateGroupTap: @escaping () -> Void = {}
+        onCreateGroupTap: @escaping () -> Void = {},
+        onCardTap: @escaping (Int) -> Void = { _ in },
+        onNavigateBookReview: @escaping (Int, Bool) -> Void = { _, _ in },
+        onNavigatePartnerReview: @escaping (Int) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.onProfileTap = onProfileTap
         self.onNotificationTap = onNotificationTap
         self.onCreateGroupTap = onCreateGroupTap
+        self.onCardTap = onCardTap
+        self.onNavigateBookReview = onNavigateBookReview
+        self.onNavigatePartnerReview = onNavigatePartnerReview
+    }
+
+    // 카드 nav-out 액션(후기/파트너후기). 댓글·독서카드는 이월(no-op 유지).
+    private var navActions: TrackerNavActions {
+        TrackerNavActions(
+            onNavigateBookReview: onNavigateBookReview,
+            onNavigatePartnerReview: onNavigatePartnerReview
+        )
     }
 
     var body: some View {
@@ -88,14 +107,14 @@ struct TrackerMainRoute: View {
             onProfileTap: onProfileTap,
             onNotificationTap: onNotificationTap,
             onCreateGroupTap: onCreateGroupTap,
-            onCardClick: { _ in },   // PR-A 플레이스홀더 (상세 화면은 #5·#8)
+            onCardClick: onCardTap,
             onPrimaryAction: { groupId in
                 guard let card = viewModel.state.cards.first(where: { $0.groupId == groupId }) else { return }
                 dispatchTrackerAction(
                     card.primaryAction,
                     groupId: groupId,
                     coordinator: viewModel.coordinator,
-                    nav: TrackerNavActions()
+                    nav: navActions
                 )
             },
             onSecondaryAction: { groupId in
@@ -104,7 +123,7 @@ struct TrackerMainRoute: View {
                     card.secondaryAction,
                     groupId: groupId,
                     coordinator: viewModel.coordinator,
-                    nav: TrackerNavActions()
+                    nav: navActions
                 )
             },
             onRefresh: { await viewModel.onAppear() }

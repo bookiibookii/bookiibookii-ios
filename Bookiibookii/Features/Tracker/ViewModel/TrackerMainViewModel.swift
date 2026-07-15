@@ -49,7 +49,9 @@ final class TrackerMainViewModel: ObservableObject {
 
     // 화면 진입: load + 알림 뱃지 조회
     func onAppear() async {
-        await load()
+        // refreshable/.task 스코프가 리프레시 도중 취소되면 fetch까지 -999로 죽어 목록이 갱신 안 됨.
+        // VM 소유 독립(unstructured) 태스크로 실행해 취소 전파를 끊고 요청을 끝까지 완료시킨다.
+        await Task { await self.load() }.value
         await fetchNotificationDot()
     }
 }

@@ -78,11 +78,15 @@ final class HomeViewModel: ObservableObject {
 
     /// 화면 복귀 시 현재 탭만 강제 새로고침 (수락/신청 등 상태 변경 반영).
     func refreshCurrentTab() async {
-        switch selectedTab {
-        case .recommend: await loadRecommendSections()
-        case .myGroups:  await loadMyGroups()
-        case .applied:   await loadAppliedGroups()
-        }
+        // refreshable 태스크 취소가 fetch까지 전파되면(-999) try?에 삼켜져 옛 목록이 유지됨.
+        // VM 소유 독립 태스크로 실행해 취소 전파를 끊는다.
+        await Task { [self] in
+            switch selectedTab {
+            case .recommend: await loadRecommendSections()
+            case .myGroups:  await loadMyGroups()
+            case .applied:   await loadAppliedGroups()
+            }
+        }.value
     }
 
     // MARK: - 로드
