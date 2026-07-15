@@ -10,6 +10,8 @@ struct TrackerDialogHost: ViewModifier {
         content
             .overlay { dialogOverlay }
             .toast($toastMessage)
+            // 다이얼로그가 떠 있는 동안 하단 탭바 숨김
+            .preference(key: TabBarHiddenKey.self, value: coordinator.route != nil)
     }
 
     @ViewBuilder private var dialogOverlay: some View {

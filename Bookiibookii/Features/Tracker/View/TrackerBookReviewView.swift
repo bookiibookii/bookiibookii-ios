@@ -67,6 +67,7 @@ struct TrackerBookReviewView: View {
         }
         .background(Color("uiBg"))
         .navigationBarBackButtonHidden(true)
+        .dismissKeyboardOnTap()
         .task { await viewModel.load() }
         // 수정 모드 프리필이 비동기로 도착하면 반영
         .onChange(of: viewModel.state.initialStar) { value in

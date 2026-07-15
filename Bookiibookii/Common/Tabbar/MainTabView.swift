@@ -6,13 +6,17 @@ struct MainTabView: View {
     init(container: DIContainer) {}
 
     @State private var selectedTab: BookiiTabCase = .home
+    @State private var tabBarHidden = false
 
     var body: some View {
         selectedTab.contentView(container: container)
             .environmentObject(container)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .onPreferenceChange(TabBarHiddenKey.self) { tabBarHidden = $0 }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                tabBar
+                if !tabBarHidden {
+                    tabBar
+                }
             }
     }
 
@@ -67,6 +71,14 @@ extension MainTabView {
     func withHiddenNavigation() -> some View {
         self.toolbar(.hidden, for: .navigationBar)
             .navigationBarBackButtonHidden(true)
+    }
+}
+
+// 전체 화면 다이얼로그가 떠 있는 동안 하단 탭바를 숨기기 위한 프리퍼런스
+struct TabBarHiddenKey: PreferenceKey {
+    static var defaultValue: Bool = false
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = value || nextValue()
     }
 }
 

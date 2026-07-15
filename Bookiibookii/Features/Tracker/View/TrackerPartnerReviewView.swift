@@ -62,6 +62,7 @@ struct TrackerPartnerReviewView: View {
         }
         .background(Color("uiBg"))
         .navigationBarBackButtonHidden(true)
+        .dismissKeyboardOnTap()
         .task { await viewModel.load() }
     }
 

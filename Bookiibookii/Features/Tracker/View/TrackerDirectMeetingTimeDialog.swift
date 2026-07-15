@@ -48,11 +48,13 @@ struct TrackerDirectMeetingTimeDialog: View {
                 calendarGrid
                 TimePickerRow(isAm: $isAm, hour: $hour, minute: $minute)
             }
+            // 시/분 드롭다운이 아래 버튼 위로 떠 그려지도록 계산 섹션을 위에 합성
+            .zIndex(1)
             buttonRow
         }
         .padding(20)
-        .background(Color("white"))
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        // 드롭다운이 카드 밖으로 떠도 잘리지 않도록 clip 대신 배경만 라운드 처리
+        .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(Color("white")))
     }
 
     // MARK: - 헤더
@@ -108,7 +110,7 @@ struct TrackerDirectMeetingTimeDialog: View {
             .buttonStyle(.plain)
             .frame(width: 32, height: 32)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var monthLabel: String {
@@ -217,14 +219,19 @@ private func buildCalendarGrid(month: Date) -> [[DayCell]] {
     let daysFromPrevMonth = weekday - 1
     guard let gridStart = kstCalendar.date(byAdding: .day, value: -daysFromPrevMonth, to: firstOfMonth) else { return [] }
 
-    return (0..<6).map { week in
-        (0..<7).map { day in
+    var weeks = (0..<6).map { week in
+        (0..<7).map { day -> DayCell in
             let offset = week * 7 + day
             let date = kstCalendar.date(byAdding: .day, value: offset, to: gridStart) ?? gridStart
             let isCurrentMonth = kstCalendar.isDate(date, equalTo: firstOfMonth, toGranularity: .month)
             return DayCell(date: date, isCurrentMonth: isCurrentMonth)
         }
     }
+    // 맨 밑줄이 전부 다음 달이면 제거 (기본 5줄, 6주 필요한 달만 6줄 유지)
+    while let last = weeks.last, last.allSatisfy({ !$0.isCurrentMonth }) {
+        weeks.removeLast()
+    }
+    return weeks
 }
 
 // MARK: - StepChip
@@ -268,23 +275,23 @@ private struct DayCellView: View {
 
     var body: some View {
         Button(action: { onClick(cell.date) }) {
-            ZStack(alignment: .bottom) {
-                Text("\(kstCalendar.component(.day, from: cell.date))")
-                    .pretendardText(size: 15, weight: .medium)
-                    .foregroundColor(textColor)
-
-                if isToday {
-                    Circle()
-                        .fill(Color("sub200"))
-                        .frame(width: 4, height: 4)
+            Text("\(kstCalendar.component(.day, from: cell.date))")
+                .pretendardText(size: 15, weight: .medium)
+                .foregroundColor(textColor)
+                .frame(width: 32, height: 32)
+                .background(isSelected ? Color("main100") : Color.clear)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(alignment: .bottom) {
+                    if isToday {
+                        Circle()
+                            .fill(Color("sub200"))
+                            .frame(width: 4, height: 4)
+                    }
                 }
-            }
-            .frame(width: 32, height: 32)
-            .background(isSelected ? Color("main100") : Color.clear)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
-        .disabled(!isSelectable)
+        // 지난 날짜는 선택만 막고 글자색(검정)은 유지 — .disabled의 흐림 처리 방지
+        .allowsHitTesting(isSelectable)
     }
 }
 
@@ -351,26 +358,27 @@ private struct TimeBox: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            ZStack(alignment: .top) {
-                Button(action: { expanded.toggle() }) {
-                    Text(String(format: "%02d", value))
-                        .pretendardText(size: 14)
-                        .foregroundColor(Color("grey900"))
-                        .frame(width: 80)
-                        .padding(4)
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color("grey200"), lineWidth: 1))
-                }
-                .buttonStyle(.plain)
-
+            Button(action: { expanded.toggle() }) {
+                Text(String(format: "%02d", value))
+                    .pretendardText(size: 14)
+                    .foregroundColor(Color("grey900"))
+                    .padding(4)
+                    .frame(width: 80)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color("grey200"), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            // 드롭다운은 레이아웃에 영향 주지 않는 overlay로 띄운다(다이얼로그가 커지지 않도록)
+            .overlay(alignment: .top) {
                 if expanded {
                     dropdownList
-                        .padding(.top, 44)
+                        .offset(y: 44)
                         .zIndex(1)
                 }
             }
             Text(suffix)
                 .pretendardText(size: 14)
                 .foregroundColor(Color("grey900"))
+                .fixedSize()
         }
     }
 
