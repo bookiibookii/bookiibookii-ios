@@ -70,19 +70,33 @@ struct TrackerMainRoute: View {
     var onNotificationTap: () -> Void
     var onCreateGroupTap: () -> Void
     var onCardTap: (Int) -> Void
+    var onNavigateBookReview: (Int, Bool) -> Void
+    var onNavigatePartnerReview: (Int) -> Void
 
     init(
         viewModel: TrackerMainViewModel,
         onProfileTap: @escaping () -> Void = {},
         onNotificationTap: @escaping () -> Void = {},
         onCreateGroupTap: @escaping () -> Void = {},
-        onCardTap: @escaping (Int) -> Void = { _ in }
+        onCardTap: @escaping (Int) -> Void = { _ in },
+        onNavigateBookReview: @escaping (Int, Bool) -> Void = { _, _ in },
+        onNavigatePartnerReview: @escaping (Int) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.onProfileTap = onProfileTap
         self.onNotificationTap = onNotificationTap
         self.onCreateGroupTap = onCreateGroupTap
         self.onCardTap = onCardTap
+        self.onNavigateBookReview = onNavigateBookReview
+        self.onNavigatePartnerReview = onNavigatePartnerReview
+    }
+
+    // 카드 nav-out 액션(후기/파트너후기). 댓글·독서카드는 이월(no-op 유지).
+    private var navActions: TrackerNavActions {
+        TrackerNavActions(
+            onNavigateBookReview: onNavigateBookReview,
+            onNavigatePartnerReview: onNavigatePartnerReview
+        )
     }
 
     var body: some View {
@@ -98,7 +112,7 @@ struct TrackerMainRoute: View {
                     card.primaryAction,
                     groupId: groupId,
                     coordinator: viewModel.coordinator,
-                    nav: TrackerNavActions()
+                    nav: navActions
                 )
             },
             onSecondaryAction: { groupId in
@@ -107,7 +121,7 @@ struct TrackerMainRoute: View {
                     card.secondaryAction,
                     groupId: groupId,
                     coordinator: viewModel.coordinator,
-                    nav: TrackerNavActions()
+                    nav: navActions
                 )
             },
             onRefresh: { await viewModel.onAppear() }
