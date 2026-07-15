@@ -266,6 +266,30 @@ final class LibraryService {
         }
     }
 
+    /// DELETE `/api/library/memberbooks/{memberBookId}`
+    /// - `MemberBook.removedAt` 설정(소프트 삭제). 본인 서재 목록에서만 제거됩니다.
+    func deleteLibraryMemberBook(memberBookId: Int) async throws {
+        let request = LibraryAPITarget.deleteMemberBook(memberBookId: memberBookId).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let response = try? JSONDecoder().decode(ApiResponseDTO<EmptyResult>.self, from: data) {
+                throw LibraryServiceError.server(
+                    Self.mapDeleteMemberBookErrorMessage(code: response.code, message: response.message)
+                )
+            }
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<EmptyResult>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess else {
+            throw LibraryServiceError.server(
+                Self.mapDeleteMemberBookErrorMessage(code: response.code, message: response.message)
+            )
+        }
+    }
+
     /// DELETE `/api/member-books/cards/{cardId}`
     /// - 비소유자: MemberCard.hidden=true (내 화면에서만 숨김)
     /// - 소유자: 서버는 Cards.deletedAt 설정(그룹 전체 제거). 앱에서는 동일 API 호출.
@@ -291,6 +315,15 @@ final class LibraryService {
         }
     }
 
+    private static func mapDeleteMemberBookErrorMessage(code: String, message: String) -> String {
+        switch code {
+        case "MB404_1":
+            return "해당 서재를 찾을 수 없어요."
+        default:
+            return message.isEmpty ? "서재를 삭제할 수 없어요." : message
+        }
+    }
+
     private static func mapDeleteCardErrorMessage(code: String, message: String) -> String {
         switch code {
         case "MB400_8":
@@ -301,26 +334,6 @@ final class LibraryService {
             return "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요."
         default:
             return message.isEmpty ? "독서카드를 삭제할 수 없어요." : message
-        }
-    }
-
-    /// POST `/api/reviews/relay/{userBookId}` — 직접교환/택배교환 종료 후 후기 제출.
-    func submitRelayReview(userBookId: Int, body: RelayReviewRequestBody) async throws {
-        let request = LibraryAPITarget.postRelayReview(userBookId: userBookId, body: body).asURLRequest()
-        let (data, http) = try await interceptor.request(request)
-        guard (200...299).contains(http.statusCode) else {
-            if let response = try? JSONDecoder().decode(ApiResponseDTO<EmptyResult>.self, from: data),
-               !response.message.isEmpty {
-                throw LibraryServiceError.server(response.message)
-            }
-            throw LibraryServiceError.http(http.statusCode)
-        }
-
-        guard let response = try? JSONDecoder().decode(ApiResponseDTO<EmptyResult>.self, from: data) else {
-            throw LibraryServiceError.invalidResponse
-        }
-        guard response.isSuccess else {
-            throw LibraryServiceError.server(response.message)
         }
     }
 

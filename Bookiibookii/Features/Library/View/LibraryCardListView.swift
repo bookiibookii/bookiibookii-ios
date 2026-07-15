@@ -6,24 +6,21 @@ struct LibraryCardListView: View {
     @StateObject private var viewModel: LibraryCardListViewModel
     @State private var isAddMenuExpanded = false
     @State private var isBookActionsPresented = false
+    @State private var showsDeleteLibraryConfirm = false
 
     let book: LibraryBook
 
     init(
         book: LibraryBook,
         libraryService: LibraryService,
-        userService: UserService,
-        groupService: GroupService,
-        trackerService: TrackerService
+        userService: UserService
     ) {
         self.book = book
         _viewModel = StateObject(
             wrappedValue: LibraryCardListViewModel(
                 book: book,
                 libraryService: libraryService,
-                userService: userService,
-                groupService: groupService,
-                trackerService: trackerService
+                userService: userService
             )
         )
     }
@@ -87,6 +84,18 @@ struct LibraryCardListView: View {
             Button("확인", role: .cancel) { viewModel.toastMessage = nil }
         } message: {
             Text(viewModel.toastMessage ?? "")
+        }
+        .alert("서재 삭제", isPresented: $showsDeleteLibraryConfirm) {
+            Button("취소", role: .cancel) {}
+            Button("삭제", role: .destructive) {
+                Task {
+                    if await viewModel.deleteLibrary() {
+                        container.navigationRouter.pop()
+                    }
+                }
+            }
+        } message: {
+            Text("이 책을 서재에서 삭제할까요?\n내 서재에서만 보이지 않아요.")
         }
     }
 
@@ -380,8 +389,12 @@ struct LibraryCardListView: View {
                 }
 
                 bookActionButton(title: "서재 삭제", color: Color("pointRed")) {
-                    dismissBookActions(with: "서재 삭제 기능은 준비 중입니다.")
+                    isBookActionsPresented = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        showsDeleteLibraryConfirm = true
+                    }
                 }
+                .disabled(viewModel.isDeletingLibrary)
             }
         }
         .padding(.horizontal, 16)
@@ -542,15 +555,10 @@ private struct LibraryCardBookRating: View {
             isCreatedByMe: true,
             isMyOriginalBook: true,
             progressRate: 100,
-            completedAtISO: "2026-01-12T00:00:00Z",
-            togetherMyReadingRate: nil,
-            togetherGroupReadingRate: nil,
-            togetherReadingCompletedAtISO: nil
+            completedAtISO: "2026-01-12T00:00:00Z"
         ),
         libraryService: LibraryService(interceptor: AuthInterceptor(authService: AuthService())),
-        userService: UserService(interceptor: AuthInterceptor(authService: AuthService())),
-        groupService: GroupService(interceptor: AuthInterceptor(authService: AuthService())),
-        trackerService: TrackerService(interceptor: AuthInterceptor(authService: AuthService()))
+        userService: UserService(interceptor: AuthInterceptor(authService: AuthService()))
     )
     .environmentObject(DIContainer())
 }

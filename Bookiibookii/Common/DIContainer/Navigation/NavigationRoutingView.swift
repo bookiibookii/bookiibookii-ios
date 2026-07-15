@@ -71,11 +71,6 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .librarySearch:
-            LibrarySearchView(libraryService: container.api.library)
-                .environmentObject(container)
-                .toolbar(.hidden, for: .navigationBar)
-                .navigationBarBackButtonHidden(true)
         case .libraryBookmarkedCards:
             LibraryBookmarkedCardsView(libraryService: container.api.library)
                 .environmentObject(container)
@@ -85,9 +80,7 @@ struct NavigationRoutingView: View {
             LibraryCardListView(
                 book: book,
                 libraryService: container.api.library,
-                userService: container.api.user,
-                groupService: container.api.group,
-                trackerService: container.api.tracker
+                userService: container.api.user
             )
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
@@ -141,15 +134,6 @@ struct NavigationRoutingView: View {
                 bookTitle: bookTitle,
                 libraryService: container.api.library,
                 userService: container.api.user
-            )
-                .environmentObject(container)
-                .toolbar(.hidden, for: .navigationBar)
-                .navigationBarBackButtonHidden(true)
-        case .togetherReview(let userBookId, let bookTitle):
-            TogetherReviewView(
-                userBookId: userBookId,
-                bookTitle: bookTitle,
-                groupService: container.api.group
             )
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)

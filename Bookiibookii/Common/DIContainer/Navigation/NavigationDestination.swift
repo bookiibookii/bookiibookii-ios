@@ -16,7 +16,6 @@ enum NavigationDestination: Hashable {
     case noticeDetail(noticeId: Int)
     case faq
     case legalDocument(LegalDocumentType)
-    case librarySearch
     case libraryBookmarkedCards
     case libraryCards(book: LibraryBook)
     case libraryGroupReviews(book: LibraryBook)
@@ -25,7 +24,6 @@ enum NavigationDestination: Hashable {
     case libraryBookmarkedCardDetail(cardId: Int, userBookId: Int?)
     case libraryCardAdd(userBookId: Int, cardType: LibraryCardType, bookTitle: String)
     case libraryCardEdit(cardId: Int, userBookId: Int, bookTitle: String, cardType: LibraryCardType)
-    case togetherReview(userBookId: Int, bookTitle: String)
     case group
     case groupEditor(groupId: Int?)
     case myPage

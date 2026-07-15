@@ -15,7 +15,7 @@ enum LibraryAPITarget: APITargetType {
     case createCard(userBookId: Int, body: CardCreateRequestBody)
     case updateCard(cardId: Int, body: CardUpdateRequestBody)
     case deleteCard(cardId: Int)
-    case postRelayReview(userBookId: Int, body: RelayReviewRequestBody)
+    case deleteMemberBook(memberBookId: Int)
 
     var path: String {
         switch self {
@@ -45,8 +45,8 @@ enum LibraryAPITarget: APITargetType {
             return "/api/member-books/cards/\(cardId)"
         case .deleteCard(let cardId):
             return "/api/member-books/cards/\(cardId)"
-        case .postRelayReview(let userBookId, _):
-            return API.Path.relayReview(userBookId: userBookId)
+        case .deleteMemberBook(let memberBookId):
+            return API.Path.library + "/memberbooks/\(memberBookId)"
         }
     }
 
@@ -57,9 +57,9 @@ enum LibraryAPITarget: APITargetType {
             return .get
         case .toggleCardBookmark, .toggleCardReaction, .updateCard:
             return .patch
-        case .deleteCard:
+        case .deleteCard, .deleteMemberBook:
             return .delete
-        case .createCardComment, .cardPresignedPutURL, .createCard, .postRelayReview:
+        case .createCardComment, .cardPresignedPutURL, .createCard:
             return .post
         }
     }
@@ -83,8 +83,6 @@ enum LibraryAPITarget: APITargetType {
             return try? JSONEncoder().encode(body)
         case .toggleCardReaction(_, let body):
             return try? JSONEncoder().encode(body)
-        case .postRelayReview(_, let body):
-            return try? JSONEncoder().encode(body)
         case .toggleCardBookmark:
             return nil
         default:
@@ -94,7 +92,7 @@ enum LibraryAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .createCard, .createCardComment, .toggleCardReaction, .updateCard, .postRelayReview:
+        case .createCard, .createCardComment, .toggleCardReaction, .updateCard:
             return ["Content-Type": "application/json"]
         default:
             return [:]

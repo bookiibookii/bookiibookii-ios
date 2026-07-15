@@ -147,10 +147,6 @@ struct LibraryBook: Identifiable, Equatable, Hashable {
     let isMyOriginalBook: Bool
     var progressRate: Int
     let completedAtISO: String?
-    /// 함께읽기: 라이브러리 멤버북 목록(및 검색)에서만 채워짐.
-    let togetherMyReadingRate: Int?
-    let togetherGroupReadingRate: Int?
-    let togetherReadingCompletedAtISO: String?
 }
 
 enum LibraryGroupStatus: Equatable, Hashable {
@@ -182,16 +178,6 @@ enum LibraryGroupStatus: Equatable, Hashable {
     }
 }
 
-// MARK: - 교환독서 후기 (POST /api/reviews/relay/{userBookId})
-
-struct RelayReviewRequestBody: Encodable {
-    let bookRating: Double      // 0.5 단위
-    let bookComment: String
-    let partnerRating: Double   // 0.5 단위
-    let partnerComment: String
-    let badgeCodes: [String]
-}
-
 extension LibraryBookResponseDTO {
     func toDomain() -> LibraryBook {
         let currentUserId = TokenManager.shared.userId
@@ -217,10 +203,7 @@ extension LibraryBookResponseDTO {
             isCreatedByMe: createdByMe,
             isMyOriginalBook: isMine ?? false,
             progressRate: min(max(progressRate ?? myReadingRate ?? 0, 0), 100),
-            completedAtISO: completedAt,
-            togetherMyReadingRate: myReadingRate,
-            togetherGroupReadingRate: groupReadingRate,
-            togetherReadingCompletedAtISO: togetherReadingCompletedAt
+            completedAtISO: completedAt
         )
     }
 }
