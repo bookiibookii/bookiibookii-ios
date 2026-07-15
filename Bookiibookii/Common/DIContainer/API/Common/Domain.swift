@@ -50,6 +50,7 @@ enum API {
         static func groupBookReviewsMe(groupId: Int) -> String { groups + "/\(groupId)/reviews/book/me" }
         static func groupReviews(groupId: Int) -> String { groups + "/\(groupId)/reviews" }
         static func groupBookReview(groupId: Int, reviewId: Int) -> String { groups + "/\(groupId)/reviews/book/\(reviewId)" }
+        static func groupReviewsMyGroup(groupId: Int) -> String { groups + "/\(groupId)/reviews/my-group" }
         static func groupMemberReviews(groupId: Int) -> String { groups + "/\(groupId)/member-reviews" }
         static func groupDeliveries(groupId: Int) -> String { groups + "/\(groupId)/deliveries" }
         static func groupDeliveryAddress(groupId: Int) -> String { groups + "/\(groupId)/deliveries/address" }

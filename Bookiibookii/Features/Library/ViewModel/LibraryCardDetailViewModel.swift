@@ -10,6 +10,8 @@ final class LibraryCardDetailViewModel: ObservableObject {
     @Published private(set) var isSubmittingComment = false
     @Published var isCommentSheetPresented = false
     @Published var commentInput = ""
+    @Published var toastMessage: String?
+    @Published private(set) var isDeleting = false
 
     private let cardId: Int
     private let libraryService: LibraryService
@@ -92,5 +94,27 @@ final class LibraryCardDetailViewModel: ObservableObject {
 
     func openComments() {
         isCommentSheetPresented = true
+    }
+
+    func deleteCard() async -> Bool {
+        guard !isDeleting else { return false }
+
+        if detail?.isBookmarked == true {
+            toastMessage = "북마크된 독서카드는 삭제할 수 없어요."
+            return false
+        }
+
+        isDeleting = true
+        defer { isDeleting = false }
+
+        do {
+            try await libraryService.deleteLibraryCard(cardId: cardId)
+            NotificationCenter.default.post(name: .libraryCardMutationFinished, object: nil)
+            NotificationCenter.default.post(name: .libraryCardEngagementChanged, object: nil)
+            return true
+        } catch {
+            toastMessage = (error as? LibraryServiceError)?.errorDescription ?? error.localizedDescription
+            return false
+        }
     }
 }

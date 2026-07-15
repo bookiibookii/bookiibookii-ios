@@ -338,7 +338,12 @@ struct LibraryCardListView: View {
 
             VStack(alignment: .leading, spacing: 16) {
                 bookActionButton(title: "교환독서 후기 확인") {
-                    dismissBookActions(with: "교환독서 후기 화면은 준비 중입니다.")
+                    isBookActionsPresented = false
+                    guard book.status == .completed else {
+                        viewModel.toastMessage = "그룹이 종료된 상태에서 리뷰 확인 가능합니다."
+                        return
+                    }
+                    container.navigationRouter.push(to: .libraryGroupReviews(book: book))
                 }
 
                 Button {
@@ -519,6 +524,7 @@ private struct LibraryCardBookRating: View {
     LibraryCardListView(
         book: LibraryBook(
             id: 1,
+            bookId: 1,
             userBookId: 1,
             groupId: 1,
             groupName: "[헤일리와 함께해요]",
@@ -526,6 +532,7 @@ private struct LibraryCardBookRating: View {
             title: "프로젝트 헤일메리",
             author: "앤디 위어",
             genre: "소설",
+            totalPages: 400,
             coverImageURL: nil,
             hostNickname: "헤일리",
             startDate: "2025-12-18",
@@ -533,6 +540,7 @@ private struct LibraryCardBookRating: View {
             status: .completed,
             rating: 4,
             isCreatedByMe: true,
+            isMyOriginalBook: true,
             progressRate: 100,
             completedAtISO: "2026-01-12T00:00:00Z",
             togetherMyReadingRate: nil,

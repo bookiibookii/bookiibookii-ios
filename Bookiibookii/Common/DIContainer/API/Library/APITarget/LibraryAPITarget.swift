@@ -4,6 +4,7 @@ enum LibraryAPITarget: APITargetType {
     case fetchBooks
     case searchBooks(keyword: String)
     case fetchCards(groupId: Int)
+    case fetchGroupReviews(groupId: Int)
     case fetchBookmarkedCards
     case toggleCardBookmark(cardId: Int)
     case toggleCardReaction(cardId: Int, body: CardReactionToggleRequestBody)
@@ -13,6 +14,7 @@ enum LibraryAPITarget: APITargetType {
     case cardPresignedPutURL(userBookId: Int)
     case createCard(userBookId: Int, body: CardCreateRequestBody)
     case updateCard(cardId: Int, body: CardUpdateRequestBody)
+    case deleteCard(cardId: Int)
     case postRelayReview(userBookId: Int, body: RelayReviewRequestBody)
 
     var path: String {
@@ -23,6 +25,8 @@ enum LibraryAPITarget: APITargetType {
             return API.Path.library + "/memberbooks/search"
         case .fetchCards(let groupId):
             return "/api/member-books/group/\(groupId)/cards"
+        case .fetchGroupReviews(let groupId):
+            return API.Path.groupReviews(groupId: groupId)
         case .fetchBookmarkedCards:
             return "/api/member-books/cards/bookmarks"
         case .toggleCardBookmark(let cardId):
@@ -39,6 +43,8 @@ enum LibraryAPITarget: APITargetType {
             return "/api/member-books/\(userBookId)/cards"
         case .updateCard(let cardId, _):
             return "/api/member-books/cards/\(cardId)"
+        case .deleteCard(let cardId):
+            return "/api/member-books/cards/\(cardId)"
         case .postRelayReview(let userBookId, _):
             return API.Path.relayReview(userBookId: userBookId)
         }
@@ -46,10 +52,13 @@ enum LibraryAPITarget: APITargetType {
 
     var method: HTTPMethod {
         switch self {
-        case .fetchBooks, .searchBooks, .fetchCards, .fetchBookmarkedCards, .fetchCardDetail, .fetchCardComments:
+        case .fetchBooks, .searchBooks, .fetchCards, .fetchGroupReviews,
+             .fetchBookmarkedCards, .fetchCardDetail, .fetchCardComments:
             return .get
         case .toggleCardBookmark, .toggleCardReaction, .updateCard:
             return .patch
+        case .deleteCard:
+            return .delete
         case .createCardComment, .cardPresignedPutURL, .createCard, .postRelayReview:
             return .post
         }

@@ -19,10 +19,12 @@ enum NavigationDestination: Hashable {
     case librarySearch
     case libraryBookmarkedCards
     case libraryCards(book: LibraryBook)
+    case libraryGroupReviews(book: LibraryBook)
+    case libraryGroupReviewEdit(book: LibraryBook)
     case libraryCardDetail(cardId: Int, userBookId: Int?)
     case libraryBookmarkedCardDetail(cardId: Int, userBookId: Int?)
     case libraryCardAdd(userBookId: Int, cardType: LibraryCardType, bookTitle: String)
-    case libraryCardEdit(cardId: Int, userBookId: Int)
+    case libraryCardEdit(cardId: Int, userBookId: Int, bookTitle: String, cardType: LibraryCardType)
     case togetherReview(userBookId: Int, bookTitle: String)
     case group
     case groupEditor(groupId: Int?)

@@ -58,6 +58,28 @@ final class LibraryService {
         )).toDomain()
     }
 
+    func fetchGroupReviews(groupId: Int) async throws -> LibraryGroupReviewsResponseDTO {
+        let request = LibraryAPITarget.fetchGroupReviews(groupId: groupId).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(
+            ApiResponseDTO<LibraryGroupReviewsResponseDTO>.self,
+            from: data
+        ) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess else {
+            throw LibraryServiceError.server(response.message)
+        }
+        guard let result = response.result else {
+            throw LibraryServiceError.invalidResponse
+        }
+        return result
+    }
+
     func toggleLibraryCardBookmark(cardId: Int) async throws -> Bool {
         let request = LibraryAPITarget.toggleCardBookmark(cardId: cardId).asURLRequest()
         let (data, http) = try await interceptor.request(request)
@@ -222,8 +244,14 @@ final class LibraryService {
     }
 
     /// PATCH `/api/member-books/cards/{cardId}` — 전달한 필드만 수정.
-    func updateLibraryCard(cardId: Int, s3Key: String, page: Int, memo: String?) async throws {
-        let body = CardUpdateRequestBody(s3Key: s3Key, page: page, memo: memo, quotation: nil)
+    func updateLibraryCard(
+        cardId: Int,
+        s3Key: String?,
+        page: Int,
+        memo: String?,
+        quotation: String?
+    ) async throws {
+        let body = CardUpdateRequestBody(s3Key: s3Key, page: page, memo: memo, quotation: quotation)
         let request = LibraryAPITarget.updateCard(cardId: cardId, body: body).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
@@ -235,6 +263,44 @@ final class LibraryService {
         }
         guard response.isSuccess else {
             throw LibraryServiceError.server(response.message)
+        }
+    }
+
+    /// DELETE `/api/member-books/cards/{cardId}`
+    /// - 비소유자: MemberCard.hidden=true (내 화면에서만 숨김)
+    /// - 소유자: 서버는 Cards.deletedAt 설정(그룹 전체 제거). 앱에서는 동일 API 호출.
+    func deleteLibraryCard(cardId: Int) async throws {
+        let request = LibraryAPITarget.deleteCard(cardId: cardId).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            if let response = try? JSONDecoder().decode(ApiResponseDTO<EmptyResult>.self, from: data) {
+                throw LibraryServiceError.server(
+                    Self.mapDeleteCardErrorMessage(code: response.code, message: response.message)
+                )
+            }
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<EmptyResult>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess else {
+            throw LibraryServiceError.server(
+                Self.mapDeleteCardErrorMessage(code: response.code, message: response.message)
+            )
+        }
+    }
+
+    private static func mapDeleteCardErrorMessage(code: String, message: String) -> String {
+        switch code {
+        case "MB400_8":
+            return "북마크된 독서카드는 삭제할 수 없어요."
+        case "MB404_3", "MB404_2":
+            return "해당 독서카드를 찾을 수 없어요."
+        case "MB409_1":
+            return "일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요."
+        default:
+            return message.isEmpty ? "독서카드를 삭제할 수 없어요." : message
         }
     }
 

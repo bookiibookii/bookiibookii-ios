@@ -24,6 +24,8 @@ struct LibraryCardDetailView: View {
     @State private var imageLayout: ImageLayout = .overlay
     @State private var textTheme: TextTheme = .t1
     @State private var flyingReactions: [FlyingReaction] = []
+    @State private var isActionMenuPresented = false
+    @State private var showsDeleteConfirm = false
 
     private let showsMoreActions: Bool
 
@@ -40,7 +42,7 @@ struct LibraryCardDetailView: View {
     }
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topTrailing) {
             Color("uiBg").ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -58,6 +60,18 @@ struct LibraryCardDetailView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
+
+            if isActionMenuPresented {
+                Color.black.opacity(0.001)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        isActionMenuPresented = false
+                    }
+
+                cardActionMenu
+                    .padding(.top, 68)
+                    .padding(.trailing, 16)
+            }
         }
         .task { await viewModel.load() }
         .onReceive(NotificationCenter.default.publisher(for: .libraryCardMutationFinished)) { _ in
@@ -65,6 +79,35 @@ struct LibraryCardDetailView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
+        .alert("안내", isPresented: Binding(
+            get: { viewModel.toastMessage != nil },
+            set: { if !$0 { viewModel.toastMessage = nil } }
+        )) {
+            Button("확인", role: .cancel) { viewModel.toastMessage = nil }
+        } message: {
+            Text(viewModel.toastMessage ?? "")
+        }
+        .alert("독서카드 숨기기", isPresented: $showsDeleteConfirm) {
+            Button("취소", role: .cancel) {}
+            Button("숨기기", role: .destructive) {
+                Task {
+                    if await viewModel.deleteCard() {
+                        container.navigationRouter.pop()
+                    }
+                }
+            }
+        } message: {
+            Text("이 독서카드를 숨길까요?\n내 화면에서만 보이지 않아요.")
+        }
+    }
+
+    private func requestHideCard() {
+        guard let detail = viewModel.detail else { return }
+        if detail.isBookmarked {
+            viewModel.toastMessage = "북마크된 독서카드는 삭제할 수 없어요."
+            return
+        }
+        showsDeleteConfirm = true
     }
 
     private var header: some View {
@@ -107,15 +150,30 @@ struct LibraryCardDetailView: View {
                 }
                 .buttonStyle(.plain)
 
-                if showsMoreActions {
-                    Button(action: {}) {
-                        Image("ic_meetball")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 32, height: 32)
-                            .frame(width: 40, height: 40)
+                if showsMoreActions, let detail = viewModel.detail {
+                    if detail.isMine {
+                        Button {
+                            isActionMenuPresented.toggle()
+                        } label: {
+                            Image("ic_meetball")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 32, height: 32)
+                                .frame(width: 40, height: 40)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Button {
+                            requestHideCard()
+                        } label: {
+                            Image("ic_trash")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 32, height: 32)
+                                .frame(width: 40, height: 40)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
             .frame(width: 88)
@@ -128,6 +186,76 @@ struct LibraryCardDetailView: View {
                 .fill(Color("grey200"))
                 .frame(height: 1)
         }
+    }
+
+    private var cardActionMenu: some View {
+        VStack(spacing: 0) {
+            cardActionMenuItem(
+                title: "수정하기",
+                iconName: "ic_pencil",
+                action: openEditCard
+            )
+
+            cardActionMenuItem(
+                title: "삭제하기",
+                iconName: "ic_trash",
+                action: {
+                    isActionMenuPresented = false
+                    requestHideCard()
+                }
+            )
+        }
+        .frame(width: 160)
+        .background(Color("white"))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color("grey200"), lineWidth: 1)
+        }
+        .shadow(color: Color.black.opacity(0.1), radius: 10, y: 4)
+    }
+
+    private func cardActionMenuItem(
+        title: String,
+        iconName: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                    .pretendardText(size: 14, weight: .medium)
+                    .foregroundColor(Color("grey700"))
+
+                Spacer()
+
+                Image(iconName)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func openEditCard() {
+        guard let detail = viewModel.detail,
+              let userBookId = detail.memberBookId else {
+            viewModel.toastMessage = "독서카드를 수정할 수 없어요."
+            return
+        }
+
+        isActionMenuPresented = false
+        container.navigationRouter.push(
+            to: .libraryCardEdit(
+                cardId: detail.cardId,
+                userBookId: userBookId,
+                bookTitle: detail.bookTitle ?? "-",
+                cardType: detail.cardType
+            )
+        )
     }
 
     private func detailContent(_ detail: LibraryCardDetail) -> some View {
@@ -562,4 +690,5 @@ private struct CardDetailRemoteImage: View {
 extension Notification.Name {
     static let libraryCardMutationFinished = Notification.Name("libraryCardMutationFinished")
     static let libraryCardEngagementChanged = Notification.Name("libraryCardEngagementChanged")
+    static let libraryGroupReviewUpdated = Notification.Name("libraryGroupReviewUpdated")
 }

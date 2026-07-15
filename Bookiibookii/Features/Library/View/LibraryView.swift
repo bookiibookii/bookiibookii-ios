@@ -38,6 +38,9 @@ struct LibraryView: View {
         .task {
             await viewModel.loadBooks()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .libraryCardMutationFinished)) { _ in
+            Task { await viewModel.loadBooks() }
+        }
     }
 
     private var header: some View {

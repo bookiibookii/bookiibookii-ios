@@ -15,6 +15,7 @@ struct LibraryBookResponseDTO: Decodable {
     let groupType: String?
     let author: String?
     let genre: String?
+    let totalPages: Int?
     let startDate: String?
     let endDate: String?
     let duration: Int?
@@ -49,6 +50,7 @@ struct LibraryBookResponseDTO: Decodable {
         case nickname
         case author
         case genre
+        case totalPages
         case startDate
         case endDate
         case duration
@@ -90,6 +92,7 @@ struct LibraryBookResponseDTO: Decodable {
         groupType = try container.decodeIfPresent(String.self, forKey: .groupType)
         author = try container.decodeIfPresent(String.self, forKey: .author)
         genre = try container.decodeIfPresent(String.self, forKey: .genre)
+        totalPages = try container.decodeIfPresent(Int.self, forKey: .totalPages)
         startDate = try container.decodeIfPresent(String.self, forKey: .startDate)
         endDate = try container.decodeIfPresent(String.self, forKey: .endDate)
         duration = try container.decodeIfPresent(Int.self, forKey: .duration)
@@ -123,6 +126,7 @@ struct LibraryBooksResultDTO: Decodable {
 
 struct LibraryBook: Identifiable, Equatable, Hashable {
     let id: Int
+    let bookId: Int?
     /// 독서카드 생성 등 `/api/cards/{userBookId}` 에 사용. 서버 미전달 시 `nil`.
     let userBookId: Int?
     let groupId: Int
@@ -132,6 +136,7 @@ struct LibraryBook: Identifiable, Equatable, Hashable {
     let title: String
     let author: String?
     let genre: String?
+    let totalPages: Int?
     let coverImageURL: String?
     let hostNickname: String
     let startDate: String?
@@ -139,7 +144,8 @@ struct LibraryBook: Identifiable, Equatable, Hashable {
     let status: LibraryGroupStatus
     let rating: Double?
     let isCreatedByMe: Bool
-    let progressRate: Int
+    let isMyOriginalBook: Bool
+    var progressRate: Int
     let completedAtISO: String?
     /// 함께읽기: 라이브러리 멤버북 목록(및 검색)에서만 채워짐.
     let togetherMyReadingRate: Int?
@@ -193,6 +199,7 @@ extension LibraryBookResponseDTO {
 
         return LibraryBook(
             id: memberBookId ?? userBookId ?? groupId ?? Int.random(in: 100_000...999_999),
+            bookId: bookId,
             userBookId: memberBookId ?? userBookId,
             groupId: groupId ?? 0,
             groupName: groupName ?? "-",
@@ -200,18 +207,70 @@ extension LibraryBookResponseDTO {
             title: bookTitle ?? "-",
             author: author,
             genre: genre,
+            totalPages: totalPages,
             coverImageURL: bookImage,
             hostNickname: hostNickname ?? hostNickName ?? "-",
             startDate: startDate,
             endDate: endDate,
             status: LibraryGroupStatus(rawValue: groupStatus),
             rating: rating,
-            isCreatedByMe: isMine ?? createdByMe,
+            isCreatedByMe: createdByMe,
+            isMyOriginalBook: isMine ?? false,
             progressRate: min(max(progressRate ?? myReadingRate ?? 0, 0), 100),
             completedAtISO: completedAt,
             togetherMyReadingRate: myReadingRate,
             togetherGroupReadingRate: groupReadingRate,
             togetherReadingCompletedAtISO: togetherReadingCompletedAt
         )
+    }
+}
+
+// MARK: - 완료 그룹 후기 (GET /api/groups/{groupId}/reviews)
+
+struct LibraryGroupReviewsResponseDTO: Decodable {
+    let bookReviews: [LibraryGroupBookReviewDTO]?
+    let memberReviews: [LibraryGroupMemberReviewDTO]?
+}
+
+struct LibraryGroupBookReviewDTO: Decodable, Identifiable {
+    let reviewId: Int?
+    let bookId: Int?
+    let bookTitle: String?
+    let bookAuthor: String?
+    let bookImageUrl: String?
+    let writerId: Int?
+    let writerNickname: String?
+    let writerProfileImageUrl: String?
+    let rating: Double?
+    let content: String?
+    let createdAt: String?
+
+    var id: Int { reviewId ?? hashValue }
+
+    private var hashValue: Int {
+        var hasher = Hasher()
+        hasher.combine(bookId)
+        hasher.combine(writerId)
+        hasher.combine(createdAt)
+        return hasher.finalize()
+    }
+}
+
+struct LibraryGroupMemberReviewDTO: Decodable, Identifiable {
+    let reviewId: Int?
+    let writerId: Int?
+    let writerNickname: String?
+    let writerProfileImageUrl: String?
+    let reaction: String?
+    let content: String?
+    let createdAt: String?
+
+    var id: Int { reviewId ?? hashValue }
+
+    private var hashValue: Int {
+        var hasher = Hasher()
+        hasher.combine(writerId)
+        hasher.combine(createdAt)
+        return hasher.finalize()
     }
 }
