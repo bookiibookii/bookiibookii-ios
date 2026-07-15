@@ -22,6 +22,7 @@ enum BookiiTabCase: Int, CaseIterable {
         }
     }
 
+    @MainActor
     @ViewBuilder
     func contentView(container: DIContainer) -> some View {
         switch self {

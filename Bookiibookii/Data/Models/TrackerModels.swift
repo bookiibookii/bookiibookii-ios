@@ -157,6 +157,24 @@ struct MemberReviewResDTO: Decodable {
     let groupCompleted: Bool?
 }
 
+// MARK: - 종료 그룹 리뷰 일괄 수정 (PATCH /api/groups/{groupId}/reviews/my-group)
+
+struct MyGroupReviewsUpdateRequestBody: Encodable {
+    let bookReviews: [MyGroupBookReviewUpdateItem]?
+    let memberReview: MyGroupMemberReviewUpdateItem?
+}
+
+struct MyGroupBookReviewUpdateItem: Encodable {
+    let memberBookId: Int
+    let star: Double?
+    let comment: String?
+}
+
+struct MyGroupMemberReviewUpdateItem: Encodable {
+    let reaction: String?
+    let comment: String?
+}
+
 // MARK: - 배송 등록 (POST /api/groups/{groupId}/deliveries)
 
 struct DeliveryRegisterReqDTO: Encodable {

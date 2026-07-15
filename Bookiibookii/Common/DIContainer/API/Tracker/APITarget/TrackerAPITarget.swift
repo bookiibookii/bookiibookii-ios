@@ -10,6 +10,7 @@ enum TrackerAPITarget: APITargetType {
     case myBookReviews(groupId: Int)
     case postBookReview(groupId: Int, body: BookReviewReqDTO)
     case patchBookReview(groupId: Int, reviewId: Int, body: BookReviewReqDTO)
+    case updateMyGroupReviews(groupId: Int, body: MyGroupReviewsUpdateRequestBody)
     case postMemberReview(groupId: Int, body: MemberReviewCreateReqDTO)
 
     case registerDelivery(groupId: Int, body: DeliveryRegisterReqDTO)
@@ -41,6 +42,8 @@ enum TrackerAPITarget: APITargetType {
             return API.Path.groupReviews(groupId: id)
         case .patchBookReview(let id, let reviewId, _):
             return API.Path.groupBookReview(groupId: id, reviewId: reviewId)
+        case .updateMyGroupReviews(let id, _):
+            return API.Path.groupReviewsMyGroup(groupId: id)
         case .postMemberReview(let id, _):
             return API.Path.groupMemberReviews(groupId: id)
         case .registerDelivery(let id, _):
@@ -69,7 +72,7 @@ enum TrackerAPITarget: APITargetType {
             return .get
         case .postBookReview, .postMemberReview, .registerDelivery, .registerMeeting:
             return .post
-        case .readingProgress, .readingPeriod, .patchBookReview,
+        case .readingProgress, .readingPeriod, .patchBookReview, .updateMyGroupReviews,
              .updateMeeting, .completeMeeting, .confirmPartnerReceive:
             return .patch
         case .updateDeliveryAddressSaved, .updateDeliveryAddressDirect:
@@ -83,6 +86,7 @@ enum TrackerAPITarget: APITargetType {
         case .readingPeriod(_, let body):              return try? JSONEncoder().encode(body)
         case .postBookReview(_, let body):             return try? JSONEncoder().encode(body)
         case .patchBookReview(_, _, let body):         return try? JSONEncoder().encode(body)
+        case .updateMyGroupReviews(_, let body):       return try? JSONEncoder().encode(body)
         case .postMemberReview(_, let body):           return try? JSONEncoder().encode(body)
         case .registerDelivery(_, let body):           return try? JSONEncoder().encode(body)
         case .registerMeeting(_, let body):            return try? JSONEncoder().encode(body)
@@ -95,7 +99,7 @@ enum TrackerAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .readingProgress, .readingPeriod, .postBookReview, .patchBookReview,
+        case .readingProgress, .readingPeriod, .postBookReview, .patchBookReview, .updateMyGroupReviews,
              .postMemberReview, .registerDelivery, .registerMeeting, .updateMeeting,
              .updateDeliveryAddressSaved, .updateDeliveryAddressDirect:
             return ["Content-Type": "application/json"]

@@ -13,8 +13,6 @@ enum GroupAPITarget: APITargetType {
     case updateApplicant(applicationId: Int, body: GroupAppStatusRequest)
     case modifyGroup(groupId: Int, body: GroupModifyRequest)
     case deleteGroup(groupId: Int)
-    case completeTogetherReading(groupId: Int)
-    case createTogetherReview(userBookId: Int, body: TogetherReviewCreateRequest)
     case homeGroups
     case myHostedGroups
     case appliedGroups
@@ -46,10 +44,6 @@ enum GroupAPITarget: APITargetType {
             return API.Path.groups + "/\(groupId)/apply"
         case .fetchApplicants(let groupId):
             return API.Path.groups + "/\(groupId)/applylist"
-        case .completeTogetherReading(let groupId):
-            return API.Path.groups + "/\(groupId)/together/members/me/complete"
-        case .createTogetherReview(let userBookId, _):
-            return "/api/reviews/together/\(userBookId)"
         case .updateApplicant(let applicationId, _):
             return API.Path.groups + "/apply/\(applicationId)"
         case .postComment(let groupId, _), .fetchComments(let groupId):
@@ -61,8 +55,8 @@ enum GroupAPITarget: APITargetType {
 
     var method: HTTPMethod {
         switch self {
-        case .createGroup, .applyGroup, .createTogetherReview, .postComment: return .post
-        case .modifyGroup, .updateApplicant, .completeTogetherReading: return .patch
+        case .createGroup, .applyGroup, .postComment: return .post
+        case .modifyGroup, .updateApplicant: return .patch
         case .cancelApply, .deleteGroup, .deleteComment:        return .delete
         default:                                return .get
         }
@@ -104,7 +98,6 @@ enum GroupAPITarget: APITargetType {
         case .applyGroup(_, let body):            return try? JSONEncoder().encode(body)
         case .updateApplicant(_, let body):       return try? JSONEncoder().encode(body)
         case .modifyGroup(_, let body):           return try? JSONEncoder().encode(body)
-        case .createTogetherReview(_, let body):  return try? JSONEncoder().encode(body)
         case .postComment(_, let body):           return try? JSONEncoder().encode(body)
         default:                                   return nil
         }
@@ -112,7 +105,7 @@ enum GroupAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .createGroup, .applyGroup, .updateApplicant, .modifyGroup, .createTogetherReview, .postComment:
+        case .createGroup, .applyGroup, .updateApplicant, .modifyGroup, .postComment:
             return ["Content-Type": "application/json"]
         default:
             return [:]

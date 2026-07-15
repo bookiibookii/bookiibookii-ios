@@ -4,6 +4,7 @@ enum LibraryAPITarget: APITargetType {
     case fetchBooks
     case searchBooks(keyword: String)
     case fetchCards(groupId: Int)
+    case fetchGroupReviews(groupId: Int)
     case fetchBookmarkedCards
     case toggleCardBookmark(cardId: Int)
     case toggleCardReaction(cardId: Int, body: CardReactionToggleRequestBody)
@@ -13,7 +14,8 @@ enum LibraryAPITarget: APITargetType {
     case cardPresignedPutURL(userBookId: Int)
     case createCard(userBookId: Int, body: CardCreateRequestBody)
     case updateCard(cardId: Int, body: CardUpdateRequestBody)
-    case postRelayReview(userBookId: Int, body: RelayReviewRequestBody)
+    case deleteCard(cardId: Int)
+    case deleteMemberBook(memberBookId: Int)
 
     var path: String {
         switch self {
@@ -23,6 +25,8 @@ enum LibraryAPITarget: APITargetType {
             return API.Path.library + "/memberbooks/search"
         case .fetchCards(let groupId):
             return "/api/member-books/group/\(groupId)/cards"
+        case .fetchGroupReviews(let groupId):
+            return API.Path.groupReviews(groupId: groupId)
         case .fetchBookmarkedCards:
             return "/api/member-books/cards/bookmarks"
         case .toggleCardBookmark(let cardId):
@@ -39,18 +43,23 @@ enum LibraryAPITarget: APITargetType {
             return "/api/member-books/\(userBookId)/cards"
         case .updateCard(let cardId, _):
             return "/api/member-books/cards/\(cardId)"
-        case .postRelayReview(let userBookId, _):
-            return API.Path.relayReview(userBookId: userBookId)
+        case .deleteCard(let cardId):
+            return "/api/member-books/cards/\(cardId)"
+        case .deleteMemberBook(let memberBookId):
+            return API.Path.library + "/memberbooks/\(memberBookId)"
         }
     }
 
     var method: HTTPMethod {
         switch self {
-        case .fetchBooks, .searchBooks, .fetchCards, .fetchBookmarkedCards, .fetchCardDetail, .fetchCardComments:
+        case .fetchBooks, .searchBooks, .fetchCards, .fetchGroupReviews,
+             .fetchBookmarkedCards, .fetchCardDetail, .fetchCardComments:
             return .get
         case .toggleCardBookmark, .toggleCardReaction, .updateCard:
             return .patch
-        case .createCardComment, .cardPresignedPutURL, .createCard, .postRelayReview:
+        case .deleteCard, .deleteMemberBook:
+            return .delete
+        case .createCardComment, .cardPresignedPutURL, .createCard:
             return .post
         }
     }
@@ -74,8 +83,6 @@ enum LibraryAPITarget: APITargetType {
             return try? JSONEncoder().encode(body)
         case .toggleCardReaction(_, let body):
             return try? JSONEncoder().encode(body)
-        case .postRelayReview(_, let body):
-            return try? JSONEncoder().encode(body)
         case .toggleCardBookmark:
             return nil
         default:
@@ -85,7 +92,7 @@ enum LibraryAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .createCard, .createCardComment, .toggleCardReaction, .updateCard, .postRelayReview:
+        case .createCard, .createCardComment, .toggleCardReaction, .updateCard:
             return ["Content-Type": "application/json"]
         default:
             return [:]

@@ -29,13 +29,8 @@ enum API {
         static let faq = "/api/faq"
         static let keywords = "/api/keywords"
         static let library = "/api/library"
-        static let reviews = "/api/reviews"
         static let deviceTokens = "/api/device-tokens"
         static let profiles = "/api/profiles"
-        static func relayReview(userBookId: Int) -> String { "/api/reviews/relay/\(userBookId)" }
-        static func togetherReview(userBookId: Int) -> String { "/api/reviews/together/\(userBookId)" }
-
-        // 트래커 (안드로이드 TrkApi 기준 경로)
         static let myTrackers = "/api/me/trackers"
         static func trackerDetail(groupId: Int)          -> String { "/api/trackers/\(groupId)/tracker" }
         static func trackerReadingProgress(groupId: Int) -> String { "/api/trackers/\(groupId)/reading-progress" }
@@ -50,6 +45,7 @@ enum API {
         static func groupBookReviewsMe(groupId: Int) -> String { groups + "/\(groupId)/reviews/book/me" }
         static func groupReviews(groupId: Int) -> String { groups + "/\(groupId)/reviews" }
         static func groupBookReview(groupId: Int, reviewId: Int) -> String { groups + "/\(groupId)/reviews/book/\(reviewId)" }
+        static func groupReviewsMyGroup(groupId: Int) -> String { groups + "/\(groupId)/reviews/my-group" }
         static func groupMemberReviews(groupId: Int) -> String { groups + "/\(groupId)/member-reviews" }
         static func groupDeliveries(groupId: Int) -> String { groups + "/\(groupId)/deliveries" }
         static func groupDeliveryAddress(groupId: Int) -> String { groups + "/\(groupId)/deliveries/address" }

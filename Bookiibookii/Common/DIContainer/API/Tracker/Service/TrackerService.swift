@@ -49,6 +49,14 @@ final class TrackerService {
         try await request(target: .patchBookReview(groupId: groupId, reviewId: reviewId, body: .init(star: star, comment: comment)))
     }
 
+    /// PATCH /api/groups/{groupId}/reviews/my-group
+    func updateMyGroupReviews(
+        groupId: Int,
+        body: MyGroupReviewsUpdateRequestBody
+    ) async throws {
+        try await requestStatusOnly(target: .updateMyGroupReviews(groupId: groupId, body: body))
+    }
+
     /// POST /api/groups/{groupId}/member-reviews
     func createMemberReview(groupId: Int, reaction: String?, comment: String) async throws -> MemberReviewResDTO {
         try await request(target: .postMemberReview(groupId: groupId, body: .init(reaction: reaction, comment: comment)))
