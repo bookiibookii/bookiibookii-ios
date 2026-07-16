@@ -5,8 +5,12 @@ struct MyPageView: View {
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: MyPageViewModel
     @FocusState private var isIntroductionFocused: Bool
+    @State private var isProfileSharePresented = false
+
+    private let userService: UserService
 
     init(userService: UserService) {
+        self.userService = userService
         _viewModel = StateObject(wrappedValue: MyPageViewModel(userService: userService))
     }
 
@@ -27,6 +31,19 @@ struct MyPageView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 32)
                 }
+            }
+
+            if isProfileSharePresented {
+                ProfileShareSheet(
+                    nickname: viewModel.profile?.nickname ?? "",
+                    introduction: viewModel.profile?.introduction ?? "",
+                    profileImageURL: viewModel.profile?.profileImageUrl,
+                    books: viewModel.userBooks,
+                    userService: userService,
+                    onClose: { isProfileSharePresented = false }
+                )
+                .transition(.opacity)
+                .zIndex(1)
             }
         }
         .task { await viewModel.loadProfile() }
@@ -152,7 +169,9 @@ struct MyPageView: View {
             }
 
             Button {
-                // TODO: 프로필 공유
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isProfileSharePresented = true
+                }
             } label: {
                 Image("ic_share")
                     .resizable()

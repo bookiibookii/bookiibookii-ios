@@ -80,6 +80,18 @@ final class UserService {
         return result
     }
 
+    /// POST `/api/mypage/share-token`
+    func createProfileShareToken() async throws -> ProfileShareTokenResult {
+        let target = UserAPITarget.createProfileShareToken
+        let request = target.asURLRequest()
+        let (data, _) = try await interceptor.request(request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<ProfileShareTokenResult>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.profileShareFailed(response.message)
+        }
+        return result
+    }
+
     // PATCH /api/mypage
     func updateMypage(_ body: MypageUpdateRequest) async throws {
         let target = UserAPITarget.updateMypage(body)
@@ -323,6 +335,7 @@ enum UserError: LocalizedError {
     case profileChangeFailed(String)
     case bookshelfFailed(String)
     case reviewFailed(String)
+    case profileShareFailed(String)
     case withdrawFailed(String)
     case activeGroupExists
 
@@ -335,6 +348,7 @@ enum UserError: LocalizedError {
         case .profileChangeFailed(let msg): return msg
         case .bookshelfFailed(let msg): return msg.isEmpty ? "책장을 불러오지 못했습니다." : msg
         case .reviewFailed(let msg): return msg.isEmpty ? "후기를 불러오지 못했습니다." : msg
+        case .profileShareFailed(let msg): return msg.isEmpty ? "프로필 공유 링크를 만들지 못했어요." : msg
         case .withdrawFailed(let msg): return msg.isEmpty ? "회원탈퇴에 실패했습니다." : msg
         case .activeGroupExists: return "진행 중인 그룹이 모두 종료되어야 탈퇴 가능합니다."
         }
