@@ -1,26 +1,22 @@
 import SwiftUI
 
+/// 장소 검색 전체 화면. 시트 위 또 다른 시트가 아니라, 네비게이션처럼 화면을 덮습니다.
 struct ExchangePlaceSearchOverlay: View {
     let onClose: () -> Void
     let onSelect: (KakaoPlaceResult) -> Void
 
     var body: some View {
-        ZStack {
-            Color.black.opacity(0.45)
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                header
-                KakaoPlaceSearchView { place in
-                    onSelect(place)
-                    onClose()
-                }
+        VStack(spacing: 0) {
+            header
+            KakaoPlaceSearchView { place in
+                onSelect(place)
+                onClose()
             }
-            .background(Color("white"))
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .padding(.top, 8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .transition(.opacity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color("white").ignoresSafeArea())
+        .transition(.move(edge: .trailing).combined(with: .opacity))
     }
 
     private var header: some View {
@@ -42,6 +38,7 @@ struct ExchangePlaceSearchOverlay: View {
             }
         }
         .frame(height: 52)
+        .background(Color("white"))
         .overlay(alignment: .bottom) {
             Rectangle().fill(Color("grey200")).frame(height: 1)
         }

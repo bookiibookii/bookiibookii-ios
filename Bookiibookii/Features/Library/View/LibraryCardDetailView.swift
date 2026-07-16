@@ -26,8 +26,20 @@ struct LibraryCardDetailView: View {
     @State private var flyingReactions: [FlyingReaction] = []
     @State private var isActionMenuPresented = false
     @State private var showsDeleteConfirm = false
+    @State private var isShareSheetPresented = false
 
     private let showsMoreActions: Bool
+
+    /// 안드로이드와 동일: PHOTO overlay→OVERLAY / split→SPLIT, TEXT t1→SPLIT / t2→OVERLAY
+    private var currentShareLayout: String {
+        guard let detail = viewModel.detail else { return "OVERLAY" }
+        switch detail.cardType {
+        case .image:
+            return imageLayout == .overlay ? "OVERLAY" : "SPLIT"
+        case .text:
+            return textTheme == .t1 ? "SPLIT" : "OVERLAY"
+        }
+    }
 
     init(
         cardId: Int,
@@ -71,6 +83,17 @@ struct LibraryCardDetailView: View {
                 cardActionMenu
                     .padding(.top, 68)
                     .padding(.trailing, 16)
+            }
+
+            if isShareSheetPresented, let detail = viewModel.detail {
+                LibraryCardShareSheet(
+                    detail: detail,
+                    shareLayout: currentShareLayout,
+                    libraryService: container.api.library,
+                    onClose: { isShareSheetPresented = false }
+                )
+                .transition(.opacity)
+                .zIndex(2)
             }
         }
         .task { await viewModel.load() }
@@ -141,7 +164,11 @@ struct LibraryCardDetailView: View {
                         .frame(width: 40, height: 40)
                 }
 
-                Button(action: {}) {
+                Button {
+                    guard viewModel.detail != nil else { return }
+                    isActionMenuPresented = false
+                    isShareSheetPresented = true
+                } label: {
                     Image("ic_share")
                         .resizable()
                         .scaledToFit()
@@ -149,6 +176,7 @@ struct LibraryCardDetailView: View {
                         .frame(width: 40, height: 40)
                 }
                 .buttonStyle(.plain)
+                .disabled(viewModel.detail == nil)
 
                 if showsMoreActions, let detail = viewModel.detail {
                     if detail.isMine {
@@ -479,21 +507,24 @@ struct LibraryCardDetailView: View {
                 textGradient
 
                 VStack(alignment: .leading, spacing: 8) {
+                    textBookTitleChip(title: detail.bookTitle ?? "")
+
                     Image("ic_quote")
                         .renderingMode(.template)
                         .resizable()
                         .scaledToFit()
-                        .foregroundColor(textTheme == .t1 ? Color("main200") : .white)
+                        .foregroundColor(textTheme == .t1 ? Color("main100") : .white.opacity(0.85))
                         .frame(width: 28, height: 28)
+                        .padding(.top, 4)
 
-                    Text(detail.quotation ?? "")
+                    Text(displayQuotation(detail.quotation ?? detail.memo))
                         .font(.custom("MaruBuri-Bold", size: 20))
                         .foregroundColor(textTheme == .t1 ? Color("main200") : .white)
                         .lineSpacing(8)
                         .lineLimit(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 40)
+                .padding(20)
             }
             .frame(height: 336)
 
@@ -511,11 +542,45 @@ struct LibraryCardDetailView: View {
         .padding(.horizontal, 16)
     }
 
+    private func textBookTitleChip(title: String) -> some View {
+        HStack(spacing: 8) {
+            Image("ic_logo_symbol")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .foregroundColor(.white)
+                .frame(width: 16, height: 16)
+
+            Text(title)
+                .pretendardText(size: 16, weight: .medium)
+                .foregroundColor(.white)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(textTheme == .t1 ? Color("main200") : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            if textTheme == .t2 {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color("main100"), lineWidth: 1)
+            }
+        }
+    }
+
+    private func displayQuotation(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("“") || trimmed.hasPrefix("\"") || trimmed.hasPrefix("「") {
+            return trimmed
+        }
+        return "“\(trimmed)”"
+    }
+
     private var textGradient: LinearGradient {
         switch textTheme {
         case .t1:
             return LinearGradient(
-                colors: [Color("white"), Color("main100")],
+                colors: [Color("white"), Color("main105")],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )

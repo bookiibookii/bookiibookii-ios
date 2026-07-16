@@ -142,6 +142,25 @@ final class LibraryService {
         return result.toLibraryCardDetail()
     }
 
+    /// POST `/api/member-books/cards/{cardId}/share-token`
+    /// - Parameter shareLayout: `"OVERLAY"` | `"SPLIT"`
+    func createCardShareToken(cardId: Int, shareLayout: String) async throws -> ShareTokenResponseDTO {
+        let body = CreateShareTokenRequestBody(shareLayout: shareLayout)
+        let request = LibraryAPITarget.createShareToken(cardId: cardId, body: body).asURLRequest()
+        let (data, http) = try await interceptor.request(request)
+        guard (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http(http.statusCode)
+        }
+
+        guard let response = try? JSONDecoder().decode(ApiResponseDTO<ShareTokenResponseDTO>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard response.isSuccess, let result = response.result else {
+            throw LibraryServiceError.server(response.message)
+        }
+        return result
+    }
+
     func fetchLibraryCardComments(cardId: Int) async throws -> LibraryCardCommentList {
         let request = LibraryAPITarget.fetchCardComments(cardId: cardId).asURLRequest()
         let (data, http) = try await interceptor.request(request)

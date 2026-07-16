@@ -233,6 +233,13 @@ struct OtherProfileResult: Decodable {
     }
 }
 
+// MARK: - 프로필 공유 (POST /api/mypage/share-token)
+
+struct ProfileShareTokenResult: Decodable {
+    let shareToken: String
+    let shareUrl: String
+}
+
 // MARK: - 공통 단순 응답
 
 struct SimpleResponse: Decodable {

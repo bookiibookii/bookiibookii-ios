@@ -22,17 +22,14 @@ struct ExchangeAddressFormSheet: View {
     }
 
     var body: some View {
-        ZStack {
-            formContent
-
-            if isSearchPresented {
+        formContent
+            .background(Color("white"))
+            .fullScreenCover(isPresented: $isSearchPresented) {
                 ExchangePlaceSearchOverlay(
                     onClose: { isSearchPresented = false },
                     onSelect: onSelectPlace
                 )
             }
-        }
-        .background(Color("white"))
     }
 
     private var formContent: some View {

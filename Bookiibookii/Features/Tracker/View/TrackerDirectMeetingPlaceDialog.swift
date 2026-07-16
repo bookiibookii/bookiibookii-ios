@@ -2,7 +2,7 @@ import SwiftUI
 
 // 직접교환 약속 잡기 2/3 - 장소 선택 다이얼로그.
 // 카드 컨텐츠만 담당 — 스크림/오버레이는 호스트 담당.
-// 검색바 탭 시 내부적으로 ExchangePlaceSearchOverlay를 ZStack 상단에 표시(자체 스크림 보유).
+// 검색바 탭 시 장소 검색을 fullScreenCover로 표시.
 struct TrackerDirectMeetingPlaceDialog: View {
     let address: String
     let addressDetail: String
@@ -20,10 +20,8 @@ struct TrackerDirectMeetingPlaceDialog: View {
     }
 
     var body: some View {
-        ZStack {
-            content
-
-            if showSearch {
+        content
+            .fullScreenCover(isPresented: $showSearch) {
                 ExchangePlaceSearchOverlay(
                     onClose: { showSearch = false },
                     onSelect: {
@@ -32,7 +30,6 @@ struct TrackerDirectMeetingPlaceDialog: View {
                     }
                 )
             }
-        }
     }
 
     private var content: some View {

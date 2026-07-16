@@ -60,6 +60,17 @@ struct CardReactionToggleRequestBody: Encodable {
     let reaction: LibraryCardReaction
 }
 
+/// POST `/api/member-books/cards/{cardId}/share-token`
+struct CreateShareTokenRequestBody: Encodable {
+    let shareLayout: String
+}
+
+struct ShareTokenResponseDTO: Decodable {
+    let shareToken: String
+    let shareUrl: String
+    let shareLayout: String?
+}
+
 struct CardReactionToggleResponseDTO: Decodable {
     let reaction: LibraryCardReaction
     let active: Bool

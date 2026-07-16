@@ -1,29 +1,23 @@
 import SwiftUI
 
+/// 주소 검색 전체 화면. 시트 위 또 다른 시트가 아니라, 네비게이션처럼 화면을 덮습니다.
 struct AddressSearchOverlay: View {
     let title: String
     let onClose: () -> Void
     let onSelect: (DaumPostcodeResult) -> Void
 
     var body: some View {
-        ZStack {
-            Color.black.opacity(0.45)
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                header
-                DaumPostcodeView { result in
-                    onSelect(result)
-                    onClose()
-                }
+        VStack(spacing: 0) {
+            header
+            DaumPostcodeView { result in
+                onSelect(result)
+                onClose()
             }
-            .background(Color("white"))
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .padding(.horizontal, 0)
-            .padding(.top, 8)
-            .padding(.bottom, 0)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .transition(.opacity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color("white").ignoresSafeArea())
+        .transition(.move(edge: .trailing).combined(with: .opacity))
     }
 
     private var header: some View {
@@ -45,6 +39,7 @@ struct AddressSearchOverlay: View {
             }
         }
         .frame(height: 52)
+        .background(Color("white"))
         .overlay(alignment: .bottom) {
             Rectangle().fill(Color("grey200")).frame(height: 1)
         }

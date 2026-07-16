@@ -60,7 +60,6 @@ struct TrackerDeliveryAddressEditDialog: View {
                     selectedUserDeliveryId = nil
                 }
             )
-            .presentationBackground(.clear)
         }
     }
 
