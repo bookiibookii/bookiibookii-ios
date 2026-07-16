@@ -1,31 +1,147 @@
 import SwiftUI
 
 /// 공유 미리보기에서 선택할 수 있는 두 가지 스타일.
-/// - `divide`: 책 제목 / 카드 이미지 / 메모·작성자 영역이 위·아래로 분리된 형태 (`ic_divide_image`).
-/// - `card` : 카드 이미지 위에 메모·작성자가 오버레이되는 형태 (`ic_card_image`).
+/// - 이미지 카드: `divide`(SPLIT) / `card`(OVERLAY)
+/// - 텍스트 카드: 레이아웃은 동일하고 색상만 다름 (`divide`=t1 라이트, `card`=t2 다크)
 enum LibraryCardShareStyle: Equatable {
     case divide
     case card
 }
 
-/// 공유용 카드 미리보기.
-///
-/// 동일한 데이터(`책 제목`, `카드 이미지`, `메모`, `작성자`)를 받아
-/// 선택된 `LibraryCardShareStyle`에 따라 두 가지 디자인 중 하나로 렌더링합니다.
+/// 공유·다운로드용 카드 미리보기.
 struct LibraryCardSharePreview: View {
     let detail: LibraryCardDetail
     let style: LibraryCardShareStyle
 
     var body: some View {
-        switch style {
-        case .divide: divideStyle
-        case .card:   cardStyle
+        Group {
+            if detail.cardType == .text {
+                textShareCard
+            } else {
+                switch style {
+                case .divide: imageDivideStyle
+                case .card:   imageCardStyle
+                }
+            }
         }
     }
 
-    // MARK: - Divide 스타일 (제목/이미지/메모가 분리된 형태)
+    // MARK: - Text share (Figma: logo+title chip, quotation, memo, by.)
 
-    private var divideStyle: some View {
+    private var isLightTextTheme: Bool { style == .divide }
+
+    private var textShareCard: some View {
+        VStack(spacing: 0) {
+            ZStack(alignment: .topLeading) {
+                textGradient
+
+                VStack(alignment: .leading, spacing: 8) {
+                    bookTitleChip
+
+                    Image("ic_quote")
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundColor(isLightTextTheme ? Color("main100") : Color.white.opacity(0.85))
+                        .frame(width: 28, height: 28)
+                        .padding(.top, 12)
+
+                    Text(displayQuotation)
+                        .font(.custom("MaruBuri-Bold", size: 20))
+                        .foregroundColor(isLightTextTheme ? Color("main200") : .white)
+                        .lineSpacing(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(20)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 372)
+
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(detail.memo)
+                    .pretendardText(size: 15, weight: .regular)
+                    .foregroundColor(Color("grey900"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .lineLimit(5)
+
+                Spacer(minLength: 0)
+
+                Text("by. \(detail.creatorName)")
+                    .pretendardText(size: 14, weight: .regular)
+                    .foregroundColor(Color("grey400"))
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity)
+            .frame(height: 148)
+            .background(Color("white"))
+        }
+        .frame(maxWidth: .infinity)
+        .background(Color("white"))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: Color.black.opacity(0.1), radius: 5)
+    }
+
+    /// 글귀 그대로 보여주되, 따옴표가 없으면 Figma/안드처럼 감싼다.
+    private var displayQuotation: String {
+        let raw = (detail.quotation?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap {
+            $0.isEmpty ? nil : $0
+        } ?? detail.memo
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("“") || trimmed.hasPrefix("\"") || trimmed.hasPrefix("「") {
+            return trimmed
+        }
+        return "“\(trimmed)”"
+    }
+
+    private var bookTitleChip: some View {
+        HStack(spacing: 8) {
+            Image("ic_logo_symbol")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .foregroundColor(.white)
+                .frame(width: 16, height: 16)
+
+            Text(detail.bookTitle ?? "")
+                .pretendardText(size: 16, weight: .medium)
+                .foregroundColor(.white)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(isLightTextTheme ? Color("main200") : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            if !isLightTextTheme {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color("main100"), lineWidth: 1)
+            }
+        }
+    }
+
+    private var textGradient: LinearGradient {
+        if isLightTextTheme {
+            return LinearGradient(
+                colors: [Color("white"), Color("main105")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+        return LinearGradient(
+            colors: [
+                Color(red: 1, green: 0.31, blue: 0.09),
+                Color("main200"),
+                Color("main100")
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    // MARK: - Image divide (SPLIT)
+
+    private var imageDivideStyle: some View {
         VStack(spacing: 0) {
             cardImageView
                 .aspectRatio(1, contentMode: .fit)
@@ -33,9 +149,11 @@ struct LibraryCardSharePreview: View {
                 .clipped()
                 .overlay(alignment: .topLeading) {
                     HStack(spacing: 6) {
-                        Image("divide_image_icon")
+                        Image("ic_logo_symbol")
+                            .renderingMode(.template)
                             .resizable()
                             .scaledToFit()
+                            .foregroundColor(Color("main200"))
                             .frame(width: 18, height: 16)
                         Text(detail.bookTitle ?? "")
                             .pretendardText(size: 13, weight: .medium)
@@ -57,7 +175,7 @@ struct LibraryCardSharePreview: View {
 
                 HStack(spacing: 8) {
                     Spacer()
-                    Text(detail.creatorName)
+                    Text("by. \(detail.creatorName)")
                         .pretendardText(size: 12, weight: .regular)
                         .foregroundColor(Color("grey500"))
                 }
@@ -73,12 +191,12 @@ struct LibraryCardSharePreview: View {
         )
     }
 
-    // MARK: - Card 스타일 (이미지 위에 메모/작성자 오버레이)
+    // MARK: - Image card (OVERLAY)
 
-    private var cardStyle: some View {
+    private var imageCardStyle: some View {
         ZStack {
             cardImageView
-                .aspectRatio(3.0/4.0, contentMode: .fill)
+                .aspectRatio(3.0 / 4.0, contentMode: .fill)
                 .frame(maxWidth: .infinity)
                 .clipped()
 
@@ -97,24 +215,26 @@ struct LibraryCardSharePreview: View {
                 Spacer(minLength: 0)
 
                 HStack {
-                    Text(detail.creatorName)
+                    Text("by. \(detail.creatorName)")
                         .pretendardText(size: 12, weight: .regular)
                         .foregroundColor(Color.white)
                     Spacer()
-                    Image("card_image_icon")
+                    Image("ic_logo_symbol")
+                        .renderingMode(.template)
                         .resizable()
                         .scaledToFit()
+                        .foregroundColor(.white.opacity(0.85))
                         .frame(width: 22, height: 22)
                 }
             }
             .padding(20)
         }
         .frame(maxWidth: .infinity)
-        .aspectRatio(3.0/4.0, contentMode: .fit)
+        .aspectRatio(3.0 / 4.0, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    // MARK: - 이미지
+    // MARK: - Image
 
     @ViewBuilder
     private var cardImageView: some View {

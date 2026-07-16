@@ -1,38 +1,130 @@
 import SwiftUI
+import UIKit
+import Photos
+import KakaoSDKShare
+import KakaoSDKTemplate
 
-/// 독서카드 상세 화면의 공유 시트.
-/// - 상단: "공유하기" 헤더 + 닫기 버튼 (`ic_close`)
-/// - 미리보기 스타일 선택: `ic_divide_image`, `ic_card_image`
-/// - 미리보기: `LibraryCardSharePreview`
-/// - 하단: 인스타/카카오/X/링크복사 (`ic_insta`, `ic_kakao`, `ic_x`, `ic_link`)
+/// 독서카드 공유 바텀시트 (Figma LIB-03-02).
+/// 카카오톡 / 인스타그램 / X / 다운로드 / 링크 복사 — 안드로이드 `ReadingCardShareBottomSheet`와 동일 액션.
 struct LibraryCardShareSheet: View {
     let detail: LibraryCardDetail
+    /// 서버 `ShareLayout`: `"OVERLAY"` | `"SPLIT"`
+    let shareLayout: String
+    let libraryService: LibraryService
     let onClose: () -> Void
 
-    @State private var style: LibraryCardShareStyle = .divide
     @State private var alertMessage: String?
+    @State private var isBusy = false
+
+    private var previewStyle: LibraryCardShareStyle {
+        shareLayout.uppercased() == "SPLIT" ? .divide : .card
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-                .padding(.horizontal, 24)
+        ZStack(alignment: .bottom) {
+            // Figma처럼 위는 반투명 딤 — 카드 상세가 비침
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .onTapGesture { onClose() }
+
+            VStack(spacing: 0) {
+                Capsule()
+                    .fill(Color("grey200"))
+                    .frame(width: 44, height: 4)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
+
+                Text("공유하기")
+                    .pretendardText(size: 20, weight: .semibold)
+                    .foregroundColor(Color("grey900"))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 16)
+
+                Rectangle()
+                    .fill(Color("grey200"))
+                    .frame(height: 0.5)
+
+                HStack(spacing: 0) {
+                    shareOption(
+                        label: "카카오톡",
+                        circularBackground: Color("kakao")
+                    ) {
+                        Image("ic_kakao")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                    } action: {
+                        Task { await shareToKakao() }
+                    }
+
+                    shareOption(label: "인스타그램", circularBackground: nil) {
+                        Image("ic_insta")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 56, height: 56)
+                    } action: {
+                        Task { await shareToInstagram() }
+                    }
+
+                    shareOption(label: "X", circularBackground: nil) {
+                        Image("img_share_x")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 56, height: 56)
+                    } action: {
+                        Task { await shareToX() }
+                    }
+
+                    shareOption(
+                        label: "다운로드",
+                        circularBackground: Color("grey100")
+                    ) {
+                        Image("ic_download")
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundColor(Color("grey700"))
+                            .frame(width: 24, height: 24)
+                    } action: {
+                        Task { await downloadCard() }
+                    }
+
+                    shareOption(
+                        label: "링크 복사",
+                        circularBackground: Color("grey100")
+                    ) {
+                        Image("ic_link")
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundColor(Color("grey700"))
+                            .frame(width: 24, height: 24)
+                    } action: {
+                        Task { await copyLink() }
+                    }
+                }
+                .padding(.horizontal, 8)
                 .padding(.top, 24)
-                .padding(.bottom, 20)
-
-            LibraryCardSharePreview(detail: detail, style: style)
-                .padding(.horizontal, 24)
-                .frame(maxWidth: .infinity)
-                .padding(.bottom, 20)
-            
-            styleSelector
-                .padding(.bottom, 20)
-
-            platformButtons
-                .padding(.horizontal, 24)
                 .padding(.bottom, 24)
+                .disabled(isBusy)
+                .opacity(isBusy ? 0.6 : 1)
+            }
+            .frame(maxWidth: .infinity)
+            // 홈 인디케이터(둥근 하단) 영역까지 흰색으로 채움
+            .background {
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 20,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 20
+                )
+                .fill(Color("white"))
+                .shadow(color: Color.black.opacity(0.1), radius: 17.5)
+                .ignoresSafeArea(edges: .bottom)
+            }
+            .safeAreaPadding(.bottom)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color("white"))
         .alert("안내", isPresented: Binding(
             get: { alertMessage != nil },
             set: { if !$0 { alertMessage = nil } }
@@ -43,132 +135,223 @@ struct LibraryCardShareSheet: View {
         }
     }
 
-    private var header: some View {
-        HStack {
-            Text("공유하기")
-                .pretendardText(size: 18, weight: .medium)
-                .foregroundColor(Color("grey900"))
-
-            Spacer()
-
-            Button(action: onClose) {
-                Image("ic_x")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 32, height: 32)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private var styleSelector: some View {
-        HStack(spacing: 16) {
-            styleButton(.divide, asset: "ic_divide_image")
-            styleButton(.card, asset: "ic_card_image")
-        }
-    }
-
-    private func styleButton(_ target: LibraryCardShareStyle, asset: String) -> some View {
-        Button {
-            style = target
-        } label: {
-            Image(asset)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 40, height: 40)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var platformButtons: some View {
-        HStack(spacing: 0) {
-            platformButton("ic_insta", label: "인스타그램", action: shareToInstagram)
-            platformButton("ic_kakao", label: "카카오톡", action: shareToKakao)
-            platformButton("ic_x", label: "X", action: shareToX)
-            platformButton("ic_link", label: "링크복사", action: copyLink)
-        }
-    }
-
-    private func platformButton(_ asset: String, label: String, action: @escaping () -> Void) -> some View {
+    private func shareOption<Icon: View>(
+        label: String,
+        circularBackground: Color?,
+        @ViewBuilder icon: () -> Icon,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                Image(asset)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 56, height: 56)
+                Group {
+                    if let circularBackground {
+                        icon()
+                            .frame(width: 56, height: 56)
+                            .background(circularBackground)
+                            .clipShape(Circle())
+                    } else {
+                        icon()
+                            .frame(width: 56, height: 56)
+                    }
+                }
+
                 Text(label)
                     .pretendardText(size: 12, weight: .regular)
-                    .foregroundColor(Color("grey900"))
+                    .foregroundColor(Color("grey700"))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
     }
 
-    // MARK: - Share actions
+    // MARK: - Actions
 
-    /// 현재 선택된 미리보기 스타일을 PNG로 렌더링해 인스타그램 스토리에 스티커로 공유합니다.
-    /// - 인스타그램 미설치 시 안내 알럿
-    /// - 렌더 실패 시 안내 알럿
-    private func shareToInstagram() {
-        let preview = LibraryCardSharePreview(detail: detail, style: style)
-            .background(Color("white"))
+    private func fetchShareURL() async throws -> ShareTokenResponseDTO {
+        try await libraryService.createCardShareToken(
+            cardId: detail.cardId,
+            shareLayout: shareLayout
+        )
+    }
 
-        guard let image = SharePreviewImageRenderer.render(preview, width: 800, scale: 3) else {
+    private func shareToKakao() async {
+        isBusy = true
+        defer { isBusy = false }
+
+        do {
+            let result = try await fetchShareURL()
+            let shareURL = result.shareUrl
+            let token = result.shareToken
+            let title = (detail.bookTitle?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap {
+                $0.isEmpty ? nil : $0
+            } ?? "독서카드"
+            let description = detail.quotation?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+                ?? detail.memo
+            let imageURL = detail.imageURL.flatMap(URL.init(string:))
+
+            let link = Link(
+                webUrl: URL(string: shareURL),
+                mobileWebUrl: URL(string: shareURL),
+                androidExecutionParams: ["shareToken": token],
+                iosExecutionParams: ["shareToken": token]
+            )
+            let content = Content(
+                title: title,
+                imageUrl: imageURL,
+                description: description,
+                link: link
+            )
+            let template = FeedTemplate(
+                content: content,
+                buttons: [KakaoSDKTemplate.Button(title: "보러가기", link: link)]
+            )
+
+            if ShareApi.isKakaoTalkSharingAvailable() {
+                ShareApi.shared.shareDefault(templatable: template) { sharingResult, error in
+                    if error != nil {
+                        alertMessage = "공유에 실패했어요."
+                        return
+                    }
+                    if let url = sharingResult?.url {
+                        UIApplication.shared.open(url)
+                        onClose()
+                    }
+                }
+            } else if let url = ShareApi.shared.makeDefaultUrl(templatable: template) {
+                await UIApplication.shared.open(url)
+                onClose()
+            } else {
+                alertMessage = "카카오톡을 열 수 없어요."
+            }
+        } catch {
+            alertMessage = (error as? LocalizedError)?.errorDescription ?? "공유에 실패했어요."
+        }
+    }
+
+    private func shareToInstagram() async {
+        isBusy = true
+        defer { isBusy = false }
+
+        guard let image = renderShareImage() else {
             alertMessage = InstagramStoriesShareError.renderFailed.errorDescription
             return
         }
 
-        Task {
-            do {
-                try await InstagramStoriesShare.share(
-                    stickerImage: image,
-                    backgroundTopColor: UIColor(named: "main100") ?? .white,
-                    backgroundBottomColor: UIColor(named: "main105") ?? .white
-                )
-            } catch let error as InstagramStoriesShareError {
-                alertMessage = error.errorDescription
-            } catch {
-                alertMessage = error.localizedDescription
+        do {
+            try await InstagramStoriesShare.share(
+                stickerImage: image,
+                backgroundTopColor: .white,
+                backgroundBottomColor: .white
+            )
+            onClose()
+        } catch let error as InstagramStoriesShareError {
+            alertMessage = error.errorDescription
+        } catch {
+            alertMessage = error.localizedDescription
+        }
+    }
+
+    private func shareToX() async {
+        isBusy = true
+        defer { isBusy = false }
+
+        do {
+            let result = try await fetchShareURL()
+            let text = (detail.bookTitle?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap {
+                $0.isEmpty ? nil : $0
+            } ?? "독서카드"
+            var components = URLComponents(string: "https://twitter.com/intent/tweet")
+            components?.queryItems = [
+                URLQueryItem(name: "text", value: text),
+                URLQueryItem(name: "url", value: result.shareUrl)
+            ]
+            guard let intentURL = components?.url else {
+                alertMessage = "X를 열 수 없어요."
+                return
+            }
+            await UIApplication.shared.open(intentURL)
+            onClose()
+        } catch {
+            alertMessage = (error as? LocalizedError)?.errorDescription ?? "공유에 실패했어요."
+        }
+    }
+
+    private func downloadCard() async {
+        isBusy = true
+        defer { isBusy = false }
+
+        guard let image = renderShareImage() else {
+            alertMessage = "저장 중 오류가 발생했어요."
+            return
+        }
+
+        do {
+            try await CardSharePhotoSaver.save(image)
+            alertMessage = "사진을 저장했어요."
+        } catch {
+            alertMessage = (error as? LocalizedError)?.errorDescription ?? "사진 저장에 실패했어요."
+        }
+    }
+
+    private func copyLink() async {
+        isBusy = true
+        defer { isBusy = false }
+
+        do {
+            let result = try await fetchShareURL()
+            UIPasteboard.general.string = result.shareUrl
+            alertMessage = "링크를 복사했어요."
+        } catch {
+            alertMessage = (error as? LocalizedError)?.errorDescription ?? "링크 복사에 실패했어요."
+        }
+    }
+
+    private func renderShareImage() -> UIImage? {
+        let preview = LibraryCardSharePreview(detail: detail, style: previewStyle)
+            .frame(width: 360)
+            .background(Color("white"))
+        return SharePreviewImageRenderer.render(preview, width: 360, scale: 3)
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
+private enum CardSharePhotoSaver {
+    enum SaveError: LocalizedError {
+        case denied
+        case failed
+
+        var errorDescription: String? {
+            switch self {
+            case .denied: return "사진 보관함 접근 권한이 필요해요."
+            case .failed: return "사진 저장에 실패했어요."
             }
         }
     }
 
-    private func shareToKakao() {
-        // TODO: KakaoSDK 공유 연동
-    }
+    static func save(_ image: UIImage) async throws {
+        let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+        guard status == .authorized || status == .limited else {
+            throw SaveError.denied
+        }
 
-    private func shareToX() {
-        // TODO: X(Twitter) 공유 연동
-    }
-
-    private func copyLink() {
-        UIPasteboard.general.string = "bookiibookii://card/\(detail.cardId)"
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            PHPhotoLibrary.shared().performChanges({
+                PHAssetChangeRequest.creationRequestForAsset(from: image)
+            }) { success, error in
+                if success {
+                    continuation.resume()
+                } else {
+                    continuation.resume(throwing: error ?? SaveError.failed)
+                }
+            }
+        }
     }
 }
 
-#Preview {
-    LibraryCardShareSheet(
-        detail: LibraryCardDetail(
-            cardId: 1,
-            memberBookId: 1,
-            cardType: .image,
-            page: 122,
-            memo: "감각이 살아 있는 문장들이 가득. 다시 읽고 싶은 책.",
-            quotation: nil,
-            imageURL: nil,
-            imageS3Key: nil,
-            creatorName: "noshel",
-            creatorProfileImageURL: nil,
-            bookTitle: "괴테는 모든 것을 말했다",
-            totalPages: 300,
-            genre: "소설",
-            completedAt: nil,
-            isMine: true,
-            isBookmarked: false,
-            activeReactions: [],
-            createdAt: nil
-        ),
-        onClose: {}
-    )
-}

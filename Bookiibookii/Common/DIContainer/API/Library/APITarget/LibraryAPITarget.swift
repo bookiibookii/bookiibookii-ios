@@ -16,6 +16,7 @@ enum LibraryAPITarget: APITargetType {
     case updateCard(cardId: Int, body: CardUpdateRequestBody)
     case deleteCard(cardId: Int)
     case deleteMemberBook(memberBookId: Int)
+    case createShareToken(cardId: Int, body: CreateShareTokenRequestBody)
 
     var path: String {
         switch self {
@@ -47,6 +48,8 @@ enum LibraryAPITarget: APITargetType {
             return "/api/member-books/cards/\(cardId)"
         case .deleteMemberBook(let memberBookId):
             return API.Path.library + "/memberbooks/\(memberBookId)"
+        case .createShareToken(let cardId, _):
+            return "/api/member-books/cards/\(cardId)/share-token"
         }
     }
 
@@ -59,7 +62,7 @@ enum LibraryAPITarget: APITargetType {
             return .patch
         case .deleteCard, .deleteMemberBook:
             return .delete
-        case .createCardComment, .cardPresignedPutURL, .createCard:
+        case .createCardComment, .cardPresignedPutURL, .createCard, .createShareToken:
             return .post
         }
     }
@@ -83,6 +86,8 @@ enum LibraryAPITarget: APITargetType {
             return try? JSONEncoder().encode(body)
         case .toggleCardReaction(_, let body):
             return try? JSONEncoder().encode(body)
+        case .createShareToken(_, let body):
+            return try? JSONEncoder().encode(body)
         case .toggleCardBookmark:
             return nil
         default:
@@ -92,7 +97,7 @@ enum LibraryAPITarget: APITargetType {
 
     var headers: [String: String] {
         switch self {
-        case .createCard, .createCardComment, .toggleCardReaction, .updateCard:
+        case .createCard, .createCardComment, .toggleCardReaction, .updateCard, .createShareToken:
             return ["Content-Type": "application/json"]
         default:
             return [:]
