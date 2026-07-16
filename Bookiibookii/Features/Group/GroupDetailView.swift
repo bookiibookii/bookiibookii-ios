@@ -9,11 +9,9 @@ struct GroupDetailView: View {
     @State private var editGroupId: Int? = nil
     @State private var showAddressManagement = false
     @StateObject private var commentVM: GroupCommentViewModel
-    @StateObject private var keyboard = KeyboardObserver()
-    @State private var sheetExpanded = false
-    @State private var dragAccum: CGFloat = 0
-    // 홈 인디케이터 세이프에어리어 인셋(키보드 없을 때 캡처). 입력창을 키보드에 딱 붙이기 위한 보정값.
-    @State private var homeIndicatorInset: CGFloat = 0
+    // 콘텐츠 높이로 계산되는 peek detent 값. 시트가 측정해 써넣는다.
+    @State private var peekHeight: CGFloat = 170
+    @State private var sheetDetent: PresentationDetent = .height(170)
     @State private var selectedProfileNickname: NicknameRoute?
     // 삭제 성공으로 상세가 닫힐 때 호출(진입 화면의 목록 재조회용). 삭제 외 뒤로가기에서는 호출 안 됨.
     private let onDeleted: (() -> Void)?
@@ -60,31 +58,29 @@ struct GroupDetailView: View {
         .background(Color("white"))
         .ignoresSafeArea(.keyboard)
         .dismissKeyboardOnTap()
-        .overlay(alignment: .bottom) {
-            if viewModel.phase == .loaded {
-                GroupCommentSheet(
-                    viewModel: commentVM,
-                    expanded: sheetExpanded,
-                    keyboardHeight: effectiveKeyboardInset,
-                    onExpand: { withAnimation { sheetExpanded = true } },
-                    onProfileTap: { selectedProfileNickname = NicknameRoute(nickname: $0) }
-                )
-                .frame(height: sheetHeight)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in dragAccum = value.translation.height }
-                        .onEnded { _ in
-                            let trigger: CGFloat = 50
-                            if dragAccum < -trigger { withAnimation { sheetExpanded = true } }
-                            else if dragAccum > trigger { withAnimation { sheetExpanded = false } }
-                            dragAccum = 0
-                        }
-                )
-                .animation(.easeInOut(duration: 0.25), value: sheetHeight)
-                // 오버레이는 위 VStack의 .ignoresSafeArea(.keyboard) 밖이라, 시트 자신이 키보드 회피를
-                // 꺼야 함. 안 그러면 SwiftUI가 시트를 통째로 밀어올린 뒤 입력창까지 또 올려 이중으로 뜬다.
-                .ignoresSafeArea(.keyboard)
+        .sheet(isPresented: isCommentSheetPresented) {
+            GroupCommentSheet(
+                viewModel: commentVM,
+                peekHeight: $peekHeight,
+                onProfileTap: { selectedProfileNickname = NicknameRoute(nickname: $0) },
+                onInputFocus: { sheetDetent = .fraction(0.6) }
+            )
+            .presentationDetents([.height(peekHeight), .fraction(0.6)], selection: $sheetDetent)
+            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(20)
+            .presentationBackground(Color("white"))
+            .presentationBackgroundInteraction(.enabled(upThrough: .height(peekHeight)))
+            .interactiveDismissDisabled(true)
+            .onChange(of: peekHeight) { old, new in
+                if sheetDetent == .height(old) { sheetDetent = .height(new) }
             }
+            // 답글 진입 시 시트를 펼쳐 대상 댓글과 입력창이 함께 보이게 한다.
+            // 포커스/키보드는 CommentInputTextView가 focusTrigger로 처리.
+            .onChange(of: commentVM.state.replyRequestId) { _, newValue in
+                if newValue > 0 { sheetDetent = .fraction(0.6) }
+            }
+            // 시트가 상세 위에 뜨므로 댓글 토스트도 시트 안에서 표시해야 보인다
+            .toast($commentVM.toast)
         }
         .overlay { dialogOverlay }
         .fullScreenCover(isPresented: $viewModel.showApplicants) {
@@ -133,27 +129,26 @@ struct GroupDetailView: View {
             await viewModel.onAppear()
             await commentVM.load()
         }
-        .onAppear {
-            // 키보드 없는 시점에 홈 인디케이터 인셋 캡처(키보드 뜨면 0으로 보고돼 부정확).
-            homeIndicatorInset = UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap { $0.windows }
-                .first { $0.isKeyWindow }?.safeAreaInsets.bottom ?? 0
-        }
         .toast($viewModel.toast)
-        .toast($commentVM.toast)
     }
 
-    // 3단계 높이 — keyboard(600) > expanded(544) > peek(170). 안드 sheetHeight 대응.
-    private var sheetHeight: CGFloat {
-        if keyboard.height > 0 { return 600 }
-        return sheetExpanded ? 544 : 170
-    }
-
-    // 시트는 세이프에어리어 하단에 붙으므로, 키보드 전체 높이에서 홈 인디케이터 인셋을 빼야
-    // 입력창이 키보드 바로 위에 딱 붙는다(안 빼면 그 인셋만큼 떠 보임).
-    private var effectiveKeyboardInset: CGFloat {
-        keyboard.height > 0 ? max(0, keyboard.height - homeIndicatorInset) : 0
+    // 다른 모달(다이얼로그/풀스크린커버)이 열려 있는 동안에는 시트를 내린다.
+    // UIKit이 한 번에 하나만 present할 수 있고, 네이티브 시트가 오버레이 다이얼로그를 가리기 때문.
+    private var isCommentSheetPresented: Binding<Bool> {
+        Binding(
+            get: {
+                viewModel.phase == .loaded
+                    && !viewModel.showApplyDialog
+                    && !viewModel.showDeleteDialog
+                    && !viewModel.showAddressRequiredDialog
+                    && !viewModel.showApplicants
+                    && editGroupId == nil
+                    && !showAddressManagement
+                    && selectedProfileNickname == nil
+            },
+            // 사용자 드래그로는 닫히지 않고(interactiveDismissDisabled) 위 조건으로만 결정되므로 set은 무시
+            set: { _ in }
+        )
     }
 
     // MARK: - 에러 상태
@@ -205,7 +200,7 @@ struct GroupDetailView: View {
                 }
                 .padding(16)
             }
-            .padding(.bottom, 170)
+            .padding(.bottom, peekHeight)
         }
     }
 
