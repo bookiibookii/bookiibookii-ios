@@ -2,21 +2,6 @@ import SwiftUI
 import UIKit
 import Kingfisher
 
-// 안드 GroupCommentBottomSheet.kt 대응 — 하위 컴포넌트(행/헤더/칩). 최상위 시트는 아래 Task 7에서 추가.
-
-// 드래그 핸들 (44×4, grey200)
-struct CommentDragHandle: View {
-    var body: some View {
-        HStack {
-            Spacer()
-            Capsule()
-                .fill(Color("grey200"))
-                .frame(width: 44, height: 4)
-            Spacer()
-        }
-    }
-}
-
 // "댓글 N" 헤더 — N>0이면 main, else grey500
 struct CommentSheetHeader: View {
     let count: Int
@@ -216,83 +201,101 @@ struct CommentUploadChip: View {
     }
 }
 
-// MARK: - 최상위 시트 (안드 GroupCommentBottomSheetContent 대응)
+// MARK: - 최상위 시트
 
 struct GroupCommentSheet: View {
     @ObservedObject var viewModel: GroupCommentViewModel
-    let expanded: Bool
-    let keyboardHeight: CGFloat
-    let onExpand: () -> Void
+    @Binding var peekHeight: CGFloat
     var onProfileTap: ((String) -> Void)?
+    var onInputFocus: (() -> Void)?
 
     @State private var openDeleteId: Int? = nil
+    // peek 높이 계산용 측정값
+    @State private var headerHeight: CGFloat = 0
+    @State private var inputHeight: CGFloat = 0
+    @State private var listHeight: CGFloat = 0
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            VStack(spacing: 10) {
-                VStack(spacing: 20) {
-                    CommentDragHandle()
-                    CommentSheetHeader(count: viewModel.state.totalCount)
-                }
-                if expanded {
-                    ScrollViewReader { proxy in
-                        ScrollView(showsIndicators: false) {
-                            LazyVStack(spacing: 10) {
-                                ForEach(viewModel.state.comments) { comment in
-                                    CommentRow(
-                                        comment: comment,
-                                        currentUserId: viewModel.currentUserId,
-                                        onStartReply: viewModel.startReply,
-                                        onDelete: viewModel.delete,
-                                        onProfileTap: { nickname in onProfileTap?(nickname) },
-                                        openDeleteId: openDeleteId,
-                                        onLongPress: { openDeleteId = $0 },
-                                        onDismissDelete: { openDeleteId = nil }
-                                    )
-                                    .id(comment.id)
-                                }
-                            }
-                            .padding(.bottom, 56 + keyboardHeight)
-                        }
-                        // 댓글 리스트를 끌어내리면 키보드가 내려감 (Messages 스타일)
-                        .scrollDismissesKeyboard(.interactively)
-                        // 답글 진입 시 대상 부모 댓글로 스크롤 (안드 animateScrollToItem)
-                        .onChange(of: viewModel.state.replyRequestId) { _, _ in
-                            if let target = viewModel.state.replyTargetId {
-                                withAnimation { proxy.scrollTo(target, anchor: .center) }
-                            }
+        VStack(spacing: 10) {
+            CommentSheetHeader(count: viewModel.state.totalCount)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headerHeight = $0; recomputePeek() }
+            ScrollViewReader { proxy in
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 10) {
+                        ForEach(viewModel.state.comments) { comment in
+                            CommentRow(
+                                comment: comment,
+                                currentUserId: viewModel.currentUserId,
+                                onStartReply: viewModel.startReply,
+                                onDelete: viewModel.delete,
+                                onProfileTap: { nickname in onProfileTap?(nickname) },
+                                openDeleteId: openDeleteId,
+                                onLongPress: { openDeleteId = $0 },
+                                onDismissDelete: { openDeleteId = nil }
+                            )
+                            .id(comment.id)
                         }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { listHeight = $0; recomputePeek() }
                 }
-                Spacer(minLength: 0)
+                // 댓글 리스트를 끌어내리면 키보드가 내려감 (Messages 스타일)
+                .scrollDismissesKeyboard(.interactively)
+                // 답글 진입 시 대상 부모 댓글로 스크롤
+                .onChange(of: viewModel.state.replyRequestId) { _, _ in
+                    if let target = viewModel.state.replyTargetId {
+                        withAnimation { proxy.scrollTo(target, anchor: .center) }
+                    }
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 24)
-
-            // 입력 필드 오버레이 — 키보드 위
-            CommentInputField(viewModel: viewModel, expanded: expanded, onInputClick: onExpand)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        // 입력 필드는 안전영역 인셋으로 배치 — 키보드 회피는 SwiftUI가 처리
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            CommentInputField(viewModel: viewModel, onInputFocus: onInputFocus)
                 .keyboardDismissExcluded()
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 .padding(.bottom, 24)
                 .background(Color("white"))
-                .padding(.bottom, keyboardHeight)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { inputHeight = $0; recomputePeek() }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            Color("white")
-                .clipShape(.rect(topLeadingRadius: 20, topTrailingRadius: 20))
-                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: -2)
-        )
+    }
+
+    // 헤더+입력창+패딩 = 댓글이 없을 때의 시트 높이.
+    // 홈 인디케이터 몫은 safeAreaInset이 입력창 아래로 따로 확보하므로 더하지 않는다
+    // (더하면 그만큼이 헤더-입력창 사이 빈 공간으로 남는다).
+    private var chromeHeight: CGFloat {
+        24 + headerHeight + 10 + inputHeight
+    }
+
+    // 현재 키 윈도우
+    private var keyWindow: UIWindow? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+    }
+
+    // 피그마 기준 상한 290/917 ≈ 창 높이의 32%
+    private var peekCap: CGFloat {
+        let windowHeight = keyWindow?.bounds.height ?? 812
+        return windowHeight * 0.32
+    }
+
+    // 댓글 높이만큼 자라되 chrome 이상, 상한 이하
+    private func recomputePeek() {
+        guard headerHeight > 0, inputHeight > 0 else { return }
+        let target = max(chromeHeight, min(chromeHeight + listHeight, peekCap))
+        if abs(peekHeight - target) > 0.5 { peekHeight = target }
     }
 }
 
 // 입력 필드 — 멘션 UITextView + 잠금/업로드 칩. peek 모드면 탭 시 expand만.
 private struct CommentInputField: View {
     @ObservedObject var viewModel: GroupCommentViewModel
-    let expanded: Bool
-    let onInputClick: () -> Void
+    var onInputFocus: (() -> Void)?
 
     @State private var contentHeight: CGFloat = 48
 
@@ -311,35 +314,27 @@ private struct CommentInputField: View {
     }
 
     var body: some View {
-        ZStack {
-            HStack(spacing: 8) {
-                CommentLockChip(active: viewModel.state.draftSecret, onClick: viewModel.toggleSecret)
-                CommentInputTextView(
-                    text: viewModel.state.draft,
-                    mentionNickname: viewModel.state.mentionNickname,
-                    focusTrigger: viewModel.state.replyRequestId,
-                    onChange: viewModel.onDraftChange,
-                    onSubmit: { if canSubmit { viewModel.submit(); dismissKeyboard() } },
-                    contentHeight: $contentHeight
-                )
-                .frame(height: max(40, contentHeight))
-                CommentUploadChip(enabled: canSubmit, onClick: { if canSubmit { viewModel.submit(); dismissKeyboard() } })
-            }
-            .padding(4)
-            .frame(minHeight: 48)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color("white"))
-                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color("grey300"), lineWidth: 1))
+        HStack(spacing: 8) {
+            CommentLockChip(active: viewModel.state.draftSecret, onClick: viewModel.toggleSecret)
+            CommentInputTextView(
+                text: viewModel.state.draft,
+                mentionNickname: viewModel.state.mentionNickname,
+                focusTrigger: viewModel.state.replyRequestId,
+                onChange: viewModel.onDraftChange,
+                onSubmit: { if canSubmit { viewModel.submit(); dismissKeyboard() } },
+                onFocus: onInputFocus,
+                contentHeight: $contentHeight
             )
-
-            // peek 상태에선 입력 영역 전체 탭 → expand만 트리거
-            if !expanded {
-                Color.black.opacity(0.001)
-                    .contentShape(Rectangle())
-                    .onTapGesture { onInputClick() }
-            }
+            .frame(height: max(40, contentHeight))
+            CommentUploadChip(enabled: canSubmit, onClick: { if canSubmit { viewModel.submit(); dismissKeyboard() } })
         }
+        .padding(4)
+        .frame(minHeight: 48)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color("white"))
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color("grey300"), lineWidth: 1))
+        )
     }
 
     // 제출 시 키보드 즉시 내림 (안드 submitAndHide의 keyboard.hide() 대응)

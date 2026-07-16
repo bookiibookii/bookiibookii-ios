@@ -9,6 +9,7 @@ struct CommentInputTextView: UIViewRepresentable {
     var focusTrigger: Int
     var onChange: (String) -> Void
     var onSubmit: () -> Void
+    var onFocus: (() -> Void)?
     @Binding var contentHeight: CGFloat
 
     private let maxLines = 4
@@ -76,6 +77,11 @@ struct CommentInputTextView: UIViewRepresentable {
                 return false
             }
             return true
+        }
+
+        // 입력창이 실제 포커스를 얻는 시점(탭 또는 becomeFirstResponder 성공)에 상위로 알림
+        func textViewDidBeginEditing(_ tv: UITextView) {
+            parent.onFocus?()
         }
 
         func textViewDidChange(_ tv: UITextView) {
