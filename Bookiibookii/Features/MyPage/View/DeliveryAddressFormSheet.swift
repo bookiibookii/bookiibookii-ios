@@ -22,18 +22,15 @@ struct DeliveryAddressFormSheet: View {
     }
 
     var body: some View {
-        ZStack {
-            formContent
-
-            if isSearchPresented {
+        formContent
+            .background(Color("white"))
+            .fullScreenCover(isPresented: $isSearchPresented) {
                 AddressSearchOverlay(
                     title: "주소 검색",
                     onClose: { isSearchPresented = false },
                     onSelect: onSelectAddress
                 )
             }
-        }
-        .background(Color("white"))
     }
 
     private var formContent: some View {
