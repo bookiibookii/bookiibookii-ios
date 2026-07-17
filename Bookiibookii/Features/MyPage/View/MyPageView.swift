@@ -55,6 +55,18 @@ struct MyPageView: View {
         } message: {
             Text(viewModel.introductionErrorMessage ?? "")
         }
+        .alert("안내", isPresented: Binding(
+            get: { viewModel.loadErrorMessage != nil },
+            set: { if !$0 { viewModel.loadErrorMessage = nil } }
+        )) {
+            Button("다시 시도") {
+                viewModel.loadErrorMessage = nil
+                Task { await viewModel.loadProfile() }
+            }
+            Button("닫기", role: .cancel) { viewModel.loadErrorMessage = nil }
+        } message: {
+            Text(viewModel.loadErrorMessage ?? "")
+        }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
     }
@@ -533,7 +545,7 @@ private struct MypageBookSpine: View {
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
             BookSpineTopCap(color: backgroundColor, width: spineWidth)
-                .offset(y: -BookSpineTopCap.capHeight / 2)
+                .offset(y: -BookSpineTopCap.capHeight / 2 + 5)
         }
         .padding(.top, BookSpineTopCap.capHeight / 2)
         .onPreferenceChange(SpineTextSizeKey.self) { titleNaturalSize = $0 }

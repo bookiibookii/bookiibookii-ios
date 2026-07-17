@@ -93,8 +93,14 @@ final class HomeViewModel: ObservableObject {
 
     private func loadNickname() async {
         // 서버 mypage 응답에서 nickname만 사용 (공통 필드).
-        if let result = try? await userService.getMypage() {
-            nickname = result.nickname
+        do {
+            let result = try await userService.getMypage()
+            let trimmed = result.nickname.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                nickname = trimmed
+            }
+        } catch {
+            print("홈 닉네임 로드 실패: \(error)")
         }
     }
 

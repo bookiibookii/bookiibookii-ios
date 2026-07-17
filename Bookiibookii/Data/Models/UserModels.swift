@@ -66,6 +66,27 @@ struct MypageResult: Decodable {
     let recentBookReviews: [MypageBookReview]?
     let boomUpCount: Int?
     let recentReceivedReviews: [MypageReceivedReview]?
+
+    private enum CodingKeys: String, CodingKey {
+        case userId, profileImageUrl, nickname, introduction, gender, birthDate
+        case userBooks, bookReviewCount, recentBookReviews, boomUpCount, recentReceivedReviews
+    }
+
+    /// 서버가 일부 필드를 null로 내려도 전체 mypage 디코딩이 실패하지 않도록 방어.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        userId = try c.decodeIfPresent(Int.self, forKey: .userId) ?? 0
+        profileImageUrl = try c.decodeIfPresent(String.self, forKey: .profileImageUrl)
+        nickname = try c.decodeIfPresent(String.self, forKey: .nickname) ?? ""
+        introduction = try c.decodeIfPresent(String.self, forKey: .introduction)
+        gender = try c.decodeIfPresent(String.self, forKey: .gender)
+        birthDate = try c.decodeIfPresent(String.self, forKey: .birthDate)
+        userBooks = try c.decodeLossyArrayIfPresent(MypageUserBook.self, forKey: .userBooks)
+        bookReviewCount = try c.decodeIfPresent(Int.self, forKey: .bookReviewCount)
+        recentBookReviews = try c.decodeLossyArrayIfPresent(MypageBookReview.self, forKey: .recentBookReviews)
+        boomUpCount = try c.decodeIfPresent(Int.self, forKey: .boomUpCount)
+        recentReceivedReviews = try c.decodeLossyArrayIfPresent(MypageReceivedReview.self, forKey: .recentReceivedReviews)
+    }
 }
 
 struct MypageUserBook: Decodable, Equatable, Identifiable {
@@ -74,6 +95,23 @@ struct MypageUserBook: Decodable, Equatable, Identifiable {
     let image: String?
 
     var id: String { "\(title)-\(auth)" }
+
+    private enum CodingKeys: String, CodingKey {
+        case title, auth, image
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        title = try c.decodeIfPresent(String.self, forKey: .title) ?? ""
+        auth = try c.decodeIfPresent(String.self, forKey: .auth) ?? ""
+        image = try c.decodeIfPresent(String.self, forKey: .image)
+    }
+
+    init(title: String, auth: String, image: String?) {
+        self.title = title
+        self.auth = auth
+        self.image = image
+    }
 }
 
 struct MypageBookReview: Decodable, Equatable, Identifiable {
@@ -90,13 +128,13 @@ struct MypageBookReview: Decodable, Equatable, Identifiable {
         case bookTitle, bookAuthor, tradeType, rating, comment, reviewDate
     }
 
-    // 서버가 comment/reviewDate를 null로 내려도 디코딩이 실패하지 않도록 빈 문자열로 대체.
+    // 서버가 일부 필드를 null로 내려도 디코딩이 실패하지 않도록 빈 값으로 대체.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        bookTitle = try c.decode(String.self, forKey: .bookTitle)
-        bookAuthor = try c.decode(String.self, forKey: .bookAuthor)
-        tradeType = try c.decode(String.self, forKey: .tradeType)
-        rating = try c.decode(Double.self, forKey: .rating)
+        bookTitle = try c.decodeIfPresent(String.self, forKey: .bookTitle) ?? ""
+        bookAuthor = try c.decodeIfPresent(String.self, forKey: .bookAuthor) ?? ""
+        tradeType = try c.decodeIfPresent(String.self, forKey: .tradeType) ?? ""
+        rating = try c.decodeIfPresent(Double.self, forKey: .rating) ?? 0
         comment = try c.decodeIfPresent(String.self, forKey: .comment) ?? ""
         reviewDate = try c.decodeIfPresent(String.self, forKey: .reviewDate) ?? ""
     }
@@ -115,14 +153,30 @@ struct MypageReceivedReview: Decodable, Equatable, Identifiable {
         case reviewerNickname, reviewerProfileUrl, reaction, comment, createdAt
     }
 
-    // 서버가 comment/createdAt를 null로 내려도 디코딩이 실패하지 않도록 빈 문자열로 대체.
+    // 서버가 일부 필드를 null로 내려도 디코딩이 실패하지 않도록 빈 값으로 대체.
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        reviewerNickname = try c.decode(String.self, forKey: .reviewerNickname)
+        reviewerNickname = try c.decodeIfPresent(String.self, forKey: .reviewerNickname) ?? ""
         reviewerProfileUrl = try c.decodeIfPresent(String.self, forKey: .reviewerProfileUrl)
-        reaction = try c.decode(String.self, forKey: .reaction)
+        reaction = try c.decodeIfPresent(String.self, forKey: .reaction) ?? ""
         comment = try c.decodeIfPresent(String.self, forKey: .comment) ?? ""
         createdAt = try c.decodeIfPresent(String.self, forKey: .createdAt) ?? ""
+    }
+}
+
+/// 배열 요소 하나라도 깨지면 전체가 실패하지 않도록, 디코딩 가능한 항목만 수집.
+private struct FailableDecodable<T: Decodable>: Decodable {
+    let value: T?
+    init(from decoder: Decoder) throws {
+        value = try? T(from: decoder)
+    }
+}
+
+private extension KeyedDecodingContainer {
+    func decodeLossyArrayIfPresent<T: Decodable>(_ type: T.Type, forKey key: Key) throws -> [T]? {
+        guard contains(key), !(try decodeNil(forKey: key)) else { return nil }
+        let items = try decode([FailableDecodable<T>].self, forKey: key)
+        return items.compactMap(\.value)
     }
 }
 

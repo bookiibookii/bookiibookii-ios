@@ -11,6 +11,7 @@ final class MyPageViewModel: ObservableObject {
     @Published var introductionDraft = ""
     @Published var isSavingIntroduction = false
     @Published var introductionErrorMessage: String?
+    @Published var loadErrorMessage: String?
 
     private let userService: UserService
 
@@ -24,8 +25,12 @@ final class MyPageViewModel: ObservableObject {
 
         do {
             profile = try await userService.getMypage()
+            loadErrorMessage = nil
         } catch {
             print("프로필 로드 실패: \(error)")
+            if profile == nil {
+                loadErrorMessage = "프로필을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."
+            }
         }
     }
 

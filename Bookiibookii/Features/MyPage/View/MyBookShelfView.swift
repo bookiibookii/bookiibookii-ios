@@ -547,7 +547,7 @@ private struct BookshelfRepresentativeSpine: View {
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
             BookshelfSpineTopCap(color: backgroundColor, width: spineWidth)
-                .offset(y: -BookshelfSpineTopCap.capHeight / 2)
+                .offset(y: -BookshelfSpineTopCap.capHeight / 2 + 5)
         }
         .padding(.top, BookshelfSpineTopCap.capHeight / 2)
         .onPreferenceChange(BookshelfSpineTextSizeKey.self) { titleNaturalSize = $0 }
