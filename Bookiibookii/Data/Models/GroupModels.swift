@@ -258,9 +258,9 @@ struct GroupDetailDto: Codable {
     let groupStatus: String       // RECRUITING | MATCHED
     let isHost: Bool
     let tradeType: String         // DIRECT | DELIVERY
-    let placeName: String
-    let address: String
-    let detailAddress: String     // 없으면 ""
+    let placeName: String?
+    let address: String?
+    let detailAddress: String?    // 서버가 null로 내려줌
     let title: String
     let bookImage: String?
     let author: String
