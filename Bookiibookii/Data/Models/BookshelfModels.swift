@@ -6,6 +6,18 @@ struct BookshelfResult: Decodable, Equatable {
     let completedBooks: [BookshelfCompletedBook]
     let favoriteBooks: [BookshelfFavoriteBook]
     let representativeBooks: [BookshelfRepresentativeBook]
+
+    enum CodingKeys: String, CodingKey {
+        case completedBooks, favoriteBooks, representativeBooks
+    }
+
+    // 서버가 각 배열을 null로 내려줄 수 있어 빈 배열로 방어한다.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        completedBooks = try c.decodeIfPresent([BookshelfCompletedBook].self, forKey: .completedBooks) ?? []
+        favoriteBooks = try c.decodeIfPresent([BookshelfFavoriteBook].self, forKey: .favoriteBooks) ?? []
+        representativeBooks = try c.decodeIfPresent([BookshelfRepresentativeBook].self, forKey: .representativeBooks) ?? []
+    }
 }
 
 struct BookshelfCompletedBook: Decodable, Identifiable, Equatable {

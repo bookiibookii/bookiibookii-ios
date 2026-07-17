@@ -182,7 +182,7 @@ struct GroupDetailView: View {
                         body: detail.groupComment ?? "",
                         // 택배 교환은 주소 정보를 노출하지 않음. 직접 교환만 희망 장소 표시
                         exchangePlaceName: detail.tradeType == "DELIVERY" ? nil : detail.address,
-                        exchangePlaceAddress: detail.detailAddress.isEmpty ? nil : detail.detailAddress,
+                        exchangePlaceAddress: detail.detailAddress?.isEmpty == false ? detail.detailAddress : nil,
                         exchangePlaceLabel: "교환 희망 장소"
                     )
                     GroupDetailDescriptionCard(
