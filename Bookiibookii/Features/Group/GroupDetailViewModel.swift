@@ -240,6 +240,10 @@ final class GroupDetailViewModel: ObservableObject {
     func fetchApplicants() async {
         do {
             applicants = try await service.fetchApplicants(groupId: groupId)
+        } catch is CancellationError {
+            // 화면 진입 churn 으로 인한 태스크 취소는 실제 에러가 아니므로 무시.
+        } catch let e as URLError where e.code == .cancelled {
+            // URLSession -999(cancelled) 도 토스트로 띄우지 않음.
         } catch {
             toast = error.localizedDescription
         }

@@ -12,6 +12,9 @@ struct GroupDetailView: View {
     // 콘텐츠 높이로 계산되는 peek detent 값. 시트가 측정해 써넣는다.
     @State private var peekHeight: CGFloat = 170
     @State private var sheetDetent: PresentationDetent = .height(170)
+    // 실제 시트 표시 상태. 다른 모달(커버/다이얼로그) 전환과 겹치지 않게
+    // shouldShowCommentSheet 조건을 순차화해서 이 값으로 반영한다.
+    @State private var showCommentSheet = false
     @State private var selectedProfileNickname: NicknameRoute?
     // 삭제 성공으로 상세가 닫힐 때 호출(진입 화면의 목록 재조회용). 삭제 외 뒤로가기에서는 호출 안 됨.
     private let onDeleted: (() -> Void)?
@@ -58,7 +61,7 @@ struct GroupDetailView: View {
         .background(Color("white"))
         .ignoresSafeArea(.keyboard)
         .dismissKeyboardOnTap()
-        .sheet(isPresented: isCommentSheetPresented) {
+        .sheet(isPresented: $showCommentSheet) {
             GroupCommentSheet(
                 viewModel: commentVM,
                 peekHeight: $peekHeight,
@@ -83,7 +86,7 @@ struct GroupDetailView: View {
             .toast($commentVM.toast)
         }
         .overlay { dialogOverlay }
-        .fullScreenCover(isPresented: $viewModel.showApplicants) {
+        .fullScreenCover(isPresented: $viewModel.showApplicants, onDismiss: { reopenCommentSheet() }) {
             GroupApplicantView(
                 viewModel: viewModel,
                 onProfileTap: { selectedProfileNickname = NicknameRoute(nickname: $0) }
@@ -92,7 +95,7 @@ struct GroupDetailView: View {
         // 상세는 fullScreenCover 모달 루트라 NavigationStack이 없어 router.push가 화면 전환을 못 함.
         // 그래서 에디터도 fullScreenCover로 present(상세 자신의 진입 방식과 동일).
         // 에디터가 닫히면(수정 성공/취소 무관) 상세를 재조회해 변경사항 반영.
-        .fullScreenCover(item: $editGroupId, onDismiss: { viewModel.retry() }) { groupId in
+        .fullScreenCover(item: $editGroupId, onDismiss: { viewModel.retry(); reopenCommentSheet() }) { groupId in
             GroupEditorView(
                 groupId: groupId,
                 groupService: container.api.group,
@@ -101,14 +104,14 @@ struct GroupDetailView: View {
             .environmentObject(container)
         }
         // 상세는 모달 루트라 router.push가 안 되므로 주소관리도 fullScreenCover로 present.
-        .fullScreenCover(isPresented: $showAddressManagement) {
+        .fullScreenCover(isPresented: $showAddressManagement, onDismiss: { reopenCommentSheet() }) {
             AddressManagementView(
                 locationService: container.api.location,
                 initialTab: viewModel.addressManagementTab
             )
             .environmentObject(container)
         }
-        .fullScreenCover(item: $selectedProfileNickname) { route in
+        .fullScreenCover(item: $selectedProfileNickname, onDismiss: { reopenCommentSheet() }) { route in
             NavigationStack {
                 OtherProfileView(
                     nickname: route.nickname,
@@ -124,6 +127,16 @@ struct GroupDetailView: View {
                 dismiss()
             }
         }
+        // 댓글 시트 표시를 다른 모달 전환과 겹치지 않게 분리한다.
+        // 숨김: 다른 모달(커버/다이얼로그)이 열리면 즉시 시트를 내려 present 충돌을 없앤다.
+        .onChange(of: shouldShowCommentSheet) { _, shouldShow in
+            if !shouldShow { showCommentSheet = false }
+        }
+        // 표시(커버 외): 초기 로드/다이얼로그 닫힘처럼 UIKit 모달 애니메이션이 없는
+        // 전환은 즉시 반영해도 겹침이 없다. (커버 복귀는 각 cover의 onDismiss에서 처리)
+        .onChange(of: nonCoverAllowsSheet) { _, allows in
+            if allows { reopenCommentSheet() }
+        }
         .task {
             viewModel.attachLocationService(container.api.location)
             await viewModel.onAppear()
@@ -132,23 +145,34 @@ struct GroupDetailView: View {
         .toast($viewModel.toast)
     }
 
-    // 다른 모달(다이얼로그/풀스크린커버)이 열려 있는 동안에는 시트를 내린다.
-    // UIKit이 한 번에 하나만 present할 수 있고, 네이티브 시트가 오버레이 다이얼로그를 가리기 때문.
-    private var isCommentSheetPresented: Binding<Bool> {
-        Binding(
-            get: {
-                viewModel.phase == .loaded
-                    && !viewModel.showApplyDialog
-                    && !viewModel.showDeleteDialog
-                    && !viewModel.showAddressRequiredDialog
-                    && !viewModel.showApplicants
-                    && editGroupId == nil
-                    && !showAddressManagement
-                    && selectedProfileNickname == nil
-            },
-            // 사용자 드래그로는 닫히지 않고(interactiveDismissDisabled) 위 조건으로만 결정되므로 set은 무시
-            set: { _ in }
-        )
+    // 시트를 띄워도 되는 조건. 다른 모달(다이얼로그/풀스크린커버)이 열려 있으면 false.
+    // (UIKit이 한 번에 하나만 present할 수 있고, 네이티브 시트가 오버레이 다이얼로그를 가리기 때문)
+    private var shouldShowCommentSheet: Bool {
+        viewModel.phase == .loaded
+            && !viewModel.showApplyDialog
+            && !viewModel.showDeleteDialog
+            && !viewModel.showAddressRequiredDialog
+            && !viewModel.showApplicants
+            && editGroupId == nil
+            && !showAddressManagement
+            && selectedProfileNickname == nil
+    }
+
+    // phase/다이얼로그처럼 UIKit 모달 애니메이션이 없는 blocker만 본 조건.
+    // 이 값이 true 로 바뀌는 전환(초기 로드/다이얼로그 닫힘)은 시트를 즉시 다시 띄워도 겹침이 없다.
+    // (커버는 여기서 제외 — 커버 복귀는 각 fullScreenCover 의 onDismiss 에서 처리)
+    private var nonCoverAllowsSheet: Bool {
+        viewModel.phase == .loaded
+            && !viewModel.showApplyDialog
+            && !viewModel.showDeleteDialog
+            && !viewModel.showAddressRequiredDialog
+    }
+
+    // 조건이 맞을 때만 시트를 다시 띄운다. 항상 접힌 peek 로 시작해 큰 크기로 튀는 것을 막는다.
+    private func reopenCommentSheet() {
+        guard shouldShowCommentSheet else { return }
+        sheetDetent = .height(peekHeight)
+        showCommentSheet = true
     }
 
     // MARK: - 에러 상태
