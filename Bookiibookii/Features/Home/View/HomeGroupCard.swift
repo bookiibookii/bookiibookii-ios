@@ -38,7 +38,7 @@ extension GroupItemDto {
     var homeCardData: HomeGroupCardData {
         HomeGroupCardData(
             groupId: groupId, bookImage: bookImage, title: title ?? "", author: author,
-            genre: genre, tradeType: tradeType, readingPeriod: readingPeriod,
+            genre: genre, tradeType: tradeType, readingPeriod: readingPeriod ?? 0,
             hostNickname: hostNickname, hostProfileImageUrl: hostProfileImageUrl,
             groupName: groupName
         )

@@ -86,6 +86,15 @@ final class GroupDetailViewModel: ObservableObject {
 
     func retry() { Task { await fetchDetail() } }
 
+    /// 에러를 토스트로 표시하되, 태스크/URLSession 취소(-999)는 실제 에러가 아니므로 무시한다.
+    /// (화면 전환 churn 으로 in-flight 요청이 취소되면 localizedDescription 이 "cancelled" 로 뜨는 것 방지)
+    private func toastError(_ error: Error) {
+        if error is CancellationError { return }
+        if let e = error as? URLError, e.code == .cancelled { return }
+        let message = error.localizedDescription
+        toast = message
+    }
+
     func fetchDetail() async {
         phase = .loading
         do {
@@ -93,7 +102,7 @@ final class GroupDetailViewModel: ObservableObject {
             phase = .loaded
         } catch {
             phase = .failed
-            toast = error.localizedDescription
+            toastError(error)
         }
     }
 
@@ -127,7 +136,7 @@ final class GroupDetailViewModel: ObservableObject {
                 showAddressRequiredDialog = true
             }
         } catch {
-            toast = error.localizedDescription
+            toastError(error)
         }
     }
 
@@ -153,7 +162,7 @@ final class GroupDetailViewModel: ObservableObject {
             let results = try await service.searchBooks(keyword: keyword, page: 1, size: 10)
             if selectedISBN == nil { bookSearchResults = results }
         } catch {
-            toast = error.localizedDescription
+            toastError(error)
         }
         bookSearchLoading = false
     }
@@ -186,7 +195,7 @@ final class GroupDetailViewModel: ObservableObject {
                 resetApplyDialog()
                 await fetchDetail()
             } catch {
-                toast = error.localizedDescription
+                toastError(error)
             }
             submitting = false
         }
@@ -210,7 +219,7 @@ final class GroupDetailViewModel: ObservableObject {
             toast = "참여 신청을 취소했어요"
             await fetchDetail()
         } catch {
-            toast = error.localizedDescription
+            toastError(error)
         }
     }
 
@@ -224,7 +233,7 @@ final class GroupDetailViewModel: ObservableObject {
                 try await service.deleteGroup(groupId: groupId)
                 shouldDismiss = true
             } catch {
-                toast = error.localizedDescription
+                toastError(error)
             }
             isDeleting = false
         }
@@ -241,7 +250,7 @@ final class GroupDetailViewModel: ObservableObject {
         do {
             applicants = try await service.fetchApplicants(groupId: groupId)
         } catch {
-            toast = error.localizedDescription
+            toastError(error)
         }
     }
 
@@ -256,7 +265,7 @@ final class GroupDetailViewModel: ObservableObject {
                 await fetchDetail()
             }
         } catch {
-            toast = error.localizedDescription
+            toastError(error)
         }
     }
 }

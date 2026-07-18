@@ -67,7 +67,7 @@ struct ExploreGroupCard: View {
                 Text("예상 독서 기간")
                     .pretendardText(size: 14)
                     .foregroundColor(Color("grey700"))
-                Text("\(item.readingPeriod)")
+                Text("\(item.readingPeriod ?? 0)")
                     .pretendardText(size: 14)
                     .foregroundColor(Color("grey800"))
                 Text("일")
