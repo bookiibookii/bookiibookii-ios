@@ -10,6 +10,7 @@ struct HomeView: View {
     var onNavigateToGroup: () -> Void
     var onCreateGroupTap: () -> Void
     @State private var selectedGroupId: Int? = nil
+    private static let scrollTopID = "homeScrollTop"
 
     init(
         groupService: GroupService,
@@ -38,21 +39,36 @@ struct HomeView: View {
                 onProfileTap: { container.navigationRouter.push(to: .myPage) },
                 onNotificationTap: { container.navigationRouter.push(to: .notification) }
             )
-            ScrollView(showsIndicators: false) {
-                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    HomeWelcomeSection(nickname: viewModel.nickname)
-                    HomeSearchCreateRow(
-                        onSearchTap: onNavigateToGroup,
-                        onCreateGroupTap: onCreateGroupTap
-                    )
-                    Section(header: tabHeader) {
-                        tabContent
+            ScrollViewReader { proxy in
+                ScrollView(showsIndicators: false) {
+                    LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                        HomeWelcomeSection(nickname: viewModel.nickname)
+                            .id(Self.scrollTopID)
+                        HomeSearchCreateRow(
+                            onSearchTap: onNavigateToGroup,
+                            onCreateGroupTap: onCreateGroupTap
+                        )
+                        Section(header: tabHeader) {
+                            tabContent
+                        }
+                    }
+                }
+                // 콘텐츠가 짧아도 세로 바운스를 항상 허용해 pull-to-refresh가 쉽게 걸리도록 함
+                .scrollBounceBehavior(.always, axes: .vertical)
+                .refreshable { await viewModel.refreshCurrentTab() }
+                // 탭 전환 시 이전 탭의 스크롤 오프셋이 남지 않도록 맨 위로 리셋.
+                // 탭 선택/콘텐츠 교체가 커밋된 다음 틱에, 애니메이션 없이 이동해야
+                // pinned 탭바가 재배치되며 튀는 현상을 막을 수 있음.
+                .onChange(of: viewModel.selectedTab) { _, _ in
+                    DispatchQueue.main.async {
+                        var transaction = Transaction()
+                        transaction.disablesAnimations = true
+                        withTransaction(transaction) {
+                            proxy.scrollTo(Self.scrollTopID, anchor: .top)
+                        }
                     }
                 }
             }
-            // 콘텐츠가 짧아도 세로 바운스를 항상 허용해 pull-to-refresh가 쉽게 걸리도록 함
-            .scrollBounceBehavior(.always, axes: .vertical)
-            .refreshable { await viewModel.refreshCurrentTab() }
         }
         .background(Color("grey100"))
         .task { await viewModel.onAppear() }
