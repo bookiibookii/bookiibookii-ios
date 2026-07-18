@@ -26,27 +26,91 @@ struct GroupItemDto: Codable, Identifiable {
     let hostProfileImageUrl: String?
     let hostNickname: String?
     let tags: [String]?
-    let groupStatus: String          // RECRUITING | MATCHED | COMPLETED | 기타
-    let currentCount: Int
-    let maxCapacity: Int
+    let groupStatus: String?         // RECRUITING | MATCHED | COMPLETED | 기타 (my-hosted 응답엔 없음)
+    let currentCount: Int?
+    let maxCapacity: Int?
     let waitingCount: Int?           // 안드 신규
-    let readingPeriod: Int
+    let readingPeriod: Int?          // my-hosted 응답엔 없을 수 있음
     let customTag: String?
     let groupType: String?           // 안드 GroupItem.groupType 은 nullable (nil → RELAY 취급)
     let tradeType: String?           // DELIVERY | DIRECT | nil
     let startDate: String?
-    let isHot: Bool
+    let isHot: Bool?
     let pictureBadge: String?
     let displayStatus: String?       // 안드 신규
 
     var id: Int { groupId }
+
+    // 안드 @SerializedName alternate 대응: 엔드포인트별로 title/bookImage 키가
+    // title|bookTitle, bookImage|bookCoverImageUrl 로 갈려 옴 (my-hosted 는 후자).
+    private enum CodingKeys: String, CodingKey {
+        case groupId, groupName, title, bookTitle, author, genre
+        case bookImage, bookCoverImageUrl
+        case hostProfileImageUrl, hostNickname, tags, groupStatus
+        case currentCount, maxCapacity, waitingCount, readingPeriod
+        case customTag, groupType, tradeType, startDate, isHot
+        case pictureBadge, displayStatus
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        groupId = try c.decode(Int.self, forKey: .groupId)
+        groupName = try c.decodeIfPresent(String.self, forKey: .groupName)
+        title = try c.decodeIfPresent(String.self, forKey: .title)
+            ?? c.decodeIfPresent(String.self, forKey: .bookTitle)
+        author = try c.decodeIfPresent(String.self, forKey: .author)
+        genre = try c.decodeIfPresent(String.self, forKey: .genre)
+        bookImage = try c.decodeIfPresent(String.self, forKey: .bookImage)
+            ?? c.decodeIfPresent(String.self, forKey: .bookCoverImageUrl)
+        hostProfileImageUrl = try c.decodeIfPresent(String.self, forKey: .hostProfileImageUrl)
+        hostNickname = try c.decodeIfPresent(String.self, forKey: .hostNickname)
+        tags = try c.decodeIfPresent([String].self, forKey: .tags)
+        groupStatus = try c.decodeIfPresent(String.self, forKey: .groupStatus)
+        currentCount = try c.decodeIfPresent(Int.self, forKey: .currentCount)
+        maxCapacity = try c.decodeIfPresent(Int.self, forKey: .maxCapacity)
+        waitingCount = try c.decodeIfPresent(Int.self, forKey: .waitingCount)
+        readingPeriod = try c.decodeIfPresent(Int.self, forKey: .readingPeriod)
+        customTag = try c.decodeIfPresent(String.self, forKey: .customTag)
+        groupType = try c.decodeIfPresent(String.self, forKey: .groupType)
+        tradeType = try c.decodeIfPresent(String.self, forKey: .tradeType)
+        startDate = try c.decodeIfPresent(String.self, forKey: .startDate)
+        isHot = try c.decodeIfPresent(Bool.self, forKey: .isHot)
+        pictureBadge = try c.decodeIfPresent(String.self, forKey: .pictureBadge)
+        displayStatus = try c.decodeIfPresent(String.self, forKey: .displayStatus)
+    }
+
+    // 응답 전용 DTO — 인코딩 경로는 없지만 Codable 합성을 위해 primary 키로만 기록.
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(groupId, forKey: .groupId)
+        try c.encodeIfPresent(groupName, forKey: .groupName)
+        try c.encodeIfPresent(title, forKey: .title)
+        try c.encodeIfPresent(author, forKey: .author)
+        try c.encodeIfPresent(genre, forKey: .genre)
+        try c.encodeIfPresent(bookImage, forKey: .bookImage)
+        try c.encodeIfPresent(hostProfileImageUrl, forKey: .hostProfileImageUrl)
+        try c.encodeIfPresent(hostNickname, forKey: .hostNickname)
+        try c.encodeIfPresent(tags, forKey: .tags)
+        try c.encodeIfPresent(groupStatus, forKey: .groupStatus)
+        try c.encodeIfPresent(currentCount, forKey: .currentCount)
+        try c.encodeIfPresent(maxCapacity, forKey: .maxCapacity)
+        try c.encodeIfPresent(waitingCount, forKey: .waitingCount)
+        try c.encodeIfPresent(readingPeriod, forKey: .readingPeriod)
+        try c.encodeIfPresent(customTag, forKey: .customTag)
+        try c.encodeIfPresent(groupType, forKey: .groupType)
+        try c.encodeIfPresent(tradeType, forKey: .tradeType)
+        try c.encodeIfPresent(startDate, forKey: .startDate)
+        try c.encodeIfPresent(isHot, forKey: .isHot)
+        try c.encodeIfPresent(pictureBadge, forKey: .pictureBadge)
+        try c.encodeIfPresent(displayStatus, forKey: .displayStatus)
+    }
 }
 
 // MARK: - 표시용 파생 프로퍼티
 
 extension GroupItemDto {
     var uiStatus: String {
-        switch groupStatus {
+        switch groupStatus ?? "" {
         case "RECRUITING": return "모집 중"
         case "MATCHED":    return "진행 중"
         case "COMPLETED":  return "종료"
