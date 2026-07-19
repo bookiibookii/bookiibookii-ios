@@ -174,9 +174,9 @@ struct CommentLockChip: View {
                 .renderingMode(.template)
                 .resizable()
                 .frame(width: 24, height: 24)
-                .foregroundColor(active ? Color("main200") : Color("grey500"))
+                .foregroundColor(active ? Color("sub200") : Color("grey500"))
                 .frame(width: 40, height: 40)
-                .background(RoundedRectangle(cornerRadius: 16).fill(active ? Color("main100") : Color("grey200")))
+                .background(RoundedRectangle(cornerRadius: 16).fill(active ? Color("sub100") : Color("grey200")))
         }
         .buttonStyle(.plain)
     }
