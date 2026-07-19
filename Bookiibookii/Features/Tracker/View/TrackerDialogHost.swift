@@ -3,6 +3,7 @@ import UIKit
 
 struct TrackerDialogHost: ViewModifier {
     @ObservedObject var coordinator: TrackerDialogCoordinator
+    @Environment(\.openURL) private var openURL
     let cardFor: (Int) -> TrackerCardModel?
     @State private var toastMessage: String?
 
@@ -125,7 +126,7 @@ struct TrackerDialogHost: ViewModifier {
         case .exchangeFail:
             TrackerDirectExchangeFailDialog(
                 onDismiss: { coordinator.dismiss() },
-                onReportClick: { toastMessage = "신고 기능은 준비 중이에요." },
+                onReportClick: { openURL(TrackerExternalLink.reportChannel) },
                 onGoToCommentsClick: { coordinator.dismiss() }
             )
         case let .readingPeriod(groupId, originalEndDate):

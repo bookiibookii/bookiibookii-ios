@@ -271,9 +271,9 @@ private struct Line: Shape {
 // stateful: VM 주입 + 액션 디스패치 + 다이얼로그 호스트 + 네비 배선
 struct TrackerDetailRoute: View {
     @EnvironmentObject private var container: DIContainer
+    @Environment(\.openURL) private var openURL
     @StateObject private var viewModel: TrackerDetailViewModel
     private let groupId: Int
-    @State private var reportToast: String?
 
     init(groupId: Int, trackerService: TrackerService, locationService: LocationService) {
         self.groupId = groupId
@@ -294,7 +294,7 @@ struct TrackerDetailRoute: View {
                 viewModel.coordinator.openReadingPeriod(groupId: groupId, originalEndDate: original)
             },
             onGoToLibrary: {},        // 라이브러리 도메인 — 이월(no-op)
-            onReport: { reportToast = "신고 기능은 준비 중이에요." },
+            onReport: { openURL(TrackerExternalLink.reportChannel) },
             onPrimaryAction: { dispatch(viewModel.state.primaryAction) },
             onSecondaryAction: { dispatch(viewModel.state.secondaryAction) }
         )
@@ -308,7 +308,6 @@ struct TrackerDetailRoute: View {
                 isHost: viewModel.state.isHost
             )
         })
-        .toast($reportToast)
     }
 
     private func dispatch(_ action: TrackerAction) {
