@@ -30,8 +30,6 @@ final class HomeViewModel: ObservableObject {
     private let notificationService: NotificationService
     private let userService: UserService
     private var didLoadInitial = false
-    /// 한 번 로드를 시도한 탭 — 탭 전환만으로는 재조회하지 않음(성공/실패 무관).
-    private var loadedTabs: Set<HomeTab> = [.recommend]
 
     init(
         groupService: GroupService,
@@ -66,14 +64,8 @@ final class HomeViewModel: ObservableObject {
     func selectTab(_ tab: HomeTab) {
         guard selectedTab != tab else { return }
         selectedTab = tab
-        // 이미 한 번 시도한 탭이면 캐시 사용 — 탭 전환마다 재조회하지 않음.
-        guard !loadedTabs.contains(tab) else { return }
-        loadedTabs.insert(tab)
-        switch tab {
-        case .myGroups: Task { await loadMyGroups() }
-        case .applied:  Task { await loadAppliedGroups() }
-        case .recommend: break
-        }
+        // 탭 전환 시 항상 해당 탭 데이터를 재조회한다.
+        Task { await refreshCurrentTab() }
     }
 
     /// 화면 복귀 시 현재 탭만 강제 새로고침 (수락/신청 등 상태 변경 반영).
