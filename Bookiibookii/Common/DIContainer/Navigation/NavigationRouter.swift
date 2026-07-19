@@ -13,6 +13,8 @@ protocol NavigationRoutable: AnyObject {
 
 final class NavigationRouter: NavigationRoutable, ObservableObject {
     @Published var destinations: [NavigationDestination] = []
+    /// 메인 탭 선택 상태. 다른 화면(예: 트래커 '서재로 이동')에서 탭을 전환할 수 있도록 라우터가 소유.
+    @Published var selectedTab: BookiiTabCase = .home
 
     func push(to destination: NavigationDestination) {
         destinations.append(destination)

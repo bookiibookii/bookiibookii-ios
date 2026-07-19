@@ -13,6 +13,8 @@ struct MainTabView: View {
             .environmentObject(container)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onPreferenceChange(TabBarHiddenKey.self) { tabBarHidden = $0 }
+            // 탭 선택은 라우터가 소유 — 다른 화면에서 전환한 값도 여기로 반영된다.
+            .onReceive(container.navigationRouter.$selectedTab) { selectedTab = $0 }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if !tabBarHidden {
                     tabBar
@@ -41,7 +43,7 @@ struct MainTabView: View {
         let isSelected = selectedTab == tab
 
         return Button {
-            selectedTab = tab
+            container.navigationRouter.selectedTab = tab
         } label: {
             VStack(spacing: 2) {
                 Image(tab.iconName)

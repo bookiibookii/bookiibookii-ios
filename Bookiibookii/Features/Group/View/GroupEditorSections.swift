@@ -617,6 +617,9 @@ struct GroupIntroSection: View {
                     Text("게스트가 꼭 지켜야 할 규칙을 적어주세요.")
                         .pretendardText(size: 16)
                         .foregroundColor(Color("grey500"))
+                        // TextEditor 내부 UITextView 인셋(상단 8, 좌측 lineFragmentPadding 5)만큼 밀어 커서와 정렬
+                        .padding(.top, 8)
+                        .padding(.leading, 5)
                         .allowsHitTesting(false)
                 }
                 TextEditor(text: $value)

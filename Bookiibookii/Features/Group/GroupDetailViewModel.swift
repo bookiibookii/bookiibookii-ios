@@ -33,7 +33,6 @@ final class GroupDetailViewModel: ObservableObject {
     // 호스트용 신청자 명단 (GroupApplicantView가 참조)
     @Published private(set) var applicants: [GroupApplicantDto] = []
 
-    private var cancellables = Set<AnyCancellable>()
     private var isCheckingAddress = false
     private var isCanceling = false
     private var isDeleting = false
@@ -41,21 +40,6 @@ final class GroupDetailViewModel: ObservableObject {
     init(groupId: Int, service: GroupService) {
         self.groupId = groupId
         self.service = service
-
-        // 실시간 도서 검색 디바운스(0.3s, 2자 이상) — 안드 observeSearchQuery 대응
-        $bookSearchQuery
-            .dropFirst()
-            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
-            .sink { [weak self] query in
-                guard let self else { return }
-                let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard trimmed.count >= 2 else {
-                    self.bookSearchResults = []
-                    return
-                }
-                Task { await self.performSearch(keyword: trimmed) }
-            }
-            .store(in: &cancellables)
     }
 
     /// 진입 시그니처(groupId:groupService:) 유지를 위해 뷰가 container.api.location을 조회 시점에 주입.
@@ -147,7 +131,7 @@ final class GroupDetailViewModel: ObservableObject {
         selectedISBN = nil
     }
 
-    // 검색 버튼/키보드 액션 — 디바운스 기다리지 않고 즉시 검색
+    // 검색 버튼/키보드 액션 — 즉시 검색
     func searchBooks() {
         let trimmed = bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }

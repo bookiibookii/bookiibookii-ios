@@ -174,9 +174,9 @@ struct CommentLockChip: View {
                 .renderingMode(.template)
                 .resizable()
                 .frame(width: 24, height: 24)
-                .foregroundColor(active ? Color("main200") : Color("grey500"))
+                .foregroundColor(active ? Color("sub200") : Color("grey500"))
                 .frame(width: 40, height: 40)
-                .background(RoundedRectangle(cornerRadius: 16).fill(active ? Color("main100") : Color("grey200")))
+                .background(RoundedRectangle(cornerRadius: 16).fill(active ? Color("sub100") : Color("grey200")))
         }
         .buttonStyle(.plain)
     }
@@ -213,7 +213,6 @@ struct GroupCommentSheet: View {
     // peek 높이 계산용 측정값
     @State private var headerHeight: CGFloat = 0
     @State private var inputHeight: CGFloat = 0
-    @State private var listHeight: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 10) {
@@ -236,7 +235,6 @@ struct GroupCommentSheet: View {
                             .id(comment.id)
                         }
                     }
-                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { listHeight = $0; recomputePeek() }
                 }
                 // 댓글 리스트를 끌어내리면 키보드가 내려감 (Messages 스타일)
                 .scrollDismissesKeyboard(.interactively)
@@ -257,7 +255,7 @@ struct GroupCommentSheet: View {
                 .keyboardDismissExcluded()
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
-                .padding(.bottom, 24)
+                .padding(.bottom, 16)
                 .background(Color("white"))
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { inputHeight = $0; recomputePeek() }
         }
@@ -270,24 +268,10 @@ struct GroupCommentSheet: View {
         24 + headerHeight + 10 + inputHeight
     }
 
-    // 현재 키 윈도우
-    private var keyWindow: UIWindow? {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow }
-    }
-
-    // 피그마 기준 상한 290/917 ≈ 창 높이의 32%
-    private var peekCap: CGFloat {
-        let windowHeight = keyWindow?.bounds.height ?? 812
-        return windowHeight * 0.32
-    }
-
-    // 댓글 높이만큼 자라되 chrome 이상, 상한 이하
+    // 진입 시 항상 댓글 0개와 동일한 크기(헤더+입력창)로 고정. 댓글은 시트를 펼쳐서 본다.
     private func recomputePeek() {
         guard headerHeight > 0, inputHeight > 0 else { return }
-        let target = max(chromeHeight, min(chromeHeight + listHeight, peekCap))
+        let target = chromeHeight
         if abs(peekHeight - target) > 0.5 { peekHeight = target }
     }
 }

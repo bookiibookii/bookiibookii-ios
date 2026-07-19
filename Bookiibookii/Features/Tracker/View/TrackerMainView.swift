@@ -67,6 +67,7 @@ struct TrackerMainScreen: View {
 
 // stateful: VM 주입 + 카드 버튼 액션 분기(다이얼로그 열기/네비 디스패치)
 struct TrackerMainRoute: View {
+    @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: TrackerMainViewModel
     var onProfileTap: () -> Void
     var onNotificationTap: () -> Void
@@ -93,11 +94,20 @@ struct TrackerMainRoute: View {
         self.onNavigatePartnerReview = onNavigatePartnerReview
     }
 
-    // 카드 nav-out 액션(후기/파트너후기). 댓글·독서카드는 이월(no-op 유지).
+    // 카드 nav-out 액션(후기/파트너후기/독서카드). 댓글은 이월(no-op 유지).
     private var navActions: TrackerNavActions {
         TrackerNavActions(
             onNavigateBookReview: onNavigateBookReview,
-            onNavigatePartnerReview: onNavigatePartnerReview
+            onNavigatePartnerReview: onNavigatePartnerReview,
+            onWriteReadingCard: { gid in
+                guard let card = viewModel.state.cards.first(where: { $0.groupId == gid }) else { return }
+                let title = card.left.bookTitle
+                Task {
+                    if let book = await resolveTrackerLibraryBook(libraryService: container.api.library, groupId: gid, bookTitle: title) {
+                        container.navigationRouter.push(to: .libraryCards(book: book))
+                    }
+                }
+            }
         )
     }
 
