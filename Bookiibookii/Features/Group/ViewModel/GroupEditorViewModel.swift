@@ -43,8 +43,6 @@ final class GroupEditorViewModel: ObservableObject {
     // 수정 모드 프리필 원본 스냅샷 (isDirty 판정용)
     private var editOriginal: EditOriginal?
 
-    private var cancellables = Set<AnyCancellable>()
-
     static let periods = [3, 7, 14, 21, 28]
     static let maxCustomRules = 4
 
@@ -60,22 +58,6 @@ final class GroupEditorViewModel: ObservableObject {
         self.groupId = groupId
         self.service = service
         self.locationService = locationService
-
-        // 실시간 도서 검색 디바운스(0.35s, 2자 이상) — 안드 DEFAULT_SEARCH_DEBOUNCE_MS(350L) 대응
-        $bookSearchQuery
-            .dropFirst()
-            .debounce(for: .seconds(0.35), scheduler: DispatchQueue.main)
-            .sink { [weak self] query in
-                guard let self else { return }
-                let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard trimmed.count >= 2 else {
-                    self.bookSearchResults = []
-                    self.bookSearchError = nil
-                    return
-                }
-                Task { await self.performSearch(trimmed) }
-            }
-            .store(in: &cancellables)
 
         if let id = groupId {
             Task { await loadGroupForEdit(id) }
@@ -146,7 +128,7 @@ final class GroupEditorViewModel: ObservableObject {
         isbn13 = nil
     }
 
-    // ic_search 클릭 또는 키보드 검색 액션 — 디바운스 기다리지 않고 즉시 검색
+    // ic_search 클릭 또는 키보드 검색 액션 — 즉시 검색
     func searchBooks() {
         let trimmed = bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
@@ -154,7 +136,7 @@ final class GroupEditorViewModel: ObservableObject {
     }
 
     private func performSearch(_ keyword: String) async {
-        // 이미 책을 고른 뒤 늦게 도착한 디바운스 검색이 선택을 덮어쓰지 않도록 가드
+        // 이미 책을 고른 뒤 늦게 도착한 검색이 선택을 덮어쓰지 않도록 가드
         guard isbn13 == nil else { return }
         bookSearchLoading = true
         bookSearchError = nil
