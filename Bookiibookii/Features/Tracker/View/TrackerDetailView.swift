@@ -293,7 +293,10 @@ struct TrackerDetailRoute: View {
                 }
                 viewModel.coordinator.openReadingPeriod(groupId: groupId, originalEndDate: original)
             },
-            onGoToLibrary: {},        // 라이브러리 도메인 — 이월(no-op)
+            onGoToLibrary: {
+                container.navigationRouter.selectedTab = .library
+                container.navigationRouter.popToRoot()
+            },
             onReport: { openURL(TrackerExternalLink.reportChannel) },
             onPrimaryAction: { dispatch(viewModel.state.primaryAction) },
             onSecondaryAction: { dispatch(viewModel.state.secondaryAction) }
@@ -317,7 +320,14 @@ struct TrackerDetailRoute: View {
                 onNavigateBookReview: { gid, edit in container.navigationRouter.push(to: .trackerBookReview(groupId: gid, isEdit: edit)) },
                 onNavigatePartnerReview: { gid in container.navigationRouter.push(to: .trackerPartnerReview(groupId: gid)) },
                 onNavigateComment: { _, _ in },   // 작업 C
-                onWriteReadingCard: { _ in }       // 라이브러리 이월
+                onWriteReadingCard: { gid in
+                    let title = viewModel.state.myProfile.bookTitle
+                    Task {
+                        if let book = await resolveTrackerLibraryBook(libraryService: container.api.library, groupId: gid, bookTitle: title) {
+                            container.navigationRouter.push(to: .libraryCards(book: book))
+                        }
+                    }
+                }
             )
         )
     }

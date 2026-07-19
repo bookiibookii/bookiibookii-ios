@@ -5,6 +5,13 @@ enum TrackerExternalLink {
     static let reportChannel = URL(string: "http://pf.kakao.com/_cIxlxjX/chat")!
 }
 
+// "독서카드 작성" — 트래커에는 userBookId가 없어 서재 목록에서 groupId+제목으로 해석한다.
+@MainActor
+func resolveTrackerLibraryBook(libraryService: LibraryService, groupId: Int, bookTitle: String) async -> LibraryBook? {
+    guard let books = try? await libraryService.fetchLibraryBooks() else { return nil }
+    return books.first { $0.groupId == groupId && $0.title == bookTitle }
+}
+
 // 카드 액션이 화면 밖으로 이동하는 콜백 묶음. PR-A에서는 전부 플레이스홀더(실제 화면은 #5~#8).
 struct TrackerNavActions {
     var onNavigateBookReview: (_ groupId: Int, _ edit: Bool) -> Void = { _, _ in }
