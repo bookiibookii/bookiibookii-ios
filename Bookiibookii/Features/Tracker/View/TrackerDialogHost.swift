@@ -5,6 +5,8 @@ struct TrackerDialogHost: ViewModifier {
     @ObservedObject var coordinator: TrackerDialogCoordinator
     @Environment(\.openURL) private var openURL
     let cardFor: (Int) -> TrackerCardModel?
+    // 다이얼로그에서 댓글 화면으로 나가는 경로. 기본값을 두지 않아 배선 누락이 컴파일에서 잡히게 한다.
+    let onNavigateComment: (_ groupId: Int) -> Void
     @State private var toastMessage: String?
 
     func body(content: Content) -> some View {
@@ -123,11 +125,14 @@ struct TrackerDialogHost: ViewModifier {
                 onNotYetClick: { coordinator.openExchangeFail(groupId: groupId) },
                 onConfirmClick: { coordinator.completeMeeting(groupId: groupId) }
             )
-        case .exchangeFail:
+        case let .exchangeFail(groupId):
             TrackerDirectExchangeFailDialog(
                 onDismiss: { coordinator.dismiss() },
                 onReportClick: { openURL(TrackerExternalLink.reportChannel) },
-                onGoToCommentsClick: { coordinator.dismiss() }
+                onGoToCommentsClick: {
+                    coordinator.dismiss()
+                    onNavigateComment(groupId)
+                }
             )
         case let .readingPeriod(groupId, originalEndDate):
             TrackerReadingPeriodEditDialog(
@@ -151,7 +156,11 @@ extension TrackerDialogHost {
 }
 
 extension View {
-    func trackerDialogHost(_ coordinator: TrackerDialogCoordinator, cardFor: @escaping (Int) -> TrackerCardModel?) -> some View {
-        modifier(TrackerDialogHost(coordinator: coordinator, cardFor: cardFor))
+    func trackerDialogHost(
+        _ coordinator: TrackerDialogCoordinator,
+        cardFor: @escaping (Int) -> TrackerCardModel?,
+        onNavigateComment: @escaping (_ groupId: Int) -> Void
+    ) -> some View {
+        modifier(TrackerDialogHost(coordinator: coordinator, cardFor: cardFor, onNavigateComment: onNavigateComment))
     }
 }
