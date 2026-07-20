@@ -112,10 +112,8 @@ struct TrackerProgressRecordDialog: View {
             CardButton(
                 text: "완료",
                 style: .main,
-                action: {
-                    onConfirm(pageInt)
-                    onDismiss()
-                }
+                // 닫기는 등록 성공 후 코디네이터가 처리 (실패 시 입력값 유지)
+                action: { onConfirm(pageInt) }
             )
         }
     }

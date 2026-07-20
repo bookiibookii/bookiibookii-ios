@@ -78,7 +78,7 @@ private struct HomeGroupCarouselSection: View {
     private let cardSpacing: CGFloat = 12
     private let cardWidth: CGFloat = 334
 
-    private var cards: [HomeGroupCardData] { section.items.map { $0.homeGroupCardData } }
+    private var cards: [HomeGroupCardData] { section.items.compactMap { $0.homeGroupCardData } }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {

@@ -25,6 +25,4 @@ struct GroupCommentState {
     var submitting: Bool = false
     // 삭제 진행 중인 댓글 id들
     var deletingIds: Set<Int> = []
-
-    var isReplyMode: Bool { replyTargetId != nil }
 }

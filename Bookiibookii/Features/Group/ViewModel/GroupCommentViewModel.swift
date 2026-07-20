@@ -73,13 +73,6 @@ final class GroupCommentViewModel: ObservableObject {
         state.replyRequestId += 1
     }
 
-    func cancelReply() {
-        state.draft = ""
-        state.replyTargetId = nil
-        state.mentionNickname = nil
-        state.draftSecret = false
-    }
-
     // MARK: - 댓글 작성
 
     func submit() {

@@ -143,6 +143,11 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .groupSearch(let keyword):
+            GroupView(groupService: container.api.group, initialKeyword: keyword)
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         case .groupEditor(let groupId):
             GroupEditorView(groupId: groupId, groupService: container.api.group, locationService: container.api.location)
                 .environmentObject(container)

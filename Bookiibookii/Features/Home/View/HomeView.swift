@@ -91,7 +91,16 @@ struct HomeView: View {
             HomeRecommendContent(
                 sections: viewModel.recommendSections,
                 onGroupTap: { selectedGroupId = $0 },
-                onBookTap: { _ in onNavigateToGroup() }   // 책 → 그룹 검색(추후 키워드 검색 연결)
+                // 책 탭 → 그 책 제목(searchKeyword)으로 그룹 검색. 키워드가 없으면 일반 그룹 목록으로.
+                onBookTap: { item in
+                    let keyword = (item.searchKeyword ?? item.title ?? "")
+                        .trimmingCharacters(in: .whitespaces)
+                    if keyword.isEmpty {
+                        onNavigateToGroup()
+                    } else {
+                        container.navigationRouter.push(to: .groupSearch(keyword: keyword))
+                    }
+                }
             )
         case .myGroups:
             HomeMyGroupsContent(

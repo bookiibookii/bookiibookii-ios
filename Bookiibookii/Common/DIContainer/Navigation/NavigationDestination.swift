@@ -25,6 +25,8 @@ enum NavigationDestination: Hashable {
     case libraryCardAdd(userBookId: Int, cardType: LibraryCardType, bookTitle: String)
     case libraryCardEdit(cardId: Int, userBookId: Int, bookTitle: String, cardType: LibraryCardType)
     case group
+    // 그룹 목록을 특정 키워드 검색 결과로 열기 (탐색에서 책 선택 시)
+    case groupSearch(keyword: String)
     case groupEditor(groupId: Int?)
     case myPage
     case myBookShelf
