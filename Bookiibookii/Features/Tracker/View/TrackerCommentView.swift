@@ -91,9 +91,12 @@ struct TrackerCommentView: View {
                 }
                 .padding(12)
             }
-            // 하단 오버스크롤량 추적
+            // 하단 오버스크롤량 추적.
+            // 콘텐츠가 화면보다 짧으면 contentSize < containerSize라 가만히 있어도 값이 양수가 되므로,
+            // 스크롤 가능 높이를 컨테이너 높이로 하한 처리한다.
             .onScrollGeometryChange(for: CGFloat.self) { geo in
-                max(0, geo.contentOffset.y + geo.containerSize.height - geo.contentSize.height)
+                let scrollableHeight = max(geo.contentSize.height, geo.containerSize.height)
+                return max(0, geo.contentOffset.y + geo.containerSize.height - scrollableHeight)
             } action: { _, value in
                 pull = value
                 if dragging { peakPull = max(peakPull, value) }

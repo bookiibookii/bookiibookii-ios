@@ -319,7 +319,10 @@ struct TrackerDetailRoute: View {
             nav: TrackerNavActions(
                 onNavigateBookReview: { gid, edit in container.navigationRouter.push(to: .trackerBookReview(groupId: gid, isEdit: edit)) },
                 onNavigatePartnerReview: { gid in container.navigationRouter.push(to: .trackerPartnerReview(groupId: gid)) },
-                onNavigateComment: { _, _ in },   // 작업 C
+                // 타이틀은 트래커명(groupName) — dispatch가 넘기는 빈 문자열 대신 상태에서 직접 주입
+                onNavigateComment: { gid, _ in
+                    container.navigationRouter.push(to: .trackerComment(groupId: gid, title: viewModel.state.groupName))
+                },
                 onWriteReadingCard: { gid in
                     let title = viewModel.state.myProfile.bookTitle
                     Task {

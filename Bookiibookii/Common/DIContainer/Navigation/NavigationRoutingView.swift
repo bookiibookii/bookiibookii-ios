@@ -216,6 +216,15 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
+        case .trackerComment(let groupId, let title):
+            TrackerCommentView(
+                groupId: groupId,
+                title: title,
+                service: container.api.group
+            )
+                .environmentObject(container)
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationBarBackButtonHidden(true)
         }
     }
 }
