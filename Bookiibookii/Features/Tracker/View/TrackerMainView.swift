@@ -76,14 +76,15 @@ struct TrackerMainRoute: View {
     var onNavigateBookReview: (Int, Bool) -> Void
     var onNavigatePartnerReview: (Int) -> Void
 
+    // 콜백에 기본값을 두지 않아 배선 누락이 컴파일에서 잡히게 한다.
     init(
         viewModel: TrackerMainViewModel,
-        onProfileTap: @escaping () -> Void = {},
-        onNotificationTap: @escaping () -> Void = {},
-        onCreateGroupTap: @escaping () -> Void = {},
-        onCardTap: @escaping (Int) -> Void = { _ in },
-        onNavigateBookReview: @escaping (Int, Bool) -> Void = { _, _ in },
-        onNavigatePartnerReview: @escaping (Int) -> Void = { _ in }
+        onProfileTap: @escaping () -> Void,
+        onNotificationTap: @escaping () -> Void,
+        onCreateGroupTap: @escaping () -> Void,
+        onCardTap: @escaping (Int) -> Void,
+        onNavigateBookReview: @escaping (Int, Bool) -> Void,
+        onNavigatePartnerReview: @escaping (Int) -> Void
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.onProfileTap = onProfileTap
@@ -94,11 +95,12 @@ struct TrackerMainRoute: View {
         self.onNavigatePartnerReview = onNavigatePartnerReview
     }
 
-    // 카드 nav-out 액션(후기/파트너후기/독서카드). 댓글은 이월(no-op 유지).
+    // 카드 nav-out 액션(후기/파트너후기/댓글/독서카드)
     private var navActions: TrackerNavActions {
         TrackerNavActions(
             onNavigateBookReview: onNavigateBookReview,
             onNavigatePartnerReview: onNavigatePartnerReview,
+            onNavigateComment: { gid in goToComment(groupId: gid) },
             onWriteReadingCard: { gid in
                 guard let card = viewModel.state.cards.first(where: { $0.groupId == gid }) else { return }
                 let title = card.left.bookTitle
@@ -139,6 +141,16 @@ struct TrackerMainRoute: View {
             onRefresh: { await viewModel.onAppear() }
         )
         .task { await viewModel.onAppear() }
-        .trackerDialogHost(viewModel.coordinator, cardFor: { id in viewModel.state.cards.first { $0.groupId == id } })
+        .trackerDialogHost(
+            viewModel.coordinator,
+            cardFor: { id in viewModel.state.cards.first { $0.groupId == id } },
+            onNavigateComment: { gid in goToComment(groupId: gid) }
+        )
+    }
+
+    // 카드 액션 / 다이얼로그가 모두 같은 댓글 화면으로 진입. 타이틀은 해당 카드의 트래커명.
+    private func goToComment(groupId: Int) {
+        let title = viewModel.state.cards.first(where: { $0.groupId == groupId })?.groupName ?? ""
+        container.navigationRouter.push(to: .trackerComment(groupId: groupId, title: title))
     }
 }

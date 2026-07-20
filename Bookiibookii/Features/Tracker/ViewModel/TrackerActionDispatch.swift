@@ -12,12 +12,14 @@ func resolveTrackerLibraryBook(libraryService: LibraryService, groupId: Int, boo
     return books.first { $0.groupId == groupId && $0.title == bookTitle }
 }
 
-// 카드 액션이 화면 밖으로 이동하는 콜백 묶음. PR-A에서는 전부 플레이스홀더(실제 화면은 #5~#8).
+// 카드 액션이 화면 밖으로 이동하는 콜백 묶음.
+// 기본값을 두지 않아 배선 누락이 컴파일에서 잡히게 한다(no-op 기본값은 먹통 버튼을 조용히 숨긴다).
 struct TrackerNavActions {
-    var onNavigateBookReview: (_ groupId: Int, _ edit: Bool) -> Void = { _, _ in }
-    var onNavigatePartnerReview: (_ groupId: Int) -> Void = { _ in }
-    var onNavigateComment: (_ groupId: Int, _ title: String) -> Void = { _, _ in }
-    var onWriteReadingCard: (_ groupId: Int) -> Void = { _ in }
+    var onNavigateBookReview: (_ groupId: Int, _ edit: Bool) -> Void
+    var onNavigatePartnerReview: (_ groupId: Int) -> Void
+    // 헤더 타이틀(트래커명)은 각 화면이 자기 상태에서 가져오므로 groupId만 넘긴다.
+    var onNavigateComment: (_ groupId: Int) -> Void
+    var onWriteReadingCard: (_ groupId: Int) -> Void
 }
 
 // primary/secondary 액션을 다이얼로그 열기 또는 네비로 분기.
@@ -37,11 +39,11 @@ func dispatchTrackerAction(
     case .confirmExchange:       coordinator.openExchangeConfirm(groupId: groupId)
     case .checkShippingInfo:     coordinator.openShippingConfirm(groupId: groupId)
     case .confirmReceive:        coordinator.openReceiveConfirm(groupId: groupId)
-    // 화면 이동 액션 (PR-A 플레이스홀더)
+    // 화면 이동 액션
     case .writeBookReview:       nav.onNavigateBookReview(groupId, false)
     case .editBookReview:        nav.onNavigateBookReview(groupId, true)
     case .writePartnerReview:    nav.onNavigatePartnerReview(groupId)
-    case .goToComments:          nav.onNavigateComment(groupId, "")
+    case .goToComments:          nav.onNavigateComment(groupId)
     case .writeReadingCard:      nav.onWriteReadingCard(groupId)
     // 비활성/없음
     case .completeExchange, .none:

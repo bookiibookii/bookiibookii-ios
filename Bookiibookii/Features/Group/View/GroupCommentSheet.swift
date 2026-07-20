@@ -44,6 +44,8 @@ struct CommentRow: View {
                 onLongPress: { onLongPress(comment.id) },
                 onDismissDelete: onDismissDelete
             )
+            // 팝오버는 행 밖으로 넘치므로, 열린 행을 뒤 형제(답글들) 위로 올린다
+            .zIndex(openDeleteId == comment.id ? 1 : 0)
             ForEach(comment.children ?? []) { reply in
                 CommentItemRow(
                     comment: reply,
@@ -58,6 +60,7 @@ struct CommentRow: View {
                     onLongPress: { onLongPress(reply.id) },
                     onDismissDelete: onDismissDelete
                 )
+                .zIndex(openDeleteId == reply.id ? 1 : 0)
             }
         }
     }
@@ -80,6 +83,9 @@ struct CommentItemRow: View {
     let onLongPress: () -> Void
     let onDismissDelete: () -> Void
 
+    // 누르고 있는 동안 grey100 하이라이트 
+    @State private var isPressed = false
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Button(action: onProfileTap) {
@@ -98,6 +104,7 @@ struct CommentItemRow: View {
             Spacer(minLength: 0)
         }
         .padding(4)
+        .background(isPressed ? Color("grey100") : Color.clear)
         .padding(.leading, indentStart)
         .contentShape(Rectangle())
         .onTapGesture {
@@ -105,16 +112,20 @@ struct CommentItemRow: View {
             onDismissDelete()
             if !isDeleteOpen { onTap() }
         }
-        .onLongPressGesture {
-            if isMine { onLongPress() }
-        }
-        .overlay(alignment: .topTrailing) {
+        .onLongPressGesture(
+            perform: { if isMine { onLongPress() } },
+            onPressingChanged: { isPressed = $0 }
+        )
+        // 팝오버 상단이 행 하단에 붙고, 우측은 행 끝에서 살짝 안쪽
+        // (안드는 20pt 안쪽이지만 iOS는 조금 더 오른쪽으로 배치)
+        .overlay(alignment: .bottomTrailing) {
             if isDeleteOpen {
                 DeletePopover(onDelete: {
                     onDismissDelete()
                     onDelete()
                 })
-                .offset(y: profileSize)
+                .alignmentGuide(.bottom) { _ in 0 }
+                .offset(x: -8)
             }
         }
     }
@@ -233,6 +244,8 @@ struct GroupCommentSheet: View {
                                 onDismissDelete: { openDeleteId = nil }
                             )
                             .id(comment.id)
+                            // 삭제 팝오버가 뒤 형제 댓글에 가려지지 않도록 열린 행을 올린다
+                            .zIndex(hasOpenPopover(comment) ? 1 : 0)
                         }
                     }
                 }
@@ -259,6 +272,13 @@ struct GroupCommentSheet: View {
                 .background(Color("white"))
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { inputHeight = $0; recomputePeek() }
         }
+    }
+
+    // 해당 댓글(또는 그 답글)에 삭제 팝오버가 열려 있는지
+    private func hasOpenPopover(_ comment: CommentItem) -> Bool {
+        guard let openDeleteId else { return false }
+        return comment.id == openDeleteId
+            || (comment.children?.contains { $0.id == openDeleteId } ?? false)
     }
 
     // 헤더+입력창+패딩 = 댓글이 없을 때의 시트 높이.
@@ -321,7 +341,7 @@ private struct CommentInputField: View {
         )
     }
 
-    // 제출 시 키보드 즉시 내림 (안드 submitAndHide의 keyboard.hide() 대응)
+    // 제출 시 키보드 즉시 내림
     private func dismissKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }

@@ -286,7 +286,7 @@ struct TrackerDetailRoute: View {
         TrackerDetailScreen(
             state: viewModel.state,
             onBack: { container.navigationRouter.pop() },
-            onMessage: {},            // 댓글 화면은 작업 C — no-op 플레이스홀더
+            onMessage: goToComment,
             onEditPeriod: {
                 let original = viewModel.state.dDayCount.flatMap {
                     Calendar.current.date(byAdding: .day, value: $0, to: Calendar.current.startOfDay(for: Date()))
@@ -302,15 +302,24 @@ struct TrackerDetailRoute: View {
             onSecondaryAction: { dispatch(viewModel.state.secondaryAction) }
         )
         .task { await viewModel.load() }
-        .trackerDialogHost(viewModel.coordinator, cardFor: { _ in
-            TrackerCardModel(
-                groupId: groupId, groupName: "", displayBookTitle: "", bookTitle: "",
-                progressLabel: "", dDay: "",
-                left: viewModel.state.myProfile,
-                right: viewModel.state.partnerProfile,
-                isHost: viewModel.state.isHost
-            )
-        })
+        .trackerDialogHost(
+            viewModel.coordinator,
+            cardFor: { _ in
+                TrackerCardModel(
+                    groupId: groupId, groupName: viewModel.state.groupName, displayBookTitle: "", bookTitle: "",
+                    progressLabel: "", dDay: "",
+                    left: viewModel.state.myProfile,
+                    right: viewModel.state.partnerProfile,
+                    isHost: viewModel.state.isHost
+                )
+            },
+            onNavigateComment: { _ in goToComment() }
+        )
+    }
+
+    // 상단바 메시지 아이콘 / 카드 액션 / 다이얼로그가 모두 같은 댓글 화면으로 진입
+    private func goToComment() {
+        container.navigationRouter.push(to: .trackerComment(groupId: groupId, title: viewModel.state.groupName))
     }
 
     private func dispatch(_ action: TrackerAction) {
@@ -319,7 +328,7 @@ struct TrackerDetailRoute: View {
             nav: TrackerNavActions(
                 onNavigateBookReview: { gid, edit in container.navigationRouter.push(to: .trackerBookReview(groupId: gid, isEdit: edit)) },
                 onNavigatePartnerReview: { gid in container.navigationRouter.push(to: .trackerPartnerReview(groupId: gid)) },
-                onNavigateComment: { _, _ in },   // 작업 C
+                onNavigateComment: { _ in goToComment() },
                 onWriteReadingCard: { gid in
                     let title = viewModel.state.myProfile.bookTitle
                     Task {

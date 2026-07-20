@@ -35,4 +35,5 @@ enum NavigationDestination: Hashable {
     case trackerBookReview(groupId: Int, isEdit: Bool)
     case trackerPartnerReview(groupId: Int)
     case trackerDetail(groupId: Int)
+    case trackerComment(groupId: Int, title: String)
 }
