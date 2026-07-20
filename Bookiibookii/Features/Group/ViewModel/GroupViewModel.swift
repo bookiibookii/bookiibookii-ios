@@ -28,8 +28,6 @@ final class GroupViewModel: ObservableObject {
     @Published private(set) var loadingMore: Bool = false
     @Published private(set) var errorMessage: String? = nil
 
-    @Published var toast: String? = nil
-
     private let service: GroupService
     private let sort: GroupSort = .latest        // 안드: 정렬 UI 없음, LATEST 고정
     private let pageSize: Int = 10

@@ -39,7 +39,6 @@ struct GroupView: View {
             })
         }
         .task { await viewModel.onAppear() }
-        .toast($viewModel.toast)
         .dismissKeyboardOnTap()
     }
 
