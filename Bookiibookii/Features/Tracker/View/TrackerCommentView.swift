@@ -78,6 +78,8 @@ struct TrackerCommentView: View {
                             onDismissDelete: { openDeleteId = nil }
                         )
                         .id(comment.id)
+                        // 삭제 팝오버는 행 밖으로 넘치므로, 열린 행을 형제(구분선·다음 행) 위로 올린다
+                        .zIndex(hasOpenPopover(comment) ? 1 : 0)
 
                         // 댓글마다 하단 divider — 마지막 댓글은 제외
                         if index < viewModel.state.comments.count - 1 {
@@ -218,6 +220,13 @@ struct TrackerCommentView: View {
         .padding(.top, 8)
         .padding(.bottom, 16)
         .background(Color("white"))
+    }
+
+    // 해당 댓글(또는 그 답글)에 삭제 팝오버가 열려 있는지
+    private func hasOpenPopover(_ comment: CommentItem) -> Bool {
+        guard let openDeleteId else { return false }
+        return comment.id == openDeleteId
+            || (comment.children?.contains { $0.id == openDeleteId } ?? false)
     }
 
     private var draftBinding: Binding<String> {

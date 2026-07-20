@@ -80,6 +80,9 @@ struct CommentItemRow: View {
     let onLongPress: () -> Void
     let onDismissDelete: () -> Void
 
+    // 누르고 있는 동안 grey100 하이라이트 
+    @State private var isPressed = false
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Button(action: onProfileTap) {
@@ -98,6 +101,7 @@ struct CommentItemRow: View {
             Spacer(minLength: 0)
         }
         .padding(4)
+        .background(isPressed ? Color("grey100") : Color.clear)
         .padding(.leading, indentStart)
         .contentShape(Rectangle())
         .onTapGesture {
@@ -105,16 +109,20 @@ struct CommentItemRow: View {
             onDismissDelete()
             if !isDeleteOpen { onTap() }
         }
-        .onLongPressGesture {
-            if isMine { onLongPress() }
-        }
-        .overlay(alignment: .topTrailing) {
+        .onLongPressGesture(
+            perform: { if isMine { onLongPress() } },
+            onPressingChanged: { isPressed = $0 }
+        )
+        // 팝오버 상단이 행 하단에 붙고, 우측은 행 끝에서 살짝 안쪽
+        // (안드는 20pt 안쪽이지만 iOS는 조금 더 오른쪽으로 배치)
+        .overlay(alignment: .bottomTrailing) {
             if isDeleteOpen {
                 DeletePopover(onDelete: {
                     onDismissDelete()
                     onDelete()
                 })
-                .offset(y: profileSize)
+                .alignmentGuide(.bottom) { _ in 0 }
+                .offset(x: -8)
             }
         }
     }
@@ -321,7 +329,7 @@ private struct CommentInputField: View {
         )
     }
 
-    // 제출 시 키보드 즉시 내림 (안드 submitAndHide의 keyboard.hide() 대응)
+    // 제출 시 키보드 즉시 내림
     private func dismissKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
