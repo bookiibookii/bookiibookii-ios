@@ -44,6 +44,8 @@ struct CommentRow: View {
                 onLongPress: { onLongPress(comment.id) },
                 onDismissDelete: onDismissDelete
             )
+            // 팝오버는 행 밖으로 넘치므로, 열린 행을 뒤 형제(답글들) 위로 올린다
+            .zIndex(openDeleteId == comment.id ? 1 : 0)
             ForEach(comment.children ?? []) { reply in
                 CommentItemRow(
                     comment: reply,
@@ -58,6 +60,7 @@ struct CommentRow: View {
                     onLongPress: { onLongPress(reply.id) },
                     onDismissDelete: onDismissDelete
                 )
+                .zIndex(openDeleteId == reply.id ? 1 : 0)
             }
         }
     }
@@ -241,6 +244,8 @@ struct GroupCommentSheet: View {
                                 onDismissDelete: { openDeleteId = nil }
                             )
                             .id(comment.id)
+                            // 삭제 팝오버가 뒤 형제 댓글에 가려지지 않도록 열린 행을 올린다
+                            .zIndex(hasOpenPopover(comment) ? 1 : 0)
                         }
                     }
                 }
@@ -267,6 +272,13 @@ struct GroupCommentSheet: View {
                 .background(Color("white"))
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { inputHeight = $0; recomputePeek() }
         }
+    }
+
+    // 해당 댓글(또는 그 답글)에 삭제 팝오버가 열려 있는지
+    private func hasOpenPopover(_ comment: CommentItem) -> Bool {
+        guard let openDeleteId else { return false }
+        return comment.id == openDeleteId
+            || (comment.children?.contains { $0.id == openDeleteId } ?? false)
     }
 
     // 헤더+입력창+패딩 = 댓글이 없을 때의 시트 높이.
