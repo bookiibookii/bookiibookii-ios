@@ -7,12 +7,11 @@ struct TrackerDialogHost: ViewModifier {
     let cardFor: (Int) -> TrackerCardModel?
     // 다이얼로그에서 댓글 화면으로 나가는 경로. 기본값을 두지 않아 배선 누락이 컴파일에서 잡히게 한다.
     let onNavigateComment: (_ groupId: Int) -> Void
-    @State private var toastMessage: String?
 
     func body(content: Content) -> some View {
         content
             .overlay { dialogOverlay }
-            .toast($toastMessage)
+            .toast($coordinator.toast)
             // 다이얼로그가 떠 있는 동안 하단 탭바 숨김
             .preference(key: TabBarHiddenKey.self, value: coordinator.route != nil)
     }
@@ -68,7 +67,7 @@ struct TrackerDialogHost: ViewModifier {
                     if let url = deliveryTrackingUrl(companyCode: coordinator.partnerDelivery?.deliveryCompany, trackingNumber: coordinator.partnerDelivery?.trackingNumber) {
                         UIApplication.shared.open(url)
                     } else {
-                        toastMessage = "배송 조회를 지원하지 않는 택배사예요."
+                        coordinator.toast = "배송 조회를 지원하지 않는 택배사예요."
                     }
                 },
                 onConfirmClick: { coordinator.dismiss() }
