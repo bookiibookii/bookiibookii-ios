@@ -57,9 +57,12 @@ extension AppliedGroupItem {
 }
 
 extension HomeSectionItem {
-    var homeGroupCardData: HomeGroupCardData {
-        HomeGroupCardData(
-            groupId: groupId ?? 0, bookImage: bookImage, title: bookTitle ?? "", author: author,
+    // 책 항목과 그룹 항목을 겸하는 DTO라 groupId가 없을 수 있다.
+    // 없는 id를 만들어내면 존재하지 않는 그룹 상세로 진입하므로 nil로 두고 렌더링에서 제외한다.
+    var homeGroupCardData: HomeGroupCardData? {
+        guard let groupId else { return nil }
+        return HomeGroupCardData(
+            groupId: groupId, bookImage: bookImage, title: bookTitle ?? "", author: author,
             genre: genre, tradeType: tradeType, readingPeriod: readingPeriod ?? 0,
             hostNickname: hostNickname, hostProfileImageUrl: hostProfileImageUrl,
             groupName: groupName
