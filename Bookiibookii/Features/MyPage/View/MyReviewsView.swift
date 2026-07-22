@@ -369,9 +369,11 @@ private struct MyReviewsReactionChip: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(isBoomUp ? "ic_hand_thumbs_up" : "ic_hand_thumbs_down")
+                .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 20, height: 20)
+                .foregroundColor(isBoomUp ? Color("main200") : Color("grey500"))
 
             Text(displayLabel)
                 .pretendardText(size: 14, weight: .medium)

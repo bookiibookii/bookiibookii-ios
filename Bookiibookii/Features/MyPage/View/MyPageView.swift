@@ -492,8 +492,9 @@ private struct MypageBookSpine: View {
         colorIndex.isMultiple(of: 2) ? Color("main105") : Color("sub100")
     }
 
+    /// (화면 너비 - 좌우 패딩 32 - 책 간격 합 48) / 최대 7권
     private var spineWidth: CGFloat {
-        max(titleNaturalSize.height + 12, 28)
+        (UIScreen.main.bounds.width - 32 - 48) / 7
     }
 
     private var spineHeight: CGFloat {
@@ -673,9 +674,11 @@ private struct ReactionChip: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(isBoomUp ? "ic_hand_thumbs_up" : "ic_hand_thumbs_down")
+                .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 20, height: 20)
+                .foregroundColor(isBoomUp ? Color("main200") : Color("grey500"))
 
             Text(isBoomUp ? "좋았어요" : "별로였어요")
                 .pretendardText(size: 14, weight: .medium)

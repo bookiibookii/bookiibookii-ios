@@ -149,10 +149,10 @@ struct MyBookShelfView: View {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .bottom, spacing: 8) {
-                        ForEach(viewModel.representativeBooks) { book in
+                        ForEach(Array(viewModel.representativeBooks.enumerated()), id: \.element.id) { index, book in
                             BookshelfRepresentativeSpine(
                                 title: book.title,
-                                isFavorite: book.isFavorite
+                                colorIndex: index
                             )
                         }
                     }
@@ -507,20 +507,21 @@ struct MyBookShelfView: View {
 
 private struct BookshelfRepresentativeSpine: View {
     let title: String
-    let isFavorite: Bool
+    let colorIndex: Int
 
     @State private var titleNaturalSize: CGSize = .zero
 
     private var textColor: Color {
-        isFavorite ? Color("sub200") : Color("main200")
+        colorIndex.isMultiple(of: 2) ? Color("main200") : Color("sub200")
     }
 
     private var backgroundColor: Color {
-        isFavorite ? Color("sub100") : Color("main105")
+        colorIndex.isMultiple(of: 2) ? Color("main105") : Color("sub100")
     }
 
+    /// (화면 너비 - 좌우 패딩 32 - 책 간격 합 48) / 최대 7권
     private var spineWidth: CGFloat {
-        max(titleNaturalSize.height + 12, 28)
+        (UIScreen.main.bounds.width - 32 - 48) / 7
     }
 
     private var spineHeight: CGFloat {

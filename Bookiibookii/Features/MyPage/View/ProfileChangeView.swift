@@ -38,7 +38,12 @@ struct ProfileChangeView: View {
             }
 
             saveButton
+
+            if showPhotoSheet {
+                photoSheetOverlay
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: showPhotoSheet)
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
         .task { await viewModel.load() }
@@ -47,20 +52,6 @@ struct ProfileChangeView: View {
             viewModel.consumePhotosPickerItem(item)
             photoPickerItem = nil
             showPhotoSheet = false
-        }
-        .sheet(isPresented: $showPhotoSheet) {
-            ProfilePhotoBottomSheet(
-                photoPickerItem: $photoPickerItem,
-                onTakePhoto: {
-                    showPhotoSheet = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                        showCamera = true
-                    }
-                }
-            )
-            .presentationDetents([.height(252)])
-            .presentationDragIndicator(.hidden)
-            .presentationCornerRadius(20)
         }
         .sheet(isPresented: $showDateSheet) {
             BirthDatePickerSheet(
@@ -154,7 +145,9 @@ struct ProfileChangeView: View {
 
     @ViewBuilder
     private var profileImage: some View {
-        if let selected = viewModel.selectedImage {
+        if viewModel.isUsingDefaultImage {
+            profilePlaceholder
+        } else if let selected = viewModel.selectedImage {
             Image(uiImage: selected)
                 .resizable()
                 .scaledToFill()
@@ -165,6 +158,32 @@ struct ProfileChangeView: View {
                 .scaledToFill()
         } else {
             profilePlaceholder
+        }
+    }
+
+    private var photoSheetOverlay: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .onTapGesture { showPhotoSheet = false }
+
+            ProfilePhotoBottomSheet(
+                photoPickerItem: $photoPickerItem,
+                onTakePhoto: {
+                    showPhotoSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        showCamera = true
+                    }
+                },
+                onSelectDefault: {
+                    viewModel.selectDefaultImage()
+                    showPhotoSheet = false
+                },
+                onCancel: { showPhotoSheet = false }
+            )
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
 
@@ -264,8 +283,8 @@ struct ProfileChangeView: View {
     }
 
     private var birthDisplayText: String {
-        guard let date = viewModel.birthDate else { return "0000.00.00" }
-        return Self.displayFormatter.string(from: date)
+        guard let date = viewModel.birthDate else { return "0000.00.00." }
+        return Self.displayFormatter.string(from: date) + "."
     }
 
     private func fieldLabel(_ title: String) -> some View {

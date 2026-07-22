@@ -31,6 +31,7 @@ final class ProfileChangeViewModel: ObservableObject {
 
     @Published var profileImageURL: URL?
     @Published var selectedImage: UIImage?
+    @Published var isUsingDefaultImage = false
     @Published var photoImportError: String?
     @Published var nickname: String = ""
     @Published var gender: Gender?
@@ -42,13 +43,16 @@ final class ProfileChangeViewModel: ObservableObject {
     private let userService: UserService
     private var originalSnapshot = ProfileSnapshot.empty
     private var originalNickname: String = ""
+    private var hadProfileImage = false
 
     init(userService: UserService) {
         self.userService = userService
     }
 
     var hasChanges: Bool {
-        currentSnapshot != originalSnapshot || selectedImage != nil
+        currentSnapshot != originalSnapshot
+            || selectedImage != nil
+            || (isUsingDefaultImage && hadProfileImage)
     }
 
     var canSubmit: Bool {
@@ -62,6 +66,9 @@ final class ProfileChangeViewModel: ObservableObject {
         do {
             let profile = try await userService.getMypage()
             profileImageURL = profile.profileImageUrl.flatMap(URL.init(string:))
+            hadProfileImage = profileImageURL != nil
+            isUsingDefaultImage = false
+            selectedImage = nil
             nickname = profile.nickname
             originalNickname = profile.nickname
             nicknameValidationState = .available
@@ -102,11 +109,13 @@ final class ProfileChangeViewModel: ObservableObject {
 
             let updated = try await userService.getMypage()
             profileImageURL = updated.profileImageUrl.flatMap(URL.init(string:))
+            hadProfileImage = profileImageURL != nil
 
             saveMessage = "수정사항이 저장되었어요."
             originalSnapshot = currentSnapshot
             originalNickname = nickname.trimmed
             selectedImage = nil
+            isUsingDefaultImage = false
         } catch {
             saveMessage = "저장에 실패했어요. 잠시 후 다시 시도해 주세요."
         }
@@ -119,6 +128,13 @@ final class ProfileChangeViewModel: ObservableObject {
 
     func setCapturedImage(_ image: UIImage) {
         selectedImage = image
+        isUsingDefaultImage = false
+        photoImportError = nil
+    }
+
+    func selectDefaultImage() {
+        selectedImage = nil
+        isUsingDefaultImage = true
         photoImportError = nil
     }
 
@@ -132,6 +148,9 @@ final class ProfileChangeViewModel: ObservableObject {
     }
 
     private func uploadProfileImageIfNeeded() async throws -> String? {
+        if isUsingDefaultImage {
+            return "DEFAULT"
+        }
         guard let image = selectedImage,
               let imageData = ImageCompressor.compressedJPEG(from: image) else {
             return nil

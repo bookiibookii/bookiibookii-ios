@@ -432,8 +432,9 @@ private struct OtherUserBookshelfSpine: View {
         isFavorite ? Color("sub100") : Color("main105")
     }
 
+    /// (화면 너비 - 좌우 패딩 32 - 책 간격 합 48) / 최대 7권
     private var spineWidth: CGFloat {
-        max(titleNaturalSize.height + 12, 28)
+        (UIScreen.main.bounds.width - 32 - 48) / 7
     }
 
     private var spineHeight: CGFloat {

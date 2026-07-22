@@ -110,7 +110,7 @@ struct SettingView: View {
 
             settingCard(verticalPadding: 12) {
                 HStack(spacing: 12) {
-                    settingIcon("ic_alert")
+                    settingIcon("ic_alert_32")
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("푸시 알림 설정")
@@ -139,7 +139,7 @@ struct SettingView: View {
                 container.navigationRouter.push(to: .notice)
             } label: {
                 navigationRow(
-                    iconName: "ic_alert",
+                    iconName: "ic_alert_32",
                     title: "공지사항",
                     subtitle: "부키부키의 새로운 소식을 확인하세요!"
                 )
