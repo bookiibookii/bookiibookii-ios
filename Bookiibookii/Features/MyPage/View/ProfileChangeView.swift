@@ -133,7 +133,7 @@ struct ProfileChangeView: View {
             ZStack(alignment: .bottomTrailing) {
                 profileImage
                     .frame(width: 128, height: 128)
-                    .clipShape(SquircleShape())
+                    .clipShape(ProfileSquircle())
 
                 ZStack {
                     Circle()

@@ -63,7 +63,7 @@ struct LibraryCardListView: View {
 
             addCardMenu
                 .padding(.trailing, 16)
-                .padding(.bottom, 132)
+                .padding(.top, 319)
         }
         .task { await viewModel.load() }
         .onReceive(NotificationCenter.default.publisher(for: .libraryCardEngagementChanged)) { _ in
@@ -474,7 +474,8 @@ struct LibraryCardListView: View {
             to: .libraryCardAdd(
                 userBookId: memberBookId,
                 cardType: type,
-                bookTitle: book.title
+                bookTitle: book.title,
+                totalPages: book.totalPages
             )
         )
     }

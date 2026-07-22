@@ -1,5 +1,4 @@
 import SwiftUI
-import Kingfisher
 
 struct NoticeView: View {
     @EnvironmentObject private var container: DIContainer
@@ -155,9 +154,7 @@ struct NoticeView: View {
     private func noticeMetaRow(_ notice: NoticeItem) -> some View {
         HStack(spacing: 4) {
             HStack(spacing: 8) {
-                noticeProfileImage(urlString: notice.authorProfileImageUrl)
-                    .frame(width: 20, height: 20)
-                    .clipShape(Circle())
+                ProfilePlaceholder(imageUrl: notice.authorProfileImageUrl, size: 20)
 
                 Text(notice.authorNickname ?? "")
                     .pretendardText(size: 14, weight: .medium)
@@ -171,18 +168,6 @@ struct NoticeView: View {
             Text(notice.listDateText)
                 .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey500"))
-        }
-    }
-
-    @ViewBuilder
-    private func noticeProfileImage(urlString: String?) -> some View {
-        if let urlString, let url = URL(string: urlString) {
-            KFImage(url)
-                .placeholder { Color("grey200") }
-                .resizable()
-                .scaledToFill()
-        } else {
-            Color("grey200")
         }
     }
 }

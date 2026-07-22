@@ -1,5 +1,4 @@
 import SwiftUI
-import Kingfisher
 
 struct MyPageView: View {
     @EnvironmentObject private var container: DIContainer
@@ -132,9 +131,7 @@ struct MyPageView: View {
 
     private var profileRow: some View {
         HStack(spacing: 12) {
-            profileImage
-                .frame(width: 52, height: 52)
-                .clipShape(Circle())
+            ProfilePlaceholder(imageUrl: viewModel.profile?.profileImageUrl, size: 52)
 
             if viewModel.isLoading {
                 ProgressView().scaleEffect(0.8)
@@ -146,28 +143,6 @@ struct MyPageView: View {
 
             Spacer(minLength: 0)
         }
-    }
-
-    private var profileImage: some View {
-        Group {
-            if let urlStr = viewModel.profile?.profileImageUrl,
-               let url = URL(string: urlStr) {
-                KFImage(url)
-                    .placeholder { defaultProfileIcon }
-                    .retry(maxCount: 2)
-                    .cancelOnDisappear(true)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                defaultProfileIcon
-            }
-        }
-    }
-
-    private var defaultProfileIcon: some View {
-        Image("ic_profile_placeholder")
-            .resizable()
-            .scaledToFill()
     }
 
     private var actionButtons: some View {
@@ -667,26 +642,11 @@ private struct ReceivedReviewCard: View {
 
     private var reviewerHeader: some View {
         HStack(spacing: 8) {
-            reviewerProfileImage
-                .frame(width: 32, height: 32)
-                .clipShape(Circle())
+            ProfilePlaceholder(imageUrl: review.reviewerProfileUrl, size: 32)
 
             Text(review.reviewerNickname)
                 .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(Color("grey800"))
-        }
-    }
-
-    @ViewBuilder
-    private var reviewerProfileImage: some View {
-        if let urlStr = review.reviewerProfileUrl,
-           let url = URL(string: urlStr) {
-            KFImage(url)
-                .placeholder { Color("grey200") }
-                .resizable()
-                .scaledToFill()
-        } else {
-            Color("grey200")
         }
     }
 }

@@ -16,6 +16,7 @@ struct CardAddView: View {
     init(
         mode: CardAddMode,
         bookTitle: String,
+        totalPages: Int? = nil,
         libraryService: LibraryService,
         userService: UserService
     ) {
@@ -23,6 +24,7 @@ struct CardAddView: View {
             wrappedValue: CardAddViewModel(
                 mode: mode,
                 bookTitle: bookTitle,
+                totalPages: totalPages,
                 libraryService: libraryService,
                 userService: userService
             )
@@ -33,12 +35,14 @@ struct CardAddView: View {
         userBookId: Int,
         cardType: LibraryCardType,
         bookTitle: String,
+        totalPages: Int? = nil,
         libraryService: LibraryService,
         userService: UserService
     ) {
         self.init(
             mode: .create(userBookId: userBookId, cardType: cardType),
             bookTitle: bookTitle,
+            totalPages: totalPages,
             libraryService: libraryService,
             userService: userService
         )
@@ -120,10 +124,7 @@ struct CardAddView: View {
             replaceHadSelection = false
         }
         .onChange(of: viewModel.pageText) { _, value in
-            let filtered = value.filter(\.isNumber)
-            if filtered != value {
-                viewModel.pageText = filtered
-            }
+            viewModel.sanitizePageText(value)
         }
         .onChange(of: viewModel.quotation) { _, value in
             if value.count > 140 {

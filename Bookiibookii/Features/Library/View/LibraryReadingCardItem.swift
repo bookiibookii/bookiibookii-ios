@@ -86,25 +86,8 @@ struct LibraryReadingCardItem: View {
         }
     }
 
-    @ViewBuilder
     private var profileImage: some View {
-        if let urlString = card.creatorProfileImageURL,
-           let url = URL(string: urlString) {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let image):
-                    image.resizable().scaledToFill()
-                default:
-                    Color("grey300")
-                }
-            }
-            .frame(width: 24, height: 24)
-            .clipShape(Circle())
-        } else {
-            Circle()
-                .fill(Color("grey300"))
-                .frame(width: 24, height: 24)
-        }
+        ProfilePlaceholder(imageUrl: card.creatorProfileImageURL, size: 24)
     }
 
     @ViewBuilder

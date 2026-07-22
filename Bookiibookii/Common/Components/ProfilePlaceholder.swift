@@ -41,8 +41,9 @@ struct ProfilePlaceholder: View {
                 .resizable()
                 .scaledToFill()
                 .frame(width: size, height: size)
-            if let imageUrl, !imageUrl.isEmpty {
-                KFImage(URL(string: imageUrl))
+            if let imageUrl, !imageUrl.isEmpty, let url = URL(string: imageUrl) {
+                KFImage(url)
+                    .placeholder { Color.clear }
                     .retry(maxCount: 2)
                     .cancelOnDisappear(true)
                     .resizable()
