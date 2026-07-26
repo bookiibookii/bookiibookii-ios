@@ -363,7 +363,7 @@ struct ProfileShareCardContent: View {
             VStack(spacing: 8) {
                 profileImage
                     .frame(width: 92, height: 92)
-                    .clipShape(Circle())
+                    .clipShape(ProfileSquircle())
 
                 Text(nickname.isEmpty ? "-" : nickname)
                     .pretendardText(size: 20, weight: .semibold)
@@ -536,7 +536,7 @@ private struct ProfileShareCardRenderContent: View {
                     }
                 }
                 .frame(width: 92, height: 92)
-                .clipShape(Circle())
+                .clipShape(ProfileSquircle())
 
                 Text(nickname.isEmpty ? "-" : nickname)
                     .pretendardText(size: 20, weight: .semibold)

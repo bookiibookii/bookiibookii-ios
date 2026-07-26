@@ -1,5 +1,4 @@
 import SwiftUI
-import Kingfisher
 
 struct MyReviewsView: View {
     @EnvironmentObject private var container: DIContainer
@@ -324,9 +323,7 @@ private struct MyReviewsReceivedCard: View {
             HStack(alignment: .top) {
                 Button(action: onProfileTap) {
                     HStack(spacing: 8) {
-                        reviewerProfileImage
-                            .frame(width: 32, height: 32)
-                            .clipShape(Circle())
+                        ProfilePlaceholder(imageUrl: review.reviewerProfileImageUrl, size: 32)
 
                         Text(review.reviewerNickname)
                             .pretendardText(size: 16, weight: .medium)
@@ -356,19 +353,6 @@ private struct MyReviewsReceivedCard: View {
         .background(Color("white"))
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
-
-    @ViewBuilder
-    private var reviewerProfileImage: some View {
-        if let urlStr = review.reviewerProfileImageUrl,
-           let url = URL(string: urlStr) {
-            KFImage(url)
-                .placeholder { Color("grey200") }
-                .resizable()
-                .scaledToFill()
-        } else {
-            Color("grey200")
-        }
-    }
 }
 
 // MARK: - Shared Components
@@ -385,9 +369,11 @@ private struct MyReviewsReactionChip: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(isBoomUp ? "ic_hand_thumbs_up" : "ic_hand_thumbs_down")
+                .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 20, height: 20)
+                .foregroundColor(isBoomUp ? Color("main200") : Color("grey500"))
 
             Text(displayLabel)
                 .pretendardText(size: 14, weight: .medium)

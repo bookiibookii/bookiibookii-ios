@@ -281,7 +281,8 @@ struct LibraryCardDetailView: View {
                 cardId: detail.cardId,
                 userBookId: userBookId,
                 bookTitle: detail.bookTitle ?? "-",
-                cardType: detail.cardType
+                cardType: detail.cardType,
+                totalPages: detail.totalPages
             )
         )
     }
@@ -722,16 +723,7 @@ private struct CardCreatorProfileImage: View {
     let urlString: String?
 
     var body: some View {
-        AsyncImage(url: URL(string: urlString ?? "")) { phase in
-            switch phase {
-            case .success(let image):
-                image.resizable().scaledToFill()
-            default:
-                Color("grey200")
-            }
-        }
-        .frame(width: 32, height: 32)
-        .clipShape(Circle())
+        ProfilePlaceholder(imageUrl: urlString, size: 32)
     }
 }
 

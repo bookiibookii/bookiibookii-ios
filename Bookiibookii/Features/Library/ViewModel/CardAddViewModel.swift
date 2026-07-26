@@ -32,6 +32,8 @@ final class CardAddViewModel: ObservableObject {
     @Published private(set) var isSubmitting = false
     @Published private(set) var authorIdentifier = ""
     @Published var toastMessage: String?
+    /// 책 전체 페이지. 있으면 입력값이 이 값을 넘지 않도록 클램프.
+    @Published private(set) var totalPages: Int?
 
     /// 수정 모드에서 저장 후 변경 여부 판별용 스냅샷.
     private var baselinePage: Int?
@@ -44,11 +46,13 @@ final class CardAddViewModel: ObservableObject {
     init(
         mode: CardAddMode,
         bookTitle: String,
+        totalPages: Int? = nil,
         libraryService: LibraryService,
         userService: UserService
     ) {
         self.mode = mode
         self.bookTitle = bookTitle
+        self.totalPages = totalPages
         self.libraryService = libraryService
         self.userService = userService
     }
@@ -115,6 +119,22 @@ final class CardAddViewModel: ObservableObject {
         return v
     }
 
+    /// 트래커 진행률 기록과 동일: 숫자만 허용, totalPages 초과 시 최댓값으로 고정.
+    func sanitizePageText(_ raw: String) {
+        let digits = raw.filter(\.isNumber)
+        let sanitized: String
+        if digits.isEmpty {
+            sanitized = ""
+        } else if let totalPages, totalPages > 0, let asInt = Int(digits), asInt > totalPages {
+            sanitized = String(totalPages)
+        } else {
+            sanitized = digits
+        }
+        if pageText != sanitized {
+            pageText = sanitized
+        }
+    }
+
     func loadEditInitialStateIfNeeded() async {
         guard case .edit(let cardId, _, _) = mode else { return }
         guard baselinePage == nil else { return }
@@ -127,6 +147,9 @@ final class CardAddViewModel: ObservableObject {
             pageText = "\(detail.page)"
             memo = detail.memo
             quotation = detail.quotation ?? ""
+            if let detailTotal = detail.totalPages, detailTotal > 0 {
+                totalPages = detailTotal
+            }
 
             let trimmedMemo = memo.trimmingCharacters(in: .whitespacesAndNewlines)
             let trimmedQuotation = quotation.trimmingCharacters(in: .whitespacesAndNewlines)

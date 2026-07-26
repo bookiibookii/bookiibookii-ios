@@ -1,5 +1,4 @@
 import SwiftUI
-import Kingfisher
 
 struct NicknameRoute: Identifiable, Hashable {
     let nickname: String
@@ -144,9 +143,7 @@ struct OtherProfileView: View {
 
     private var profileRow: some View {
         HStack(spacing: 12) {
-            profileImage
-                .frame(width: 52, height: 52)
-                .clipShape(Circle())
+            ProfilePlaceholder(imageUrl: viewModel.profile?.profileImageUrl, size: 52)
 
             if viewModel.isLoading {
                 ProgressView().scaleEffect(0.8)
@@ -158,28 +155,6 @@ struct OtherProfileView: View {
 
             Spacer(minLength: 0)
         }
-    }
-
-    private var profileImage: some View {
-        Group {
-            if let urlStr = viewModel.profile?.profileImageUrl,
-               let url = URL(string: urlStr) {
-                KFImage(url)
-                    .placeholder { defaultProfileIcon }
-                    .retry(maxCount: 2)
-                    .cancelOnDisappear(true)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                defaultProfileIcon
-            }
-        }
-    }
-
-    private var defaultProfileIcon: some View {
-        Image("ic_profile_placeholder")
-            .resizable()
-            .scaledToFill()
     }
 
     // MARK: - 한 줄 소개
@@ -389,8 +364,9 @@ private struct OtherProfileBookSpine: View {
         colorIndex.isMultiple(of: 2) ? Color("main105") : Color("sub100")
     }
 
+    /// (화면 너비 - 좌우 패딩 32 - 책 간격 합 48) / 최대 7권
     private var spineWidth: CGFloat {
-        max(titleNaturalSize.height + 12, 28)
+        (UIScreen.main.bounds.width - 32 - 48) / 7
     }
 
     private var spineHeight: CGFloat {
@@ -509,9 +485,7 @@ private struct OtherProfileReceivedReviewCard: View {
             HStack(alignment: .top) {
                 Button(action: onProfileTap) {
                     HStack(spacing: 8) {
-                        reviewerProfileImage
-                            .frame(width: 32, height: 32)
-                            .clipShape(Circle())
+                        ProfilePlaceholder(imageUrl: review.reviewerProfileUrl, size: 32)
 
                         Text(review.reviewerNickname)
                             .pretendardText(size: 16, weight: .medium)
@@ -538,19 +512,6 @@ private struct OtherProfileReceivedReviewCard: View {
         .background(Color("white"))
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
-
-    @ViewBuilder
-    private var reviewerProfileImage: some View {
-        if let urlStr = review.reviewerProfileUrl,
-           let url = URL(string: urlStr) {
-            KFImage(url)
-                .placeholder { Color("grey200") }
-                .resizable()
-                .scaledToFill()
-        } else {
-            Color("grey200")
-        }
-    }
 }
 
 private struct OtherProfileTradeTypeChip: View {
@@ -575,9 +536,11 @@ private struct OtherProfileReactionChip: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(isBoomUp ? "ic_hand_thumbs_up" : "ic_hand_thumbs_down")
+                .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 20, height: 20)
+                .foregroundColor(isBoomUp ? Color("main200") : Color("grey500"))
 
             Text(isBoomUp ? "좋았어요" : "별로였어요")
                 .pretendardText(size: 14, weight: .medium)

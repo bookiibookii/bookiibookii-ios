@@ -298,17 +298,7 @@ private struct LibraryReviewProfile: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            AsyncImage(url: URL(string: imageURL ?? "")) { phase in
-                if let image = phase.image {
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    Color("grey200")
-                }
-            }
-            .frame(width: 20, height: 20)
-            .clipShape(Circle())
+            ProfilePlaceholder(imageUrl: imageURL, size: 20)
 
             Text(nickname ?? "-")
                 .pretendardText(size: 12, weight: .medium)

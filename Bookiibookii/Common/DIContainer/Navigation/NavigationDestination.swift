@@ -22,8 +22,8 @@ enum NavigationDestination: Hashable {
     case libraryGroupReviewEdit(book: LibraryBook)
     case libraryCardDetail(cardId: Int, userBookId: Int?)
     case libraryBookmarkedCardDetail(cardId: Int, userBookId: Int?)
-    case libraryCardAdd(userBookId: Int, cardType: LibraryCardType, bookTitle: String)
-    case libraryCardEdit(cardId: Int, userBookId: Int, bookTitle: String, cardType: LibraryCardType)
+    case libraryCardAdd(userBookId: Int, cardType: LibraryCardType, bookTitle: String, totalPages: Int?)
+    case libraryCardEdit(cardId: Int, userBookId: Int, bookTitle: String, cardType: LibraryCardType, totalPages: Int?)
     case group
     // 그룹 목록을 특정 키워드 검색 결과로 열기 (탐색에서 책 선택 시)
     case groupSearch(keyword: String)

@@ -117,21 +117,23 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .libraryCardAdd(let userBookId, let cardType, let bookTitle):
+        case .libraryCardAdd(let userBookId, let cardType, let bookTitle, let totalPages):
             CardAddView(
                 userBookId: userBookId,
                 cardType: cardType,
                 bookTitle: bookTitle,
+                totalPages: totalPages,
                 libraryService: container.api.library,
                 userService: container.api.user
             )
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .libraryCardEdit(let cardId, let userBookId, let bookTitle, let cardType):
+        case .libraryCardEdit(let cardId, let userBookId, let bookTitle, let cardType, let totalPages):
             CardAddView(
                 mode: .edit(cardId: cardId, userBookId: userBookId, cardType: cardType),
                 bookTitle: bookTitle,
+                totalPages: totalPages,
                 libraryService: container.api.library,
                 userService: container.api.user
             )
