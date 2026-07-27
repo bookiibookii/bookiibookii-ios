@@ -1,7 +1,7 @@
 import SwiftUI
 
-// 안드로이드 item_hom_notification.xml 대응
-// 흰 라운드 카드 + 40 원형 아이콘(읽음상태별 색상) + 제목/뱃지dot + 본문 + 시간·책제목 메타.
+// 안드로이드 NotificationCard + Figma 알림카드 대응
+// 흰 라운드 카드 + 40 원형 ic_book(읽음상태별 색상) + 제목/뱃지dot + 본문 + 시간·책제목 메타.
 struct NotificationCard: View {
     let item: NotificationItemDto
     let bookTitle: String
@@ -11,26 +11,23 @@ struct NotificationCard: View {
     private var timeText: String { TimeAgoFormatter.format(item.createdAt) }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 15) {
+        HStack(alignment: .top, spacing: 14) {
             icon
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 4) {
                 titleRow
                 Text(item.message)
-                    .pretendardText(size: 12)
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey700"))
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 6)
 
                 metaRow
-                    .padding(.top, 8)
             }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(Color("white"))
         )
         .contentShape(Rectangle())
@@ -38,9 +35,12 @@ struct NotificationCard: View {
     }
 
     private var icon: some View {
-        Image(systemName: "book")
-            .font(.system(size: 18, weight: .medium))
-            .foregroundColor(isUnread ? Color("main200") : Color("white"))
+        Image("ic_book")
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 24, height: 24)
+            .foregroundColor(isUnread ? Color("main200") : Color("grey500"))
             .frame(width: 40, height: 40)
             .background(
                 Circle().fill(isUnread ? Color("main100") : Color("grey200"))
@@ -48,9 +48,9 @@ struct NotificationCard: View {
     }
 
     private var titleRow: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
             Text(item.title)
-                .pretendardText(size: 14, weight: .bold)
+                .pretendardText(size: 15, weight: .medium)
                 .foregroundColor(Color("grey900"))
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
@@ -58,7 +58,7 @@ struct NotificationCard: View {
             if isUnread {
                 Circle()
                     .fill(Color("main200"))
-                    .frame(width: 6, height: 6)
+                    .frame(width: 8, height: 8)
             }
         }
     }
@@ -66,16 +66,13 @@ struct NotificationCard: View {
     @ViewBuilder
     private var metaRow: some View {
         let hasBook = !bookTitle.isEmpty
-        HStack(spacing: 4) {
+        HStack(spacing: 8) {
             Text(timeText)
-                .pretendardText(size: 11)
+                .pretendardText(size: 14, weight: .regular)
                 .foregroundColor(Color("grey400"))
             if hasBook {
-                Text("·")
-                    .pretendardText(size: 11)
-                    .foregroundColor(Color("grey400"))
                 Text(bookTitle)
-                    .pretendardText(size: 11)
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey400"))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -87,12 +84,13 @@ struct NotificationCard: View {
 struct NotificationEmptyCard: View {
     var body: some View {
         Text("새로운 알림이 없습니다.")
-            .pretendardText(size: 14)
-            .foregroundColor(Color("grey500"))
+            .pretendardText(size: 16, weight: .regular)
+            .foregroundColor(Color("grey600"))
             .frame(maxWidth: .infinity)
-            .frame(height: 100)
+            .padding(.vertical, 24)
+            .padding(.horizontal, 24)
             .background(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .fill(Color("white"))
             )
     }
@@ -104,7 +102,7 @@ struct NotificationEmptyCard: View {
             item: NotificationItemDto(
                 id: 1,
                 type: "GROUP_JOIN_REQUEST",
-                title: "똑똑! 새로운 참여 요청이 왔어요",
+                title: "똑똑! 새로운 참여 요청이 왔어요.",
                 message: "닉네임 님이 책 제목 그룹에 함께하고 싶어 해요. 프로필을 확인해볼까요?",
                 isRead: false,
                 createdAt: "2026-04-24T09:25:00",
@@ -117,7 +115,7 @@ struct NotificationEmptyCard: View {
             item: NotificationItemDto(
                 id: 2,
                 type: "GROUP_COMMENT_CREATED",
-                title: "새로운 댓글이 달렸어요",
+                title: "새로운 댓글이 달렸어요.",
                 message: "닉네임 님이 책 제목 그룹에 댓글을 남겼어요. 확인해볼까요?",
                 isRead: true,
                 createdAt: "2026-04-24T05:25:00",
@@ -128,6 +126,6 @@ struct NotificationEmptyCard: View {
         )
         NotificationEmptyCard()
     }
-    .padding(20)
-    .background(Color("grey100"))
+    .padding(16)
+    .background(Color("uiBg"))
 }

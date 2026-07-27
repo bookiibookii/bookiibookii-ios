@@ -18,15 +18,26 @@ struct GroupDetailView: View {
     @State private var selectedProfileNickname: NicknameRoute?
     // 삭제 성공으로 상세가 닫힐 때 호출(진입 화면의 목록 재조회용). 삭제 외 뒤로가기에서는 호출 안 됨.
     private let onDeleted: (() -> Void)?
+    private let openApplicantsOnAppear: Bool
 
-    init(groupId: Int, groupService: GroupService, onDeleted: (() -> Void)? = nil) {
+    init(
+        groupId: Int,
+        groupService: GroupService,
+        openApplicantsOnAppear: Bool = false,
+        onDeleted: (() -> Void)? = nil
+    ) {
         _viewModel = StateObject(
-            wrappedValue: GroupDetailViewModel(groupId: groupId, service: groupService)
+            wrappedValue: GroupDetailViewModel(
+                groupId: groupId,
+                service: groupService,
+                openApplicantsOnAppear: openApplicantsOnAppear
+            )
         )
         _commentVM = StateObject(
             wrappedValue: GroupCommentViewModel(groupId: groupId, service: groupService)
         )
         self.onDeleted = onDeleted
+        self.openApplicantsOnAppear = openApplicantsOnAppear
     }
 
     var body: some View {

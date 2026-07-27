@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingView: View {
     @EnvironmentObject private var container: DIContainer
 
-    @State private var isPushNotificationEnabled = true
+    @State private var isPushNotificationEnabled = PushNotificationManager.shared.isPushEnabled
     @State private var showLogoutPopup = false
     @State private var isProcessingLogout = false
     @State private var accountErrorMessage: String?
@@ -126,6 +126,12 @@ struct SettingView: View {
                     Toggle("", isOn: $isPushNotificationEnabled)
                         .labelsHidden()
                         .tint(Color("main200"))
+                        .onChange(of: isPushNotificationEnabled) { _, enabled in
+                            Task {
+                                await PushNotificationManager.shared.setPushEnabled(enabled)
+                                isPushNotificationEnabled = PushNotificationManager.shared.isPushEnabled
+                            }
+                        }
                 }
             }
         }
@@ -301,6 +307,8 @@ struct SettingView: View {
     private func performLogout() async {
         isProcessingLogout = true
         defer { isProcessingLogout = false }
+
+        await PushNotificationManager.shared.deactivateOnLogout()
 
         if let token = TokenManager.shared.accessToken {
             await container.api.auth.logout(accessToken: token)

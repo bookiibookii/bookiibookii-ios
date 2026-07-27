@@ -5,12 +5,7 @@ import Foundation
 // 안드로이드 DeviceTokenRegisterRequest 대응 — POST /api/device-tokens (platform iOS)
 struct DeviceTokenRegisterRequest: Encodable {
     let token: String
-    let platform: String
-
-    init(token: String, platform: String = "IOS") {
-        self.token = token
-        self.platform = platform
-    }
+    let platform = "IOS"
 }
 
 // 안드로이드 DeviceTokenDeactivateRequest 대응 — DELETE /api/device-tokens (body 포함)
@@ -18,7 +13,7 @@ struct DeviceTokenDeactivateRequest: Encodable {
     let token: String
 }
 
-enum NotificationCategory: String, CaseIterable {
+enum NotificationCategory: String {
     case system = "SYSTEM"
     case keyword = "KEYWORD"
 }
@@ -50,10 +45,35 @@ struct NotificationPayload: Decodable, Equatable {
         storage = (try? container.decode([String: AnyJSONValue].self)) ?? [:]
     }
 
+    var redirectType: String? {
+        storage["redirectType"]?.asString
+    }
+
     /// groupId / group_id / targetGroupId / target_group_id 순.
     var groupId: Int? {
         for key in ["groupId", "group_id", "targetGroupId", "target_group_id"] {
             if let v = storage[key]?.asInt { return v }
+        }
+        return nil
+    }
+
+    var cardId: Int? {
+        for key in ["cardId", "card_id", "bookCardId", "book_card_id"] {
+            if let v = storage[key]?.asInt { return v }
+        }
+        return nil
+    }
+
+    /// 라우팅용 title (책/그룹명). bookTitle과는 별개로 redirect payload title 우선.
+    var title: String? {
+        if let v = storage["title"]?.asString, !v.isEmpty { return v }
+        return bookTitle
+    }
+
+    /// bookTitle / book_title 순.
+    var bookTitle: String? {
+        for key in ["bookTitle", "book_title"] {
+            if let v = storage[key]?.asString, !v.isEmpty { return v }
         }
         return nil
     }
@@ -81,6 +101,14 @@ enum AnyJSONValue: Decodable, Equatable {
         case .int(let v): return v
         case .double(let v): return Int(v)
         case .string(let s): return Int(s)
+        default: return nil
+        }
+    }
+
+    var asString: String? {
+        switch self {
+        case .string(let v): return v
+        case .int(let v): return String(v)
         default: return nil
         }
     }
