@@ -130,22 +130,31 @@ struct OnboardingView: View {
     }
 
     // MARK: - 진행 바 (완료 단계=점, 남은 단계=막대)
+    // 막대→점 전환을 애니메이션하려면 두 모양이 같은 뷰여야 해서, Capsule 하나로 두고 폭만 계산해 바꾼다.
     private var progressBar: some View {
-        HStack(spacing: 12) {
-            ForEach(1...OnboardingViewModel.totalSteps, id: \.self) { step in
-                if step <= viewModel.currentStep {
-                    Circle()
-                        .fill(Color("main200"))
-                        .frame(width: 8, height: 8)
-                } else {
+        let total = OnboardingViewModel.totalSteps
+        let spacing: CGFloat = 12
+        let dot: CGFloat = 8
+
+        return GeometryReader { geo in
+            let done = min(max(viewModel.currentStep, 0), total)
+            let remaining = total - done
+            let barWidth = remaining > 0
+                ? max(0, geo.size.width - spacing * CGFloat(total - 1) - dot * CGFloat(done)) / CGFloat(remaining)
+                : dot
+
+            HStack(spacing: spacing) {
+                ForEach(1...total, id: \.self) { step in
+                    let isDone = step <= done
                     Capsule()
-                        .fill(Color("grey200"))
-                        .frame(height: 8)
-                        .frame(maxWidth: .infinity)
+                        .fill(isDone ? Color("main200") : Color("grey200"))
+                        .frame(width: isDone ? dot : barWidth, height: dot)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(height: 8)
+        .frame(height: dot)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.currentStep)
     }
 
     // MARK: - 서브헤드 카드 (안드로이드 OnbSubHeadCard 대응)
@@ -392,14 +401,16 @@ struct OnboardingView: View {
                         .padding(.top, 8)
                     }
 
-                Text(book.title.stripBookSubtitle())
-                    .pretendardText(size: 14, weight: .semibold)
-                    .foregroundColor(Color("grey900"))
-                    .lineLimit(1)
-                Text("\(book.author) (\(book.categoryLabel))")
-                    .pretendardText(size: 14)
-                    .foregroundColor(Color("grey700"))
-                    .lineLimit(1)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(book.title.stripBookSubtitle())
+                        .pretendardText(size: 14, weight: .semibold)
+                        .foregroundColor(Color("grey900"))
+                        .lineLimit(1)
+                    Text("\(book.author) (\(book.categoryLabel))")
+                        .pretendardText(size: 14)
+                        .foregroundColor(Color("grey700"))
+                        .lineLimit(1)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } else {

@@ -37,10 +37,11 @@ struct BirthDatePickerSheet: View {
     private var selMonth: Int { months[monthIdx] }
     private var selDay: Int { days[dayIdx] }
 
-    private var isFuture: Bool {
+    /// 생년월일은 오늘 이전 날짜여야 하므로, 오늘 또는 미래면 완료를 막는다.
+    private var isTodayOrFuture: Bool {
         if selYear != today.y { return selYear > today.y }
         if selMonth != today.m { return selMonth > today.m }
-        return selDay > today.d
+        return selDay >= today.d
     }
 
     private var composedDate: Date {
@@ -66,12 +67,12 @@ struct BirthDatePickerSheet: View {
                     .pretendardText(size: 20, weight: .semibold)
                     .foregroundColor(Color("grey900"))
                 Spacer()
-                Button(action: { if !isFuture { onConfirm(composedDate) } }) {
+                Button(action: { if !isTodayOrFuture { onConfirm(composedDate) } }) {
                     Text("완료")
                         .pretendardText(size: 20)
-                        .foregroundColor(isFuture ? Color("grey300") : Color("grey500"))
+                        .foregroundColor(isTodayOrFuture ? Color("grey300") : Color("grey900"))
                 }
-                .disabled(isFuture)
+                .disabled(isTodayOrFuture)
             }
             .padding(.horizontal, 16)
 
