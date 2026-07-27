@@ -1,6 +1,6 @@
 import SwiftUI
 
-// 처음엔 자동 전환만(수동 스와이프 금지), 마지막 프레임 도달 후엔 자동 전환을 멈추고 수동 스와이프 허용.
+// 프레임은 자동으로만 전환되며(페이드 인/아웃), 수동 스와이프는 지원하지 않는다.
 // 프레임 1~3 = 스플래시(모두 노출), 4~7 = 인트로(미로그인 시에만, 마지막 "시작" → onFinish).
 struct SplashView: View {
     /// 인트로(4~7)까지 보여줄지 여부. 보통 `!TokenManager.shared.hasAccessToken`.
@@ -8,9 +8,6 @@ struct SplashView: View {
     let onFinish: () -> Void
 
     @State private var page = 0
-    /// 자동 시퀀스가 마지막 프레임까지 끝났는지. 끝나기 전엔 수동 스와이프 금지(자동 전환만),
-    /// 끝난 뒤엔 자동 전환을 멈추고 수동 스와이프(앞뒤 이동)를 허용한다.
-    @State private var autoCompleted = false
 
     private var frameCount: Int { showsIntro ? 7 : 3 }
     private var lastIndex: Int { frameCount - 1 }
@@ -19,28 +16,16 @@ struct SplashView: View {
         ZStack {
             Color("uiBg").ignoresSafeArea()
 
-            TabView(selection: $page) {
-                ForEach(0..<frameCount, id: \.self) { index in
-                    frameView(index)
-                        .tag(index)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            // 자동 시퀀스가 끝나기 전엔 스와이프 차단(자동 전환만), 끝난 뒤엔 수동 스와이프 허용
-            .disabled(!autoCompleted)
+            frameView(page)
+                .id(page)
+                .transition(.opacity)
         }
         .task(id: page) {
-            // 자동 시퀀스 종료 후엔 더 이상 자동 전환하지 않음(수동 전환만)
-            guard !autoCompleted else { return }
-            guard let duration = autoAdvanceDuration(for: page) else {
-                // 자동 전환 없는 프레임(인트로 마지막) 도달 = 자동 시퀀스 종료 → 수동 전환 허용
-                autoCompleted = true
-                return
-            }
+            guard let duration = autoAdvanceDuration(for: page) else { return }
             try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
             guard !Task.isCancelled else { return }
             if page < lastIndex {
-                withAnimation { page += 1 }
+                withAnimation(.easeInOut(duration: 0.5)) { page += 1 }
             } else {
                 onFinish()   // 스플래시 마지막 프레임(토큰 경로)은 자동 종료
             }

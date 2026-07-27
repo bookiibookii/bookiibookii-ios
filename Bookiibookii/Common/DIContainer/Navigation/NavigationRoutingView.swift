@@ -14,6 +14,7 @@ struct NavigationRoutingView: View {
         case .login:
             LoginView(authService: container.api.auth)
                 .environmentObject(container)
+                .navigationBarBackButtonHidden(true)
         case .onboarding:
             OnboardingView(userService: container.api.user, groupService: container.api.group)
                 .environmentObject(container)
