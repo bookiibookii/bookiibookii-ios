@@ -93,6 +93,8 @@ struct OnboardingView: View {
         .cameraPicker(isPresented: $showCamera) { image in
             viewModel.setCapturedImage(image)
         }
+        // 푸터 버튼(56 + 상하 여백 16)을 가리지 않도록 하단 여백을 키운다
+        .toast($viewModel.toast, bottomPadding: 112)
     }
 
     // MARK: - 헤더 (뒤로 + 중앙 워드마크 + 구분선)

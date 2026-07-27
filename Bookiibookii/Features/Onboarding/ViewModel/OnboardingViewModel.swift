@@ -88,6 +88,8 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - 완료 상태
     @Published var isSubmitting: Bool = false
     @Published var isCompleted: Bool = false
+    /// 제출 실패 사유 — 토스트로 노출되고 2초 뒤 자동으로 nil이 된다.
+    @Published var toast: String?
 
     private let userService: UserService
     private let groupService: GroupService
@@ -292,8 +294,20 @@ final class OnboardingViewModel: ObservableObject {
             } catch {
                 print("❌ 온보딩 완료 실패: \(error)")
                 isSubmitting = false
+                toast = Self.submitFailureToast(for: error)
             }
         }
+    }
+
+    /// 제출 실패 원인을 토스트 문구로 변환한다.
+    /// 서버가 내려준 실패 사유(UserError)는 그대로 노출하고,
+    /// 네트워크·디코딩 예외는 재시도를 유도하는 안내 문구로 대체한다.
+    private static func submitFailureToast(for error: Error) -> String {
+        if let userError = error as? UserError {
+            let message = (userError.errorDescription ?? "").trimmingCharacters(in: .whitespaces)
+            return message.isEmpty ? "잠시 후 다시 시도해주세요." : message
+        }
+        return "네트워크 연결을 확인한 뒤 다시 시도해주세요."
     }
 
     private func uploadImageIfNeeded() async throws -> String? {

@@ -61,9 +61,18 @@ final class UserService {
         let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
 
         guard response.isSuccess else {
-            throw UserError.onboardingFailed(response.message)
+            throw UserError.onboardingFailed(Self.submitFailureMessage(from: data, fallback: response.message))
         }
         TokenManager.shared.isOnboardingDone = true
+    }
+
+    /// 온보딩 제출 실패 응답에서 사용자에게 보여줄 사유를 고른다.
+    private static func submitFailureMessage(from data: Data, fallback: String) -> String {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let reasons = json["result"] as? [String],
+              let reason = reasons.first(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty })
+        else { return fallback }
+        return reason
     }
 
     // GET /api/mypage
