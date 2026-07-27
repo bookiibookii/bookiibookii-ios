@@ -50,8 +50,12 @@ final class TokenManager: @unchecked Sendable {
         isOnboardingDone = result.isOnboardingDone
     }
 
+    /// 토큰만 삭제한다. 온보딩 완료 여부는 남겨 재로그인 시 인트로가 다시 노출되지 않게 한다.
+    /// (계정이 바뀌어도 로그인 응답 값으로 덮어써진다.)
     func clear() {
-        Key.allCases.forEach { delete($0) }
+        Key.allCases
+            .filter { $0 != .onboardingDone }
+            .forEach { delete($0) }
     }
 
     // MARK: - Keychain helpers
