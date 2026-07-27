@@ -14,7 +14,8 @@ actor AuthInterceptor {
 
     // MARK: - 인증 요청 실행 (외부 진입점)
     func request(_ urlRequest: URLRequest) async throws -> (Data, HTTPURLResponse) {
-        let authedRequest = attach(token: TokenManager.shared.accessToken, to: urlRequest)
+        let sentToken = TokenManager.shared.accessToken
+        let authedRequest = attach(token: sentToken, to: urlRequest)
         let (data, response) = try await URLSession.shared.data(for: authedRequest)
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -34,7 +35,7 @@ actor AuthInterceptor {
         // Access Token 갱신 후 재시도
         let newToken: String
         do {
-            newToken = try await refreshIfNeeded()
+            newToken = try await refreshIfNeeded(sentToken: sentToken)
         } catch AuthError.refreshFailed {
             // refresh 자체가 400/401 (refreshToken 불일치/만료) → 안드로이드 routeLogout 대응
             await forceLogout()
@@ -57,7 +58,13 @@ actor AuthInterceptor {
     }
 
     // MARK: - 토큰 갱신 (동시 호출 시 첫 번째만 실제 갱신, 나머지는 대기)
-    private func refreshIfNeeded() async throws -> String {
+    private func refreshIfNeeded(sentToken: String?) async throws -> String {
+        // 요청을 보낸 뒤 다른 요청이 이미 갱신을 마친 경우(요청 시점 토큰 ≠ 현재 토큰)
+        // 갱신을 반복하지 않고 현재 토큰으로 바로 재시도한다.
+        if let currentToken = TokenManager.shared.accessToken, currentToken != sentToken {
+            return currentToken
+        }
+
         if isRefreshing {
             // 이미 갱신 중 → 완료될 때까지 대기
             return try await withCheckedThrowingContinuation { continuation in
