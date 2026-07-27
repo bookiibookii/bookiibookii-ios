@@ -38,7 +38,7 @@ final class GroupEditorViewModel: ObservableObject {
     @Published var prefillFailed: String?
 
     // 사용자 안내용 토스트 (제출 에러·알림 등)
-    @Published var toast: String?
+    @Published var toast: ToastMessage?
 
     // 수정 모드 프리필 원본 스냅샷 (isDirty 판정용)
     private var editOriginal: EditOriginal?

@@ -1,10 +1,18 @@
 import SwiftUI
 
+/// 토스트 내용. 성공/실패에 따라 아이콘이 갈린다(성공 ic_check · 실패 ic_info).
+struct ToastMessage: Equatable {
+    let text: String
+    let isSuccess: Bool
+
+    static func success(_ text: String) -> ToastMessage { .init(text: text, isSuccess: true) }
+    static func failure(_ text: String) -> ToastMessage { .init(text: text, isSuccess: false) }
+}
+
 /// 하단 중앙 토스트.
 /// @Binding message가 nil이 아닐 때 표시, 2초 후 자동으로 nil로 되돌림.
 struct ToastView: ViewModifier {
-    @Binding var message: String?
-    var isSuccess: Bool = false
+    @Binding var message: ToastMessage?
     var bottomPadding: CGFloat = 80
 
     func body(content: Content) -> some View {
@@ -13,11 +21,11 @@ struct ToastView: ViewModifier {
 
             if let message {
                 HStack(spacing: 8) {
-                    Image(isSuccess ? "ic_check" : "ic_info")
+                    Image(message.isSuccess ? "ic_check" : "ic_info")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 24, height: 24)
-                    Text(message)
+                    Text(message.text)
                         .pretendardText(size: 14)
                         .foregroundColor(Color("grey700"))
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -44,17 +52,17 @@ struct ToastView: ViewModifier {
 }
 
 extension View {
-    func toast(_ message: Binding<String?>, isSuccess: Bool = false, bottomPadding: CGFloat = 80) -> some View {
-        modifier(ToastView(message: message, isSuccess: isSuccess, bottomPadding: bottomPadding))
+    func toast(_ message: Binding<ToastMessage?>, bottomPadding: CGFloat = 80) -> some View {
+        modifier(ToastView(message: message, bottomPadding: bottomPadding))
     }
 }
 
 #Preview {
     struct PreviewHost: View {
-        @State private var msg: String? = nil
+        @State private var msg: ToastMessage? = nil
         var body: some View {
             VStack {
-                Button("토스트 표시") { msg = "준비 중입니다" }
+                Button("토스트 표시") { msg = .failure("준비 중입니다") }
                 Spacer()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

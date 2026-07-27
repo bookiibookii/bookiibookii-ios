@@ -8,7 +8,7 @@ import Combine
 @MainActor
 final class TrackerCommentViewModel: ObservableObject {
     @Published private(set) var state = TrackerCommentState()
-    @Published var toast: String?
+    @Published var toast: ToastMessage?
 
     private let groupId: Int
     private let service: GroupService
@@ -54,7 +54,7 @@ final class TrackerCommentViewModel: ObservableObject {
                 state.comments = list
                 state.error = nil
             } catch {
-                toast = "댓글을 불러오지 못했어요"
+                toast = .failure("댓글을 불러오지 못했어요")
             }
             state.isRefreshing = false
         }
@@ -83,7 +83,7 @@ final class TrackerCommentViewModel: ObservableObject {
                 )
                 addLocally(Self.toCommentItem(created))
             } catch {
-                toast = "댓글 작성에 실패했어요"
+                toast = .failure("댓글 작성에 실패했어요")
                 state.submitting = false
             }
         }
@@ -106,7 +106,7 @@ final class TrackerCommentViewModel: ObservableObject {
                 try await service.deleteComment(groupId: groupId, commentId: commentId)
                 await load()
             } catch {
-                toast = "댓글 삭제에 실패했어요"
+                toast = .failure("댓글 삭제에 실패했어요")
             }
             state.deletingIds.remove(commentId)
         }

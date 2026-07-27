@@ -13,7 +13,7 @@ final class GroupDetailViewModel: ObservableObject {
 
     @Published private(set) var detail: GroupDetailDto?
     @Published private(set) var phase: Phase = .idle
-    @Published var toast: String?
+    @Published var toast: ToastMessage?
     @Published var shouldDismiss = false
 
     // 다이얼로그 플래그
@@ -76,7 +76,7 @@ final class GroupDetailViewModel: ObservableObject {
         if error is CancellationError { return }
         if let e = error as? URLError, e.code == .cancelled { return }
         let message = error.localizedDescription
-        toast = message
+        toast = .failure(message)
     }
 
     func fetchDetail() async {
@@ -200,7 +200,7 @@ final class GroupDetailViewModel: ObservableObject {
         defer { isCanceling = false }
         do {
             try await service.cancelApply(groupId: groupId)
-            toast = "참여 신청을 취소했어요"
+            toast = .success("참여 신청을 취소했어요")
             await fetchDetail()
         } catch {
             toastError(error)
@@ -242,9 +242,9 @@ final class GroupDetailViewModel: ObservableObject {
         do {
             try await service.updateApplicant(applicationId: applicationId, status: status)
             applicants.removeAll { $0.applicationId == applicationId }
-            toast = status == "ACCEPTED"
+            toast = .success(status == "ACCEPTED"
                 ? "\(nickname) 님의 요청을 수락했어요"
-                : "\(nickname) 님의 요청을 거절했어요"
+                : "\(nickname) 님의 요청을 거절했어요")
             if status == "ACCEPTED" {
                 await fetchDetail()
             }

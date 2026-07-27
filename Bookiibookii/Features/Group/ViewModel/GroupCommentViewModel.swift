@@ -7,7 +7,7 @@ import Combine
 final class GroupCommentViewModel: ObservableObject {
     @Published private(set) var state = GroupCommentState()
     // 안드 eventFlow.ShowError → iOS .toast()
-    @Published var toast: String?
+    @Published var toast: ToastMessage?
 
     private let groupId: Int
     private let service: GroupService
@@ -103,7 +103,7 @@ final class GroupCommentViewModel: ObservableObject {
                 let newItem = Self.toCommentItem(created, secret: secret)
                 addLocally(newItem)
             } catch {
-                toast = "댓글 작성에 실패했어요"
+                toast = .failure("댓글 작성에 실패했어요")
                 state.submitting = false
             }
         }
@@ -149,7 +149,7 @@ final class GroupCommentViewModel: ObservableObject {
                 try await service.deleteComment(groupId: groupId, commentId: commentId)
                 await load()
             } catch {
-                toast = "댓글 삭제에 실패했어요"
+                toast = .failure("댓글 삭제에 실패했어요")
             }
             state.deletingIds.remove(commentId)
         }

@@ -89,7 +89,7 @@ final class OnboardingViewModel: ObservableObject {
     @Published var isSubmitting: Bool = false
     @Published var isCompleted: Bool = false
     /// 제출 실패 사유 — 토스트로 노출되고 2초 뒤 자동으로 nil이 된다.
-    @Published var toast: String?
+    @Published var toast: ToastMessage?
 
     private let userService: UserService
     private let groupService: GroupService
@@ -294,7 +294,7 @@ final class OnboardingViewModel: ObservableObject {
             } catch {
                 print("❌ 온보딩 완료 실패: \(error)")
                 isSubmitting = false
-                toast = Self.submitFailureToast(for: error)
+                toast = .failure(Self.submitFailureToast(for: error))
             }
         }
     }
