@@ -7,8 +7,8 @@ final class KeywordSettingViewModel: ObservableObject {
     static let maxLength = 10
 
     @Published private(set) var items: [KeywordItemDto] = []
-    @Published private(set) var sort: KeywordSort = .latest
     @Published private(set) var isLoading = false
+    @Published private(set) var isAdding = false
     @Published var toastMessage: String? = nil
 
     private let service: KeywordService
@@ -18,20 +18,15 @@ final class KeywordSettingViewModel: ObservableObject {
     // MARK: - 로드
 
     func onAppear() async {
-        await load(sort: sort)
+        await load()
     }
 
-    func changeSort(_ newSort: KeywordSort) async {
-        guard newSort != sort else { return }
-        sort = newSort
-        await load(sort: newSort)
-    }
-
-    private func load(sort: KeywordSort) async {
+    private func load() async {
         isLoading = true
         defer { isLoading = false }
         do {
-            let result = try await service.fetchKeywords(sort: sort)
+            // 안드로이드와 동일하게 LATEST 고정
+            let result = try await service.fetchKeywords(sort: .latest)
             items = result.keywordList
         } catch let KeywordServiceError.server(msg) {
             toastMessage = msg
@@ -47,31 +42,40 @@ final class KeywordSettingViewModel: ObservableObject {
     /// - 10자 초과: 토스트
     /// - 10개 초과: 토스트
     /// - 중복: 토스트
-    /// - 성공: 목록 재조회
-    func addKeyword(_ raw: String) async {
+    /// - 성공: 목록 재조회 + 등록 토스트
+    @discardableResult
+    func addKeyword(_ raw: String) async -> Bool {
         let trimmed = raw.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty else { return false }
+        guard !isAdding else { return false }
 
         if trimmed.count > Self.maxLength {
             toastMessage = "키워드는 최대 \(Self.maxLength)자까지 입력할 수 있어요."
-            return
+            return false
         }
         if items.count >= Self.maxCount {
             toastMessage = "키워드는 최대 \(Self.maxCount)개까지만 등록 가능합니다."
-            return
+            return false
         }
-        if items.contains(where: { $0.content.caseInsensitiveCompare(trimmed) == .orderedSame }) {
+        if items.contains(where: { $0.content == trimmed }) {
             toastMessage = "이미 등록된 키워드입니다."
-            return
+            return false
         }
+
+        isAdding = true
+        defer { isAdding = false }
 
         do {
             _ = try await service.createKeyword(content: trimmed)
-            await load(sort: sort)
+            await load()
+            toastMessage = "키워드가 등록되었습니다."
+            return true
         } catch let KeywordServiceError.server(msg) {
             toastMessage = msg
+            return false
         } catch {
             toastMessage = "키워드 등록에 실패했습니다."
+            return false
         }
     }
 
@@ -80,7 +84,7 @@ final class KeywordSettingViewModel: ObservableObject {
     func delete(_ keywordId: Int) async {
         do {
             try await service.deleteKeyword(keywordId: keywordId)
-            await load(sort: sort)
+            await load()
         } catch let KeywordServiceError.server(msg) {
             toastMessage = msg
         } catch {

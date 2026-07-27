@@ -57,6 +57,14 @@ struct NotificationPayload: Decodable, Equatable {
         }
         return nil
     }
+
+    /// bookTitle / book_title / title 순.
+    var bookTitle: String? {
+        for key in ["bookTitle", "book_title", "title"] {
+            if let v = storage[key]?.asString, !v.isEmpty { return v }
+        }
+        return nil
+    }
 }
 
 enum AnyJSONValue: Decodable, Equatable {
@@ -81,6 +89,14 @@ enum AnyJSONValue: Decodable, Equatable {
         case .int(let v): return v
         case .double(let v): return Int(v)
         case .string(let s): return Int(s)
+        default: return nil
+        }
+    }
+
+    var asString: String? {
+        switch self {
+        case .string(let v): return v
+        case .int(let v): return String(v)
         default: return nil
         }
     }

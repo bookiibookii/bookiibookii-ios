@@ -1,11 +1,10 @@
 import SwiftUI
 
-// 안드로이드 NotificationActivity + System/Keyword Fragment 대응
-// 상단 네비 + 탭 세그먼트(시스템/키워드) + 리스트(무한스크롤).
-// 탭 시 읽음 처리(PATCH /api/notifications/{id}/read).
-// 키워드 알림(KEYWORD_GROUP_CREATED)만 payload.groupId로 그룹 상세 이동.
+// 안드로이드 NotificationScreen + Figma HOM-02-01 대응
+// 상단 네비 + 탭(시스템/키워드) + 리스트(무한스크롤).
+// + → 키워드 알림 설정. 키워드 알림(KEYWORD_GROUP_CREATED)만 그룹 상세 이동.
 struct NotificationView: View {
-    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var container: DIContainer
 
     @StateObject private var systemVM: NotificationViewModel
     @StateObject private var keywordVM: NotificationViewModel
@@ -32,11 +31,12 @@ struct NotificationView: View {
     var body: some View {
         VStack(spacing: 0) {
             navBar
-            Divider().background(Color("grey200"))
             tabBar
             contentArea
         }
-        .background(Color("grey100").ignoresSafeArea())
+        .background(Color("uiBg").ignoresSafeArea())
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
         .task {
             await systemVM.loadFirstPage()
             await keywordVM.loadFirstPage()
@@ -47,46 +47,35 @@ struct NotificationView: View {
         .fullScreenCover(item: $selectedGroupId) { groupId in
             GroupDetailView(groupId: groupId, groupService: groupService)
         }
-        .overlay(alignment: .bottom) {
-            if let toast {
-                Text(toast)
-                    .pretendardText(size: 13)
-                    .foregroundColor(Color("white"))
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color("grey900").opacity(0.9)))
-                    .padding(.bottom, 40)
-                    .transition(.opacity)
-            }
-        }
+        .toast($toast)
     }
 
     // MARK: - 네비게이션 바
 
     private var navBar: some View {
         HStack(alignment: .center, spacing: 0) {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(Color("grey900"))
+            Button { container.navigationRouter.pop() } label: {
+                Image("ic_back")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
                     .frame(width: 40, height: 40)
             }
             .buttonStyle(.plain)
 
             Spacer()
+
             Text("알림")
                 .pretendardText(size: 20, weight: .medium)
                 .foregroundColor(Color("grey900"))
+
             Spacer()
 
-            Button {
-                showKeywordSetting = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(Color("grey900"))
+            Button { showKeywordSetting = true } label: {
+                Image("ic_plus_32")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
                     .frame(width: 40, height: 40)
             }
             .buttonStyle(.plain)
@@ -94,19 +83,21 @@ struct NotificationView: View {
         .padding(.horizontal, 16)
         .frame(height: 68)
         .background(Color("white"))
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(Color("grey200")).frame(height: 1)
+        }
     }
 
     // MARK: - 탭
 
     private var tabBar: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             tabButton(title: "시스템 알림", category: .system)
             tabButton(title: "키워드 알림", category: .keyword)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 12)
-        .background(Color("grey100"))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color("uiBg"))
     }
 
     private func tabButton(title: String, category: NotificationCategory) -> some View {
@@ -115,27 +106,24 @@ struct NotificationView: View {
             selectedTab = category
         } label: {
             Text(title)
-                .pretendardText(size: 14, weight: .medium)
+                .pretendardText(size: 16, weight: .regular)
                 .foregroundColor(isSelected ? Color("white") : Color("grey900"))
                 .frame(maxWidth: .infinity)
-                .frame(height: 48)
+                .frame(height: 56)
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(isSelected ? Color("grey900") : Color("white"))
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(isSelected ? Color("main200") : Color("white"))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .stroke(isSelected ? Color.clear : Color("grey200"), lineWidth: 1)
                 )
         }
         .buttonStyle(.plain)
     }
 
-    // MARK: - 콘텐츠
-
     // MARK: - 탭 처리
 
-    /// 읽음 처리 + 키워드 알림만 그룹 상세로 이동. 그 외 시스템 알림은 읽음만.
     private func handleTap(vm: NotificationViewModel, item: NotificationItemDto) {
         Task { await vm.markAsRead(item.id) }
 
@@ -144,15 +132,7 @@ struct NotificationView: View {
         if let groupId = item.payload?.groupId {
             selectedGroupId = groupId
         } else {
-            showToast("알림 이동에 필요한 정보가 없습니다.")
-        }
-    }
-
-    private func showToast(_ message: String) {
-        withAnimation { toast = message }
-        Task {
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
-            withAnimation { toast = nil }
+            toast = "알림 이동에 필요한 정보가 없습니다."
         }
     }
 
@@ -160,14 +140,20 @@ struct NotificationView: View {
     private var contentArea: some View {
         let vm = selectedTab == .system ? systemVM : keywordVM
         if vm.phase == .loading && vm.items.isEmpty {
-            ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if vm.items.isEmpty {
-            ScrollView { NotificationEmptyCard().padding(20) }
+            ScrollView {
+                NotificationEmptyCard()
+                    .padding(.horizontal, 16)
+                    .padding(.top, 0)
+                    .padding(.bottom, 16)
+            }
         } else {
             ScrollView(showsIndicators: false) {
                 LazyVStack(spacing: 12) {
                     ForEach(Array(vm.items.enumerated()), id: \.element.id) { idx, item in
-                        NotificationCard(item: item, bookTitle: "") {
+                        NotificationCard(item: item, bookTitle: item.payload?.bookTitle ?? "") {
                             handleTap(vm: vm, item: item)
                         }
                         .onAppear {
@@ -180,8 +166,8 @@ struct NotificationView: View {
                         ProgressView().padding(.vertical, 12)
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 16)
             }
         }
     }
