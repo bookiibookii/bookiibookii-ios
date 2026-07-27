@@ -5,6 +5,7 @@ import GoogleSignIn
 
 @main
 struct BookiibookiiApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var container = DIContainer()
 
     init() {
@@ -24,9 +25,17 @@ struct BookiibookiiApp: App {
                             .environmentObject(container)
                     }
             }
-            // 카카오 로그인 콜백 URL 처리 (안드로이드 onNewIntent 대응)
+            .onAppear {
+                PushNotificationManager.shared.configure(
+                    notificationService: container.api.notification,
+                    navigationRouter: container.navigationRouter
+                )
+            }
             .onReceive(NotificationCenter.default.publisher(for: .authTokenExpired)) { _ in
-                container.navigationRouter.hardReset(to: .login)
+                Task {
+                    await PushNotificationManager.shared.deactivateOnLogout()
+                    container.navigationRouter.hardReset(to: .login)
+                }
             }
             .onOpenURL { url in
                 if AuthApi.isKakaoTalkLoginUrl(url) {
@@ -45,7 +54,10 @@ struct BookiibookiiApp: App {
         if TokenManager.shared.isOnboardingDone && TokenManager.shared.hasAccessToken {
             Color("uiBg")
                 .ignoresSafeArea()
-                .onAppear { container.navigationRouter.hardReset(to: .mainTab) }
+                .onAppear {
+                    container.navigationRouter.hardReset(to: .mainTab)
+                    PushNotificationManager.shared.registerAfterLogin()
+                }
         } else {
             // 인트로(4~7프레임)는 앱을 처음 접하는 사용자에게만 노출한다.
             // 로그인했거나 온보딩을 마친 적 있으면 스플래시 3프레임만 보여준다.
