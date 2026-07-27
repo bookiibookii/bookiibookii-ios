@@ -68,7 +68,9 @@ struct OnboardingView: View {
         }
         .onChange(of: viewModel.isCompleted) { _, completed in
             guard completed else { return }
+            PushNotificationManager.shared.registerAfterLogin()
             container.navigationRouter.hardReset(to: .mainTab)
+            PushNotificationManager.shared.handlePendingRedirectIfNeeded()
         }
         .sheet(isPresented: $showPhotoSheet) {
             photoBottomSheet

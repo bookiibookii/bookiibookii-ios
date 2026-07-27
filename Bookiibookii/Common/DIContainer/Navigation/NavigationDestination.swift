@@ -28,6 +28,7 @@ enum NavigationDestination: Hashable {
     // 그룹 목록을 특정 키워드 검색 결과로 열기 (탐색에서 책 선택 시)
     case groupSearch(keyword: String)
     case groupEditor(groupId: Int?)
+    case groupDetail(groupId: Int, openApplicants: Bool = false)
     case myPage
     case myBookShelf
     case userProfile(nickname: String)

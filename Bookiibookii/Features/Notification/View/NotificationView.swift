@@ -127,12 +127,14 @@ struct NotificationView: View {
     private func handleTap(vm: NotificationViewModel, item: NotificationItemDto) {
         Task { await vm.markAsRead(item.id) }
 
-        guard item.type == "KEYWORD_GROUP_CREATED" else { return }
+        if let redirect = NotificationRedirectRouter.fromPayload(item.payload) {
+            NotificationRedirectDispatcher.dispatch(redirect, router: container.navigationRouter)
+            return
+        }
 
-        if let groupId = item.payload?.groupId {
+        // redirectType이 없는 구형 KEYWORD 알림 폴백
+        if item.type == "KEYWORD_GROUP_CREATED", let groupId = item.payload?.groupId {
             selectedGroupId = groupId
-        } else {
-            toast = "알림 이동에 필요한 정보가 없습니다."
         }
     }
 

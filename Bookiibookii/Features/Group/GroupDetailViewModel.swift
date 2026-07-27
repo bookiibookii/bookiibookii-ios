@@ -36,10 +36,13 @@ final class GroupDetailViewModel: ObservableObject {
     private var isCheckingAddress = false
     private var isCanceling = false
     private var isDeleting = false
+    private let openApplicantsOnAppear: Bool
+    private var didOpenApplicants = false
 
-    init(groupId: Int, service: GroupService) {
+    init(groupId: Int, service: GroupService, openApplicantsOnAppear: Bool = false) {
         self.groupId = groupId
         self.service = service
+        self.openApplicantsOnAppear = openApplicantsOnAppear
     }
 
     /// 진입 시그니처(groupId:groupService:) 유지를 위해 뷰가 container.api.location을 조회 시점에 주입.
@@ -84,6 +87,13 @@ final class GroupDetailViewModel: ObservableObject {
         do {
             detail = try await service.fetchGroupDetail(groupId: groupId)
             phase = .loaded
+            if openApplicantsOnAppear,
+               !didOpenApplicants,
+               detail?.buttonStatus == "MANAGE" {
+                didOpenApplicants = true
+                showApplicants = true
+                await fetchApplicants()
+            }
         } catch {
             phase = .failed
             toastError(error)

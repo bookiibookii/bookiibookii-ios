@@ -244,6 +244,7 @@ struct AccountWithdrawalView: View {
         guard succeeded else { return }
 
         showConfirmPopup = false
+        await PushNotificationManager.shared.deactivateOnLogout()
         TokenManager.shared.clear()
         container.navigationRouter.hardReset(to: .login)
     }
