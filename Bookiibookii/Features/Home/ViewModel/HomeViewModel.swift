@@ -45,10 +45,11 @@ final class HomeViewModel: ObservableObject {
     func onAppear() async {
         await refreshNotificationBadge()
         guard !didLoadInitial else { return }
-        didLoadInitial = true
-        async let nick: Void = loadNickname()
-        async let recommend: Void = loadRecommendSections()
-        _ = await (nick, recommend)
+        async let nick = loadNickname()
+        async let recommend = loadRecommendSections()
+        let (nickLoaded, recommendLoaded) = await (nick, recommend)
+        // 실패한 채로 플래그를 세우면 재진입해도 영구히 다시 부르지 않으므로, 성공했을 때만 세운다.
+        didLoadInitial = nickLoaded && recommendLoaded
     }
 
     /// 알림 화면에서 돌아왔을 때 뱃지 갱신.
@@ -74,7 +75,7 @@ final class HomeViewModel: ObservableObject {
         // VM 소유 독립 태스크로 실행해 취소 전파를 끊는다.
         await Task { [self] in
             switch selectedTab {
-            case .recommend: await loadRecommendSections()
+            case .recommend: _ = await loadRecommendSections()
             case .myGroups:  await loadMyGroups()
             case .applied:   await loadAppliedGroups()
             }
@@ -83,7 +84,7 @@ final class HomeViewModel: ObservableObject {
 
     // MARK: - 로드
 
-    private func loadNickname() async {
+    private func loadNickname() async -> Bool {
         // 서버 mypage 응답에서 nickname만 사용 (공통 필드).
         do {
             let result = try await userService.getMypage()
@@ -91,15 +92,17 @@ final class HomeViewModel: ObservableObject {
             if !trimmed.isEmpty {
                 nickname = trimmed
             }
+            return true
         } catch {
             print("홈 닉네임 로드 실패: \(error)")
+            return false
         }
     }
 
-    private func loadRecommendSections() async {
-        if let response = try? await groupService.fetchHomeGroups() {
-            recommendSections = response.sections
-        }
+    private func loadRecommendSections() async -> Bool {
+        guard let response = try? await groupService.fetchHomeGroups() else { return false }
+        recommendSections = response.sections
+        return true
     }
 
     private func loadMyGroups() async {
