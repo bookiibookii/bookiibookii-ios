@@ -90,8 +90,7 @@ struct LoginView: View {
             HStack(spacing: 24) {
                 circleButton(icon: "ic_kakao", background: Color("kakao"), action: viewModel.loginWithKakao)
                 circleButton(icon: "ic_google", background: Color("white"), action: viewModel.loginWithGoogle)
-                // 애플 로그인: 디자인상 버튼만 노출, 기능은 추후 구현 (현재 무반응)
-                circleButton(icon: "ic_apple", background: Color("black"), tint: Color("white"), action: {})
+                circleButton(icon: "ic_apple", background: Color("black"), tint: Color("white"), action: viewModel.loginWithApple)
             }
         }
     }
