@@ -73,10 +73,14 @@ actor AuthInterceptor {
                 throw AuthError.refreshFailed
             }
 
-            let result = try await authService.refresh(
-                accessToken: expiredToken,
-                refreshToken: refreshToken
-            )
+            // refresh는 대기 중인 다른 요청들이 공유하는 작업이므로 호출자(뷰 태스크) 취소가 전파되면 안 된다.
+            // 독립 태스크로 감싸 취소 전파를 끊는다.
+            let result = try await Task {
+                try await authService.refresh(
+                    accessToken: expiredToken,
+                    refreshToken: refreshToken
+                )
+            }.value
 
             TokenManager.shared.accessToken = result.accessToken
             TokenManager.shared.refreshToken = result.refreshToken
