@@ -25,7 +25,7 @@ struct FooterButton: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        DebouncedButton(action: action) {
             Group {
                 if isLoading {
                     ProgressView().tint(.white)
@@ -82,7 +82,7 @@ struct CardButton: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        DebouncedButton(action: action) {
             Text(text)
                 .pretendardText(size: fontSize)
                 .foregroundColor(contentColorOverride ?? contentColor)
@@ -140,7 +140,7 @@ struct BottomSheetTwoBtnShort: View {
     }
 
     var body: some View {
-        Button(action: action) {
+        DebouncedButton(action: action) {
             Text(text)
                 .pretendardText(size: 16, weight: .medium)
                 .foregroundColor(contentColor)
