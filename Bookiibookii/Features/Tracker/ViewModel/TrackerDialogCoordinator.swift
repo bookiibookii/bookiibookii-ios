@@ -11,7 +11,7 @@ final class TrackerDialogCoordinator: ObservableObject {
     @Published var meetingDraft = TrackerMeetingDraft()
     @Published var meetingInfo: MeetingResDTO?
     // 다이얼로그 조회/쓰기 실패 안내. TrackerDialogHost가 토스트로 표출.
-    @Published var toast: String?
+    @Published var toast: ToastMessage?
 
     // 다이얼로그 성공 후 부모 목록 새로고침(= TrackerMainViewModel.load).
     var onChanged: () async -> Void
@@ -61,7 +61,7 @@ final class TrackerDialogCoordinator: ObservableObject {
             do {
                 meetingInfo = try await trackerService.fetchMeeting(groupId: groupId)
                 route = .meetingInfo(groupId: groupId)
-            } catch { toast = Self.loadFailed }
+            } catch { toast = .failure(Self.loadFailed) }
         }
     }
 
@@ -90,7 +90,7 @@ final class TrackerDialogCoordinator: ObservableObject {
             do {
                 deliveryAddress = try await trackerService.fetchDeliveryAddress(groupId: groupId)
                 route = .deliveryInfo(groupId: groupId)
-            } catch { toast = Self.loadFailed }
+            } catch { toast = .failure(Self.loadFailed) }
         }
     }
     func openDeliveryEdit(groupId: Int) {
@@ -100,7 +100,7 @@ final class TrackerDialogCoordinator: ObservableObject {
             } catch {
                 // 목록을 못 불러오면 "저장된 배송지 없음"으로 보이므로 실패를 알린다
                 savedDeliveries = []
-                toast = "저장된 배송지를 불러오지 못했어요"
+                toast = .failure("저장된 배송지를 불러오지 못했어요")
             }
             route = .deliveryEdit(groupId: groupId)
         }
@@ -110,26 +110,26 @@ final class TrackerDialogCoordinator: ObservableObject {
             do {
                 partnerDelivery = try await trackerService.fetchPartnerDelivery(groupId: groupId)
                 route = .shippingConfirm(groupId: groupId)
-            } catch { toast = Self.loadFailed }
+            } catch { toast = .failure(Self.loadFailed) }
         }
     }
 
     // MARK: - 확정 액션 (다이얼로그 onConfirm) — 성공 시 목록 리로드
     // 성공해야 다이얼로그를 닫는다(실패 시 입력값 유지 + 토스트).
     func recordProgress(groupId: Int, currentPage: Int) {
-        Task { do { _ = try await trackerService.updateReadingProgress(groupId: groupId, currentPage: currentPage); dismiss(); await onChanged() } catch { toast = "진도 기록에 실패했어요" } }
+        Task { do { _ = try await trackerService.updateReadingProgress(groupId: groupId, currentPage: currentPage); dismiss(); await onChanged() } catch { toast = .failure("진도 기록에 실패했어요") } }
     }
     func changeDeliveryAddressSaved(groupId: Int, userDeliveryId: Int) {
-        Task { do { _ = try await trackerService.updateDeliveryAddressSaved(groupId: groupId, userDeliveryId: userDeliveryId); dismiss(); await onChanged() } catch { toast = Self.addressChangeFailed } }
+        Task { do { _ = try await trackerService.updateDeliveryAddressSaved(groupId: groupId, userDeliveryId: userDeliveryId); dismiss(); await onChanged() } catch { toast = .failure(Self.addressChangeFailed) } }
     }
     func changeDeliveryAddressDirect(groupId: Int, zipCode: String, address: String, addressDetail: String) {
-        Task { do { _ = try await trackerService.updateDeliveryAddressDirect(groupId: groupId, body: .init(zipCode: zipCode, address: address, addressDetail: addressDetail)); dismiss(); await onChanged() } catch { toast = Self.addressChangeFailed } }
+        Task { do { _ = try await trackerService.updateDeliveryAddressDirect(groupId: groupId, body: .init(zipCode: zipCode, address: address, addressDetail: addressDetail)); dismiss(); await onChanged() } catch { toast = .failure(Self.addressChangeFailed) } }
     }
     func confirmReceive(groupId: Int) {
-        Task { do { try await trackerService.confirmPartnerReceive(groupId: groupId); dismiss(); await onChanged() } catch { toast = "수령 확인에 실패했어요" } }
+        Task { do { try await trackerService.confirmPartnerReceive(groupId: groupId); dismiss(); await onChanged() } catch { toast = .failure("수령 확인에 실패했어요") } }
     }
     func registerDelivery(groupId: Int, deliveryCompany: String, trackingNumber: String) {
-        Task { do { try await trackerService.registerDelivery(groupId: groupId, deliveryCompany: deliveryCompany, trackingNumber: trackingNumber); dismiss(); await onChanged() } catch { toast = "운송장 등록에 실패했어요" } }
+        Task { do { try await trackerService.registerDelivery(groupId: groupId, deliveryCompany: deliveryCompany, trackingNumber: trackingNumber); dismiss(); await onChanged() } catch { toast = .failure("운송장 등록에 실패했어요") } }
     }
 
     func submitMeeting(groupId: Int, editMode: Bool) {
@@ -141,18 +141,18 @@ final class TrackerDialogCoordinator: ObservableObject {
                     : try await trackerService.registerMeeting(groupId: groupId, body: body)
                 dismiss()
                 await onChanged()
-            } catch { toast = editMode ? "약속 수정에 실패했어요" : "약속 등록에 실패했어요" }
+            } catch { toast = .failure(editMode ? "약속 수정에 실패했어요" : "약속 등록에 실패했어요") }
         }
     }
 
     func completeMeeting(groupId: Int) {
         Task {
-            do { _ = try await trackerService.completeMeeting(groupId: groupId); dismiss(); await onChanged() } catch { toast = "교환 완료 처리에 실패했어요" }
+            do { _ = try await trackerService.completeMeeting(groupId: groupId); dismiss(); await onChanged() } catch { toast = .failure("교환 완료 처리에 실패했어요") }
         }
     }
 
     func updateReadingPeriod(groupId: Int, newEndDate: String) {
-        Task { do { _ = try await trackerService.updateReadingPeriod(groupId: groupId, newEndDate: newEndDate); dismiss(); await onChanged() } catch { toast = "독서기간 수정에 실패했어요" } }
+        Task { do { _ = try await trackerService.updateReadingPeriod(groupId: groupId, newEndDate: newEndDate); dismiss(); await onChanged() } catch { toast = .failure("독서기간 수정에 실패했어요") } }
     }
 
     private static let loadFailed = "정보를 불러오지 못했어요"

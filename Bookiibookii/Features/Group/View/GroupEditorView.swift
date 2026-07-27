@@ -99,7 +99,7 @@ struct GroupEditorView: View {
                     action: {
                         // 20자 그룹명 가드는 View 레이어(안드 Route onSubmit 래핑 대응, canSubmit과 별개)
                         if viewModel.groupName.count > 20 {
-                            viewModel.toast = "그룹명은 20자 이하로 작성해주세요"
+                            viewModel.toast = .failure("그룹명은 20자 이하로 작성해주세요")
                         } else {
                             Task { await viewModel.submit() }
                         }
@@ -121,7 +121,7 @@ struct GroupEditorView: View {
         }
         .onChange(of: viewModel.prefillFailed) { _, failed in
             if let failed {
-                viewModel.toast = failed   // 프리필 실패 → 토스트 후 뒤로가기
+                viewModel.toast = .failure(failed)   // 프리필 실패 → 토스트 후 뒤로가기
                 dismiss()
             }
         }

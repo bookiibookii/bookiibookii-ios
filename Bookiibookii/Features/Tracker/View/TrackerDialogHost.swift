@@ -67,7 +67,7 @@ struct TrackerDialogHost: ViewModifier {
                     if let url = deliveryTrackingUrl(companyCode: coordinator.partnerDelivery?.deliveryCompany, trackingNumber: coordinator.partnerDelivery?.trackingNumber) {
                         UIApplication.shared.open(url)
                     } else {
-                        coordinator.toast = "배송 조회를 지원하지 않는 택배사예요."
+                        coordinator.toast = .failure("배송 조회를 지원하지 않는 택배사예요.")
                     }
                 },
                 onConfirmClick: { coordinator.dismiss() }
