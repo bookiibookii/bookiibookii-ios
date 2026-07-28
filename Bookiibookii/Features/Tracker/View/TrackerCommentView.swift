@@ -58,6 +58,9 @@ struct TrackerCommentView: View {
         .background(Color("uiBg"))
         .toast($viewModel.toast)
         .task { await viewModel.load() }
+        .onReceive(NotificationCenter.default.publisher(for: .comErrorRetry)) { _ in
+            Task { await viewModel.load() }
+        }
     }
 
     // MARK: - 리스트 카드 + 당김 새로고침

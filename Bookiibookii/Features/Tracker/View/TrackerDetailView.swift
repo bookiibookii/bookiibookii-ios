@@ -302,6 +302,12 @@ struct TrackerDetailRoute: View {
             onSecondaryAction: { dispatch(viewModel.state.secondaryAction) }
         )
         .task { await viewModel.load() }
+        .onChange(of: viewModel.state.notFound) { _, notFound in
+            if notFound { ComErrorRouter.present(.groupClosed) }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .comErrorRetry)) { _ in
+            Task { await viewModel.load() }
+        }
         .trackerDialogHost(
             viewModel.coordinator,
             cardFor: { _ in

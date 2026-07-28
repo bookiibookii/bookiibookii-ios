@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1A43DAB2B4094FA99679793E /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 871D9FCE296143969AC79517 /* FirebaseCore */; };
 		9E3D67B72F7E640600EDF220 /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3D67B62F7E640600EDF220 /* KakaoSDK */; };
 		9E3D67B92F7E640600EDF220 /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3D67B82F7E640600EDF220 /* KakaoSDKAuth */; };
 		9E3D67BB2F7E640600EDF220 /* KakaoSDKCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 9E3D67BA2F7E640600EDF220 /* KakaoSDKCommon */; };
@@ -17,7 +16,6 @@
 		9EE1D3A72F9937A1006B0005 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 9EE1D3A62F9937A1006B0005 /* Kingfisher */; };
 		9EE2A0012FBE0001006B0001 /* KakaoSDKShare in Frameworks */ = {isa = PBXBuildFile; productRef = 9EE2A0022FBE0001006B0001 /* KakaoSDKShare */; };
 		9EE2A0032FBE0001006B0001 /* KakaoSDKTemplate in Frameworks */ = {isa = PBXBuildFile; productRef = 9EE2A0042FBE0001006B0001 /* KakaoSDKTemplate */; };
-		CD4DFFCA01E049A2AA956E63 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 6A840767BC09419ABC2DA19E /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,8 +57,6 @@
 				9E3D67C22F7EC42E00EDF220 /* GoogleSignInSwift in Frameworks */,
 				9E3D67BB2F7E640600EDF220 /* KakaoSDKCommon in Frameworks */,
 				9E3D67B92F7E640600EDF220 /* KakaoSDKAuth in Frameworks */,
-				1A43DAB2B4094FA99679793E /* FirebaseCore in Frameworks */,
-				CD4DFFCA01E049A2AA956E63 /* FirebaseMessaging in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -120,8 +116,6 @@
 				9E3D67BF2F7EC42E00EDF220 /* GoogleSignIn */,
 				9E3D67C12F7EC42E00EDF220 /* GoogleSignInSwift */,
 				9EE1D3A62F9937A1006B0005 /* Kingfisher */,
-				871D9FCE296143969AC79517 /* FirebaseCore */,
-				6A840767BC09419ABC2DA19E /* FirebaseMessaging */,
 			);
 			productName = Bookiibookii;
 			productReference = 9E0C1A172F7A7A4800AB15F3 /* Bookiibookii.app */;
@@ -155,7 +149,6 @@
 				9E3D67652F7E578300EDF220 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
 				9E3D67BE2F7EC42E00EDF220 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				9EE1D3A52F9937A1006B0005 /* XCRemoteSwiftPackageReference "Kingfisher" */,
-				D489A46F1B954E2BB049319C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9E0C1A182F7A7A4800AB15F3 /* Products */;
@@ -318,7 +311,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Bookiibookii/Bookiibookii.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = DAJCZW6W6Y;
@@ -359,7 +351,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Bookiibookii/Bookiibookii.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = DAJCZW6W6Y;
@@ -441,27 +432,9 @@
 				minimumVersion = 8.0.0;
 			};
 		};
-		D489A46F1B954E2BB049319C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 11.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		6A840767BC09419ABC2DA19E /* FirebaseMessaging */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D489A46F1B954E2BB049319C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseMessaging;
-		};
-		871D9FCE296143969AC79517 /* FirebaseCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D489A46F1B954E2BB049319C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCore;
-		};
 		9E3D67B62F7E640600EDF220 /* KakaoSDK */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9E3D67652F7E578300EDF220 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;

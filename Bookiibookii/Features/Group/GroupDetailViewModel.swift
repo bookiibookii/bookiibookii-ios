@@ -96,7 +96,11 @@ final class GroupDetailViewModel: ObservableObject {
             }
         } catch {
             phase = .failed
-            toastError(error)
+            if case GroupServiceError.http(404) = error {
+                ComErrorRouter.present(.groupDeleted)
+            } else {
+                toastError(error)
+            }
         }
     }
 
@@ -244,7 +248,11 @@ final class GroupDetailViewModel: ObservableObject {
         do {
             applicants = try await service.fetchApplicants(groupId: groupId)
         } catch {
-            toastError(error)
+            if case GroupServiceError.http(404) = error {
+                ComErrorRouter.present(.groupDeleted)
+            } else {
+                toastError(error)
+            }
         }
     }
 

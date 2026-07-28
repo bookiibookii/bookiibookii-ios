@@ -33,6 +33,9 @@ final class TrackerCommentViewModel: ObservableObject {
             state.comments = list
             state.loading = false
             state.error = nil
+        } catch GroupServiceError.http(404) {
+            state.loading = false
+            ComErrorRouter.present(.groupClosed)
         } catch {
             state.error = "댓글을 불러오지 못했어요"
             state.loading = false
