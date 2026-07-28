@@ -1,5 +1,25 @@
 import SwiftUI
 
+enum CoachMarkTarget: Hashable {
+    case libraryBookmark
+    case libraryShare
+}
+
+enum CoachMarkCoordinateSpace {
+    static let libraryCardDetail = "library-card-detail"
+}
+
+struct CoachMarkFramePreferenceKey: PreferenceKey {
+    static var defaultValue: [CoachMarkTarget: CGRect] = [:]
+
+    static func reduce(
+        value: inout [CoachMarkTarget: CGRect],
+        nextValue: () -> [CoachMarkTarget: CGRect]
+    ) {
+        value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
+    }
+}
+
 /// 화면별 코치마크 완료 상태. 기기 단위로 한 번만 노출한다.
 enum CoachMarkKind {
     case libraryCardDetail
@@ -26,9 +46,20 @@ enum CoachMarkKind {
 /// 다음 진입에서 다시 표시되어 사용자가 안내를 놓치지 않는다.
 struct CoachMarkOverlay: View {
     let kind: CoachMarkKind
+    let targetFrames: [CoachMarkTarget: CGRect]
     let onCompleted: () -> Void
 
     @State private var page = 0
+
+    init(
+        kind: CoachMarkKind,
+        targetFrames: [CoachMarkTarget: CGRect] = [:],
+        onCompleted: @escaping () -> Void
+    ) {
+        self.kind = kind
+        self.targetFrames = targetFrames
+        self.onCompleted = onCompleted
+    }
 
     var body: some View {
         ZStack {
@@ -42,6 +73,7 @@ struct CoachMarkOverlay: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 pageIndicator
+                    .padding(.top, 16)
                     .padding(.bottom, 36)
 
                 Button(action: advance) {
@@ -93,30 +125,31 @@ struct CoachMarkOverlay: View {
             .padding(.top, 510)
 
         case 1:
-            VStack(alignment: .trailing, spacing: 8) {
+            libraryCallout(
+                target: .libraryBookmark,
+                icon: {
                 Image("ic_bookmark_fill")
                     .renderingMode(.template)
                     .resizable()
                     .scaledToFit()
                     .foregroundColor(Color("main200"))
                     .frame(width: 24, height: 24)
-                    .padding(10)
+                    .frame(width: 32, height: 32)
                     .background(Color.white)
                     .clipShape(Circle())
-
-                coachMessage(
+                },
+                message: coachMessage(
                     "모아서 보고 싶은\n독서카드를 ",
                     emphasis: "북마크",
                     suffix: "해요.",
                     trailing: true
                 )
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-            .padding(.top, 100)
-            .padding(.trailing, 20)
+            )
 
         case 2:
-            VStack(alignment: .trailing, spacing: 12) {
+            libraryCallout(
+                target: .libraryShare,
+                icon: {
                 Image("ic_share")
                     .resizable()
                     .scaledToFit()
@@ -124,8 +157,8 @@ struct CoachMarkOverlay: View {
                     .padding(4)
                     .background(Color.white)
                     .clipShape(Circle())
-
-                coachMessage(
+                },
+                message: coachMessage(
                     "마음에 든 독서카드는\n",
                     emphasis: "공유",
                     suffix: "하거나 ",
@@ -133,10 +166,7 @@ struct CoachMarkOverlay: View {
                     trailingSuffix: "할 수 있어요.",
                     trailing: true
                 )
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-            .padding(.top, 12)
-            .padding(.trailing, 16)
+            )
 
         default:
             VStack(spacing: 8) {
@@ -150,6 +180,24 @@ struct CoachMarkOverlay: View {
                     emphasis: "넘겨 볼",
                     suffix: " 수 있어요."
                 )
+            }
+        }
+    }
+
+    private func libraryCallout<Icon: View, Message: View>(
+        target: CoachMarkTarget,
+        @ViewBuilder icon: @escaping () -> Icon,
+        message: Message
+    ) -> some View {
+        GeometryReader { proxy in
+            if let frame = targetFrames[target] {
+                VStack(alignment: .trailing, spacing: 8) {
+                    icon()
+                    message
+                }
+                .frame(maxWidth: .infinity, alignment: .topTrailing)
+                .padding(.top, frame.minY)
+                .padding(.trailing, max(0, proxy.size.width - frame.maxX))
             }
         }
     }
@@ -283,6 +331,22 @@ struct CoachMarkOverlay: View {
         } else {
             withAnimation(.easeInOut(duration: 0.2)) {
                 page += 1
+            }
+        }
+    }
+}
+
+extension View {
+    func coachMarkTargetFrame(
+        _ target: CoachMarkTarget,
+        in coordinateSpace: String
+    ) -> some View {
+        background {
+            GeometryReader { proxy in
+                Color.clear.preference(
+                    key: CoachMarkFramePreferenceKey.self,
+                    value: [target: proxy.frame(in: .named(coordinateSpace))]
+                )
             }
         }
     }

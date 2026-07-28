@@ -30,6 +30,7 @@ struct LibraryCardDetailView: View {
     @AppStorage("coach_mark.library_card_detail.v1.completed")
     private var hasCompletedCoachMark = false
     @State private var isCoachMarkPresented = false
+    @State private var coachMarkTargetFrames: [CoachMarkTarget: CGRect] = [:]
 
     private let showsMoreActions: Bool
 
@@ -100,7 +101,10 @@ struct LibraryCardDetailView: View {
             }
 
             if isCoachMarkPresented {
-                CoachMarkOverlay(kind: .libraryCardDetail) {
+                CoachMarkOverlay(
+                    kind: .libraryCardDetail,
+                    targetFrames: coachMarkTargetFrames
+                ) {
                     hasCompletedCoachMark = true
                     withAnimation(.easeOut(duration: 0.2)) {
                         isCoachMarkPresented = false
@@ -109,6 +113,10 @@ struct LibraryCardDetailView: View {
                 .transition(.opacity)
                 .zIndex(10)
             }
+        }
+        .coordinateSpace(name: CoachMarkCoordinateSpace.libraryCardDetail)
+        .onPreferenceChange(CoachMarkFramePreferenceKey.self) { frames in
+            coachMarkTargetFrames = frames
         }
         .task {
             await viewModel.load()
@@ -199,6 +207,10 @@ struct LibraryCardDetailView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(viewModel.detail == nil)
+                .coachMarkTargetFrame(
+                    .libraryShare,
+                    in: CoachMarkCoordinateSpace.libraryCardDetail
+                )
 
                 if showsMoreActions, let detail = viewModel.detail {
                     if detail.isMine {
@@ -388,6 +400,10 @@ struct LibraryCardDetailView: View {
                             }
                     }
                     .buttonStyle(.plain)
+                    .coachMarkTargetFrame(
+                        .libraryBookmark,
+                        in: CoachMarkCoordinateSpace.libraryCardDetail
+                    )
                 }
 
                 HStack(spacing: 8) {
