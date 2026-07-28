@@ -2,8 +2,7 @@ import Foundation
 import Combine
 
 // 트래커 1:1 댓글 VM.
-// 그룹 댓글과 동일한 groupId/API(GroupService)를 사용한다. 조회는 트리 그대로 보여주되,
-// 작성은 공개 댓글만(parentId=nil, secret=false).
+// 그룹 댓글과 동일한 groupId/API(GroupService)를 사용한다. 답글은 공개 댓글로만 작성한다.
 // 에러는 toast로 표출(그룹 VM과 동일 패턴).
 @MainActor
 final class TrackerCommentViewModel: ObservableObject {
@@ -63,28 +62,51 @@ final class TrackerCommentViewModel: ObservableObject {
         }
     }
 
-    // MARK: - 입력 필드 (250자, 멘션 없음)
+    // MARK: - 입력 필드
 
     func onDraftChange(_ text: String) {
+        if let nickname = state.mentionNickname {
+            let prefix = Self.mentionPrefix(nickname)
+            if !text.hasPrefix(prefix) {
+                state.draft = ""
+                state.replyTargetId = nil
+                state.mentionNickname = nil
+                return
+            }
+        }
         state.draft = text.count > Self.maxContentLen ? String(text.prefix(Self.maxContentLen)) : text
+    }
+
+    func startReply(parentId: Int, nickname: String) {
+        state.replyTargetId = parentId
+        state.mentionNickname = nickname
+        state.draft = Self.mentionPrefix(nickname)
     }
 
     // MARK: - 댓글 작성
 
     func submit() {
-        let content = state.draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        let content: String
+        if let nickname = state.mentionNickname {
+            content = state.draft
+                .replacingOccurrences(of: Self.mentionPrefix(nickname), with: "", options: [.anchored])
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        } else {
+            content = state.draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
         if content.isEmpty || state.submitting { return }
 
+        let parentId = state.replyTargetId
         state.submitting = true
         Task {
             do {
                 let created = try await service.postComment(
                     groupId: groupId,
                     content: content,
-                    parentId: nil,
+                    parentId: parentId,
                     secret: false
                 )
-                addLocally(Self.toCommentItem(created))
+                addLocally(Self.toCommentItem(created), parentId: parentId)
             } catch {
                 toast = .failure("댓글 작성에 실패했어요")
                 state.submitting = false
@@ -92,10 +114,28 @@ final class TrackerCommentViewModel: ObservableObject {
         }
     }
 
-    // 작성한 최상위 댓글을 리스트 끝에 append + 입력 상태 리셋
-    private func addLocally(_ item: CommentItem) {
-        state.comments.append(item)
+    // 작성 댓글을 최상위 또는 부모 댓글의 children에 반영한다.
+    private func addLocally(_ item: CommentItem, parentId: Int?) {
+        if let parentId {
+            state.comments = state.comments.map { parent in
+                guard parent.id == parentId else { return parent }
+                return CommentItem(
+                    id: parent.id,
+                    deleted: parent.deleted,
+                    secret: parent.secret,
+                    content: parent.content,
+                    parentId: parent.parentId,
+                    writer: parent.writer,
+                    createdAt: parent.createdAt,
+                    children: (parent.children ?? []) + [item]
+                )
+            }
+        } else {
+            state.comments.append(item)
+        }
         state.draft = ""
+        state.replyTargetId = nil
+        state.mentionNickname = nil
         state.submitting = false
     }
 
@@ -117,7 +157,7 @@ final class TrackerCommentViewModel: ObservableObject {
 
     // MARK: - Helpers
 
-    // POST 응답 → 화면용 CommentItem (공개 최상위 댓글)
+    // POST 응답 → 화면용 CommentItem
     private static func toCommentItem(_ res: CommentCreateResponse) -> CommentItem {
         CommentItem(
             id: res.commentId,
@@ -130,4 +170,6 @@ final class TrackerCommentViewModel: ObservableObject {
             children: nil
         )
     }
+
+    private static func mentionPrefix(_ nickname: String) -> String { "@\(nickname) " }
 }

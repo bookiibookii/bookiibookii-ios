@@ -3,7 +3,7 @@ import UIKit
 
 // 트래커 1:1 댓글 화면(풀스크린).
 // 리스트는 그룹 댓글과 동일하게 트리(children) + 비밀(secret) + 역할별 닉네임 색으로 렌더한다(CommentRow 재사용).
-// 입력은 축소 — 비밀토글/멘션 없이 최상위·공개 댓글만 작성. 본인 댓글 롱프레스 삭제.
+// 입력은 축소 — 비밀토글 없이 공개 댓글/답글을 작성하고, 본인 댓글은 롱프레스로 삭제한다.
 // 리스트를 아래에서 위로 당기면 새로고침된다.
 struct TrackerCommentView: View {
     @EnvironmentObject private var container: DIContainer
@@ -23,6 +23,9 @@ struct TrackerCommentView: View {
 
     // 스크롤 칩 명령
     @State private var scrollCommand: ScrollCommand?
+    @AppStorage("coach_mark.tracker_comment.v1.completed")
+    private var hasCompletedCoachMark = false
+    @State private var isCoachMarkPresented = false
 
     // 당김 임계치 / 새로고침 중 유지할 gap / 당기는 동안 gap 최대치 (안드 상수 이식)
     private let refreshThreshold: CGFloat = 72
@@ -37,27 +40,50 @@ struct TrackerCommentView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            CustomNavigationBar(title: title, onBack: { container.navigationRouter.pop() })
-            Rectangle().fill(Color("grey200")).frame(height: 1)
+        ZStack {
+            VStack(spacing: 0) {
+                CustomNavigationBar(title: title, onBack: { container.navigationRouter.pop() })
+                Rectangle().fill(Color("grey200")).frame(height: 1)
 
-            if viewModel.state.comments.isEmpty {
-                EmptyCommentCard()
+                if viewModel.state.comments.isEmpty {
+                    EmptyCommentCard()
+                        .padding(16)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                } else {
+                    ZStack(alignment: .bottomTrailing) {
+                        commentList
+                        scrollChips
+                    }
                     .padding(16)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            } else {
-                ZStack(alignment: .bottomTrailing) {
-                    commentList
-                    scrollChips
                 }
-                .padding(16)
-            }
 
-            inputBar
+                inputBar
+            }
+            .background(Color("uiBg"))
+
+            if isCoachMarkPresented {
+                CoachMarkOverlay(kind: .trackerComment) {
+                    hasCompletedCoachMark = true
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        isCoachMarkPresented = false
+                    }
+                }
+                .transition(.opacity)
+                .zIndex(10)
+            }
         }
-        .background(Color("uiBg"))
         .toast($viewModel.toast)
-        .task { await viewModel.load() }
+        .task {
+            await viewModel.load()
+            // 답장·롱프레스 안내 대상이 있어야만 표시한다.
+            // 빈 댓글방에서 완료 처리하면 실제 기능을 안내할 기회를 잃는다.
+            guard !hasCompletedCoachMark, !viewModel.state.comments.isEmpty else { return }
+
+            // 첫 데이터가 화면에 자리 잡은 뒤 안내를 표시한다.
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            isCoachMarkPresented = true
+        }
         .onReceive(NotificationCenter.default.publisher(for: .comErrorRetry)) { _ in
             Task { await viewModel.load() }
         }
@@ -73,7 +99,7 @@ struct TrackerCommentView: View {
                         CommentRow(
                             comment: comment,
                             currentUserId: viewModel.currentUserId,
-                            onStartReply: { _, _ in },          // 1:1이라 답글 모드 없음
+                            onStartReply: viewModel.startReply,
                             onDelete: { viewModel.delete(commentId: $0) },
                             onProfileTap: { _ in },             // 프로필 이동 없음
                             openDeleteId: openDeleteId,

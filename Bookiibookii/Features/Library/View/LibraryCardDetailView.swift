@@ -27,6 +27,9 @@ struct LibraryCardDetailView: View {
     @State private var isActionMenuPresented = false
     @State private var showsDeleteConfirm = false
     @State private var isShareSheetPresented = false
+    @AppStorage("coach_mark.library_card_detail.v1.completed")
+    private var hasCompletedCoachMark = false
+    @State private var isCoachMarkPresented = false
 
     private let showsMoreActions: Bool
 
@@ -95,8 +98,27 @@ struct LibraryCardDetailView: View {
                 .transition(.opacity)
                 .zIndex(2)
             }
+
+            if isCoachMarkPresented {
+                CoachMarkOverlay(kind: .libraryCardDetail) {
+                    hasCompletedCoachMark = true
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        isCoachMarkPresented = false
+                    }
+                }
+                .transition(.opacity)
+                .zIndex(10)
+            }
         }
-        .task { await viewModel.load() }
+        .task {
+            await viewModel.load()
+            guard !hasCompletedCoachMark, viewModel.detail != nil else { return }
+
+            // 데이터가 렌더된 뒤에 표시해야 첫 페이지가 카드 액션 위치를 안내한다.
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            isCoachMarkPresented = true
+        }
         .onReceive(NotificationCenter.default.publisher(for: .libraryCardMutationFinished)) { _ in
             Task { await viewModel.load() }
         }
