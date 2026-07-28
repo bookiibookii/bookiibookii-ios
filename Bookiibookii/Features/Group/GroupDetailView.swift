@@ -153,6 +153,9 @@ struct GroupDetailView: View {
             await viewModel.onAppear()
             await commentVM.load()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .comErrorRetry)) { _ in
+            viewModel.retry()
+        }
         .toast($viewModel.toast)
     }
 
