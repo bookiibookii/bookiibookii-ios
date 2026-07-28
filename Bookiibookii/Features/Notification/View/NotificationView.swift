@@ -12,7 +12,7 @@ struct NotificationView: View {
     @State private var selectedTab: NotificationCategory = .system
     @State private var showKeywordSetting = false
     @State private var selectedGroupId: Int? = nil
-    @State private var toast: String? = nil
+    @State private var toast: ToastMessage? = nil
 
     private let keywordService: KeywordService
     private let groupService: GroupService

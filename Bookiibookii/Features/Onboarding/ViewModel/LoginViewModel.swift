@@ -12,6 +12,7 @@ final class LoginViewModel: ObservableObject {
     @Published var loginSucceeded = false
 
     private let authService: AuthService
+    private let appleSignInController = AppleSignInController()
 
     init(authService: AuthService) {
         self.authService = authService
@@ -93,6 +94,26 @@ final class LoginViewModel: ObservableObject {
             }
 
             Task { [weak self] in await self?.sendToBackend(idToken, socialType: "GOOGLE") }
+        }
+    }
+
+    // MARK: - 애플 로그인
+    func loginWithApple() {
+        guard !isLoading else { return }
+        setLoading(true)
+
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let identityToken = try await appleSignInController.requestIdentityToken()
+                await sendToBackend(identityToken, socialType: "APPLE")
+            } catch AppleSignInError.canceled {
+                // 사용자가 취소한 경우 (카카오·구글과 동일하게 조용히 종료)
+                setLoading(false)
+            } catch {
+                print("❌ [APPLE] 로그인 실패: \(error)")
+                setLoading(false)
+            }
         }
     }
 
