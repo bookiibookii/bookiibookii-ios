@@ -4,6 +4,7 @@ struct SettingView: View {
     @EnvironmentObject private var container: DIContainer
 
     @State private var isPushNotificationEnabled = PushNotificationManager.shared.isPushEnabled
+    @State private var showPushPermissionAlert = false
     @State private var showLogoutPopup = false
     @State private var isProcessingLogout = false
     @State private var accountErrorMessage: String?
@@ -67,6 +68,17 @@ struct SettingView: View {
         } message: {
             Text(accountErrorMessage ?? "")
         }
+        .alert("알림 권한이 꺼져 있어요", isPresented: $showPushPermissionAlert) {
+            Button("설정으로 이동") { openSystemSettings() }
+            Button("취소", role: .cancel) {}
+        } message: {
+            Text("iOS 설정에서 부키부키 알림을 허용해야 푸시 알림을 받을 수 있어요.")
+        }
+        // OS에서 알림을 꺼둔 채 돌아온 경우, 토글이 켜져 보이는 것을 막는다
+        .task {
+            await PushNotificationManager.shared.syncWithSystemPermission()
+            isPushNotificationEnabled = PushNotificationManager.shared.isPushEnabled
+        }
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
     }
@@ -128,6 +140,12 @@ struct SettingView: View {
                         .tint(Color("main200"))
                         .onChange(of: isPushNotificationEnabled) { _, enabled in
                             Task {
+                                // 이미 거절한 상태에서는 시스템 팝업이 다시 뜨지 않으므로 설정 앱으로 안내한다
+                                if enabled, await PushNotificationManager.shared.systemPermission() == .denied {
+                                    showPushPermissionAlert = true
+                                    isPushNotificationEnabled = false
+                                    return
+                                }
                                 await PushNotificationManager.shared.setPushEnabled(enabled)
                                 isPushNotificationEnabled = PushNotificationManager.shared.isPushEnabled
                             }
@@ -316,6 +334,11 @@ struct SettingView: View {
         TokenManager.shared.clear()
         showLogoutPopup = false
         container.navigationRouter.hardReset(to: .login)
+    }
+
+    private func openSystemSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 }
 

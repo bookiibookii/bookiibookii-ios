@@ -131,6 +131,33 @@ final class PushNotificationManager: NSObject {
         UserDefaults.standard.removeObject(forKey: Self.tokenKey)
     }
 
+    // MARK: - System Permission
+
+    /// OS 알림 권한 상태. `.denied`는 앱에서 되돌릴 수 없어 설정 앱으로 안내해야 한다.
+    enum SystemPermission {
+        case notDetermined   // 아직 묻지 않음 — 토글을 켜면 시스템 팝업이 뜬다
+        case authorized
+        case denied          // 거절했거나 설정에서 껐음
+    }
+
+    func systemPermission() async -> SystemPermission {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        switch settings.authorizationStatus {
+        case .notDetermined: return .notDetermined
+        case .denied:        return .denied
+        default:             return .authorized   // authorized / provisional / ephemeral
+        }
+    }
+
+    /// 설정 화면 진입 시 호출 — OS에서 알림을 꺼둔 경우 앱 토글도 꺼진 상태로 맞춘다.
+    /// (토글은 켜져 있는데 실제로는 알림이 오지 않는 상태를 막는다)
+    func syncWithSystemPermission() async {
+        guard isPushEnabled, await systemPermission() == .denied else { return }
+        isPushEnabled = false
+        UserDefaults.standard.set(false, forKey: Self.preferenceKey)
+        await deactivateCurrentToken()
+    }
+
     private func requestAuthorization() async -> Bool {
         do {
             return try await UNUserNotificationCenter.current()
