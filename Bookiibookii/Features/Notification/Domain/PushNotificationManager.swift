@@ -33,9 +33,21 @@ final class PushNotificationManager: NSObject {
         self.notificationService = notificationService
         self.navigationRouter = navigationRouter
 
-        if FirebaseApp.app() == nil,
-           Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
-            FirebaseApp.configure()
+        // Debug 빌드는 개발 FCM 프로젝트, Release(TestFlight·앱스토어) 빌드는 운영 FCM 프로젝트를 쓴다.
+        #if DEBUG
+        let firebasePlist = "GoogleService-Info-Dev"
+        #else
+        let firebasePlist = "GoogleService-Info-Prod"
+        #endif
+
+        if FirebaseApp.app() == nil {
+            if let path = Bundle.main.path(forResource: firebasePlist, ofType: "plist"),
+               let options = FirebaseOptions(contentsOfFile: path) {
+                FirebaseApp.configure(options: options)
+            } else {
+                // 설정 파일이 없으면 FCM이 통째로 죽으므로(푸시 미수신) 조용히 넘어가지 않는다
+                print("⚠️ [PUSH] \(firebasePlist).plist 없음 — Firebase 초기화 생략, 푸시 알림이 동작하지 않습니다")
+            }
         }
 
         UNUserNotificationCenter.current().delegate = self
