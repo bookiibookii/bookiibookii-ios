@@ -10,6 +10,7 @@ import UIKit
 final class LoginViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var loginSucceeded = false
+    @Published var toast: ToastMessage?
 
     private let authService: AuthService
     private let appleSignInController = AppleSignInController()
@@ -57,7 +58,12 @@ final class LoginViewModel: ObservableObject {
         UserApi.shared.loginWithKakaoAccount { [weak self] token, error in
             guard let self else { return }
             guard let token, error == nil else {
-                self.setLoading(false)
+                // 사용자가 취소한 경우는 조용히 종료, 그 외 실패는 안내
+                if let sdkError = error as? SdkError, sdkError.isClientFailed {
+                    self.setLoading(false)
+                } else {
+                    self.failLogin()
+                }
                 return
             }
             Task { [weak self] in await self?.sendToBackend(token.accessToken, socialType: "KAKAO") }
@@ -71,7 +77,7 @@ final class LoginViewModel: ObservableObject {
 
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let rootVC = windowScene.windows.first?.rootViewController else {
-            setLoading(false)
+            failLogin()
             return
         }
 
@@ -89,7 +95,7 @@ final class LoginViewModel: ObservableObject {
             }
 
             guard error == nil, let idToken = result?.user.idToken?.tokenString else {
-                self.setLoading(false)
+                self.failLogin()
                 return
             }
 
@@ -116,7 +122,7 @@ final class LoginViewModel: ObservableObject {
                 setLoading(false)
             } catch {
                 print("❌ [APPLE] 로그인 실패: \(error)")
-                setLoading(false)
+                failLogin(message: (error as? AppleSignInError)?.errorDescription)
             }
         }
     }
@@ -132,11 +138,19 @@ final class LoginViewModel: ObservableObject {
             await MainActor.run { loginSucceeded = true }
         } catch {
             print("❌ [\(socialType)] 백엔드 로그인 실패: \(error)")
-            await MainActor.run { setLoading(false) }
+            failLogin(message: (error as? AuthError)?.errorDescription)
         }
     }
 
     private func setLoading(_ value: Bool) {
         Task { @MainActor in self.isLoading = value }
+    }
+
+    // 로그인 실패 안내 — 로딩을 풀고 토스트를 띄운다 (사용자 취소는 여기로 오지 않는다)
+    private func failLogin(message: String? = nil) {
+        Task { @MainActor in
+            self.isLoading = false
+            self.toast = .failure(message ?? "로그인에 실패했어요. 잠시 후 다시 시도해주세요.")
+        }
     }
 }
