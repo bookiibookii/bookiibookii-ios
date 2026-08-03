@@ -105,8 +105,12 @@ final class LoginViewModel: ObservableObject {
         Task { [weak self] in
             guard let self else { return }
             do {
-                let identityToken = try await appleSignInController.requestIdentityToken()
-                await sendToBackend(identityToken, socialType: "APPLE")
+                let credential = try await appleSignInController.requestCredential()
+                await sendToBackend(
+                    credential.identityToken,
+                    socialType: "APPLE",
+                    authorizationCode: credential.authorizationCode
+                )
             } catch AppleSignInError.canceled {
                 // 사용자가 취소한 경우 (카카오·구글과 동일하게 조용히 종료)
                 setLoading(false)
@@ -117,9 +121,13 @@ final class LoginViewModel: ObservableObject {
         }
     }
 
-    private func sendToBackend(_ token: String, socialType: String) async {
+    private func sendToBackend(_ token: String, socialType: String, authorizationCode: String? = nil) async {
         do {
-            let result = try await authService.login(socialType: socialType, token: token)
+            let result = try await authService.login(
+                socialType: socialType,
+                token: token,
+                authorizationCode: authorizationCode
+            )
             TokenManager.shared.saveLoginResult(result)
             await MainActor.run { loginSucceeded = true }
         } catch {

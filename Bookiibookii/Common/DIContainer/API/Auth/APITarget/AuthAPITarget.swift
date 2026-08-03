@@ -1,7 +1,7 @@
 import Foundation
 
 enum AuthAPITarget: APITargetType {
-    case login(socialType: String, token: String)
+    case login(socialType: String, token: String, authorizationCode: String?)
     case refresh(accessToken: String, refreshToken: String)
     case logout(accessToken: String)
 
@@ -19,8 +19,10 @@ enum AuthAPITarget: APITargetType {
 
     var body: Data? {
         switch self {
-        case .login(let socialType, let token):
-            return try? JSONEncoder().encode(LoginRequest(socialType: socialType, token: token))
+        case .login(let socialType, let token, let authorizationCode):
+            return try? JSONEncoder().encode(
+                LoginRequest(socialType: socialType, token: token, authorizationCode: authorizationCode)
+            )
         case .refresh(_, let refreshToken):
             return try? JSONEncoder().encode(RefreshRequest(refreshToken: refreshToken))
         case .logout:
