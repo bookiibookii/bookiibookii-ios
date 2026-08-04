@@ -18,6 +18,7 @@ final class PushNotificationManager: NSObject {
     private(set) var isPushEnabled: Bool
 
     private var notificationService: NotificationService?
+    private var isRegistering = false
     private var pendingUserInfo: [AnyHashable: Any]?
     private weak var navigationRouter: NavigationRouter?
 
@@ -97,8 +98,18 @@ final class PushNotificationManager: NSObject {
               TokenManager.shared.hasAccessToken,
               let notificationService else { return }
 
-        let granted = await requestAuthorization()
-        guard granted else {
+        // 로그인·온보딩 완료·메인 진입에서 각각 호출되므로 겹칠 수 있다.
+        // 권한 요청이 겹치면 나중 호출이 사용자의 응답과 무관하게 false를 돌려주기 때문에 한 번만 진행한다.
+        guard !isRegistering else { return }
+        isRegistering = true
+        defer { isRegistering = false }
+
+        if await systemPermission() == .notDetermined {
+            _ = await requestAuthorization()
+        }
+
+        // 반환값 대신 OS의 실제 상태로 판단한다
+        guard await systemPermission() == .authorized else {
             isPushEnabled = false
             UserDefaults.standard.set(false, forKey: Self.preferenceKey)
             return
