@@ -36,6 +36,8 @@ struct LoginView: View {
                 Spacer().frame(height: 34)
             }
         }
+        // 약관 안내 문구 위에 뜨도록 하단 여백을 키운다
+        .toast($viewModel.toast, bottomPadding: 110)
         .toolbar(.hidden, for: .navigationBar)
         .onChange(of: viewModel.loginSucceeded) { _, succeeded in
             guard succeeded else { return }

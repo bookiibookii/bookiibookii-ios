@@ -18,6 +18,7 @@ final class PushNotificationManager: NSObject {
     private(set) var isPushEnabled: Bool
 
     private var notificationService: NotificationService?
+    private var isRegistering = false
     private var pendingUserInfo: [AnyHashable: Any]?
     private weak var navigationRouter: NavigationRouter?
 
@@ -33,9 +34,21 @@ final class PushNotificationManager: NSObject {
         self.notificationService = notificationService
         self.navigationRouter = navigationRouter
 
-        if FirebaseApp.app() == nil,
-           Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
-            FirebaseApp.configure()
+        // Debug 빌드는 개발 FCM 프로젝트, Release(TestFlight·앱스토어) 빌드는 운영 FCM 프로젝트를 쓴다.
+        #if DEBUG
+        let firebasePlist = "GoogleService-Info-Dev"
+        #else
+        let firebasePlist = "GoogleService-Info-Prod"
+        #endif
+
+        if FirebaseApp.app() == nil {
+            if let path = Bundle.main.path(forResource: firebasePlist, ofType: "plist"),
+               let options = FirebaseOptions(contentsOfFile: path) {
+                FirebaseApp.configure(options: options)
+            } else {
+                // 설정 파일이 없으면 FCM이 통째로 죽으므로(푸시 미수신) 조용히 넘어가지 않는다
+                print("⚠️ [PUSH] \(firebasePlist).plist 없음 — Firebase 초기화 생략, 푸시 알림이 동작하지 않습니다")
+            }
         }
 
         UNUserNotificationCenter.current().delegate = self
@@ -85,8 +98,18 @@ final class PushNotificationManager: NSObject {
               TokenManager.shared.hasAccessToken,
               let notificationService else { return }
 
-        let granted = await requestAuthorization()
-        guard granted else {
+        // 로그인·온보딩 완료·메인 진입에서 각각 호출되므로 겹칠 수 있다.
+        // 권한 요청이 겹치면 나중 호출이 사용자의 응답과 무관하게 false를 돌려주기 때문에 한 번만 진행한다.
+        guard !isRegistering else { return }
+        isRegistering = true
+        defer { isRegistering = false }
+
+        if await systemPermission() == .notDetermined {
+            _ = await requestAuthorization()
+        }
+
+        // 반환값 대신 OS의 실제 상태로 판단한다
+        guard await systemPermission() == .authorized else {
             isPushEnabled = false
             UserDefaults.standard.set(false, forKey: Self.preferenceKey)
             return
@@ -117,6 +140,33 @@ final class PushNotificationManager: NSObject {
             print("푸시 토큰 해제 실패: \(error)")
         }
         UserDefaults.standard.removeObject(forKey: Self.tokenKey)
+    }
+
+    // MARK: - System Permission
+
+    /// OS 알림 권한 상태. `.denied`는 앱에서 되돌릴 수 없어 설정 앱으로 안내해야 한다.
+    enum SystemPermission {
+        case notDetermined   // 아직 묻지 않음 — 토글을 켜면 시스템 팝업이 뜬다
+        case authorized
+        case denied          // 거절했거나 설정에서 껐음
+    }
+
+    func systemPermission() async -> SystemPermission {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        switch settings.authorizationStatus {
+        case .notDetermined: return .notDetermined
+        case .denied:        return .denied
+        default:             return .authorized   // authorized / provisional / ephemeral
+        }
+    }
+
+    /// 설정 화면 진입 시 호출 — OS에서 알림을 꺼둔 경우 앱 토글도 꺼진 상태로 맞춘다.
+    /// (토글은 켜져 있는데 실제로는 알림이 오지 않는 상태를 막는다)
+    func syncWithSystemPermission() async {
+        guard isPushEnabled, await systemPermission() == .denied else { return }
+        isPushEnabled = false
+        UserDefaults.standard.set(false, forKey: Self.preferenceKey)
+        await deactivateCurrentToken()
     }
 
     private func requestAuthorization() async -> Bool {

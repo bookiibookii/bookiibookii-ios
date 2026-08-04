@@ -29,8 +29,8 @@ final class AuthService {
         _ = try? await URLSession.shared.data(for: request)
     }
 
-    func login(socialType: String, token: String) async throws -> LoginResult {
-        let target = AuthAPITarget.login(socialType: socialType, token: token)
+    func login(socialType: String, token: String, authorizationCode: String? = nil) async throws -> LoginResult {
+        let target = AuthAPITarget.login(socialType: socialType, token: token, authorizationCode: authorizationCode)
         let request = target.asURLRequest()
 
         let (data, _) = try await URLSession.shared.data(for: request)

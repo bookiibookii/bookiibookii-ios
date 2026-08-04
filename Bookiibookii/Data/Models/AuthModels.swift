@@ -4,6 +4,8 @@ import Foundation
 struct LoginRequest: Encodable {
     let socialType: String
     let token: String
+    // 애플 로그인 전용 — 서버가 회원탈퇴 시 revoke에 사용한다 (카카오·구글은 nil이라 키가 빠짐)
+    let authorizationCode: String?
 }
 
 // 안드로이드 RefreshTokenRequest 대응
