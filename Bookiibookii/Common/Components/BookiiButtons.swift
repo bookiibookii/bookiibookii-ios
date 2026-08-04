@@ -19,9 +19,9 @@ struct FooterButton: View {
         if !enabled { return Color("grey200") }
         return style == .grey ? Color("grey200") : Color("grey900")
     }
-    private var contentColor: Color {
+    private     var contentColor: Color {
         if !enabled { return Color("grey500") }
-        return style == .grey ? Color("grey900") : Color("white")
+        return style == .grey ? Color("grey500") : Color("white")
     }
 
     var body: some View {

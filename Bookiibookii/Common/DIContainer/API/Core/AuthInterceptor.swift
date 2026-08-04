@@ -15,15 +15,52 @@ actor AuthInterceptor {
         self.authService = authService
     }
 
+    // MARK: - 공통 에러 라우팅 (안드 routeComError)
+    static func unlockComErrorRouting() {
+        Task { @MainActor in
+            ComErrorRouter.unlockRouting()
+        }
+    }
+
+    private func shouldSkipComError(for error: Error) -> Bool {
+        if error is CancellationError { return true }
+        if let urlError = error as? URLError, urlError.code == .cancelled { return true }
+        return false
+    }
+
+    private func presentComError(_ type: BookiiErrorType) async {
+        await MainActor.run {
+            ComErrorRouter.present(type)
+        }
+    }
+
+    private func dataTask(for request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            if !shouldSkipComError(for: error) {
+                await presentComError(.network)
+            }
+            throw error
+        }
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+        return (data, httpResponse)
+    }
+
+    private func routeServerErrorIfNeeded(statusCode: Int) async {
+        guard statusCode >= 500 else { return }
+        await presentComError(.system)
+    }
+
     // MARK: - 인증 요청 실행 (외부 진입점)
     func request(_ urlRequest: URLRequest) async throws -> (Data, HTTPURLResponse) {
         let sentToken = TokenManager.shared.accessToken
         let authedRequest = attach(token: sentToken, to: urlRequest)
-        let (data, response) = try await URLSession.shared.data(for: authedRequest)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw URLError(.badServerResponse)
-        }
+        let (data, httpResponse) = try await dataTask(for: authedRequest)
 
         guard httpResponse.statusCode == 401 else {
             // 서버는 만료(401) 외의 인증 실패를 400/404 + code "AUTH…"로 내려준다.
@@ -33,6 +70,7 @@ actor AuthInterceptor {
                 await forceLogout()
                 throw AuthError.refreshFailed
             }
+            await routeServerErrorIfNeeded(statusCode: httpResponse.statusCode)
             return (data, httpResponse)
         }
 
@@ -42,21 +80,26 @@ actor AuthInterceptor {
             throw AuthError.refreshFailed
         }
 
-        // Access Token 갱신 후 재시도
+        // 401 원본 응답은 이미 소비됨 — 토큰 갱신 후 재시도
         let newToken: String
         do {
             newToken = try await refreshIfNeeded(sentToken: sentToken)
         } catch AuthError.refreshFailed {
-            // refresh 자체가 400/401 (refreshToken 불일치/만료) → 안드로이드 routeLogout 대응
             await forceLogout()
             throw AuthError.refreshFailed
+        } catch {
+            if !shouldSkipComError(for: error) {
+                if error is URLError {
+                    await presentComError(.network)
+                } else {
+                    await presentComError(.system)
+                }
+            }
+            throw error
         }
-        let retryRequest = attach(token: newToken, to: urlRequest)
-        let (retryData, retryResponse) = try await URLSession.shared.data(for: retryRequest)
 
-        guard let retryHTTPResponse = retryResponse as? HTTPURLResponse else {
-            throw URLError(.badServerResponse)
-        }
+        let retryRequest = attach(token: newToken, to: urlRequest)
+        let (retryData, retryHTTPResponse) = try await dataTask(for: retryRequest)
 
         // 재시도도 401이면 로그아웃
         if retryHTTPResponse.statusCode == 401 {
@@ -64,6 +107,7 @@ actor AuthInterceptor {
             throw AuthError.refreshFailed
         }
 
+        await routeServerErrorIfNeeded(statusCode: retryHTTPResponse.statusCode)
         return (retryData, retryHTTPResponse)
     }
 

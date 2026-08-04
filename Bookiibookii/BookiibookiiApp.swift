@@ -26,9 +26,29 @@ struct BookiibookiiApp: App {
                     }
             }
             .onAppear {
+                ComErrorRouter.configure(navigationRouter: container.navigationRouter)
                 PushNotificationManager.shared.configure(
                     notificationService: container.api.notification,
                     navigationRouter: container.navigationRouter
+                )
+            }
+            .fullScreenCover(item: $container.navigationRouter.presentedComError) { errorType in
+                ErrorScreen(
+                    type: errorType,
+                    onRetry: {
+                        ComErrorRouter.unlockRouting()
+                        NotificationCenter.default.post(name: .comErrorRetry, object: nil)
+                        ComErrorRouter.dismiss()
+                    },
+                    onBack: {
+                        ComErrorRouter.unlockRouting()
+                        ComErrorRouter.dismiss()
+                    },
+                    onGoMain: {
+                        ComErrorRouter.unlockRouting()
+                        container.navigationRouter.hardReset(to: .mainTab)
+                        ComErrorRouter.dismiss()
+                    }
                 )
             }
             .onReceive(NotificationCenter.default.publisher(for: .authTokenExpired)) { _ in

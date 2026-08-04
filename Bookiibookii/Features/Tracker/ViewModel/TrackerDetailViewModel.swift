@@ -25,7 +25,6 @@ final class TrackerDetailViewModel: ObservableObject {
             next.loading = false
             state = next
         } catch TrackerServiceError.http(404) {
-            // TODO: 종료된 그룹 에러 화면 이동
             state.notFound = true
             state.loading = false
         } catch {

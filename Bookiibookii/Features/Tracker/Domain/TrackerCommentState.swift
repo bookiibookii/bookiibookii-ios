@@ -14,6 +14,9 @@ struct TrackerCommentState {
 
     // 입력 필드
     var draft: String = ""
+    /// 탭한 댓글에 답장할 때 사용할 부모 댓글과 멘션 정보.
+    var replyTargetId: Int?
+    var mentionNickname: String?
     // POST 진행 중
     var submitting: Bool = false
     // 삭제 진행 중인 댓글 id들
