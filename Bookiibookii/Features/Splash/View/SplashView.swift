@@ -30,6 +30,11 @@ struct SplashView: View {
                 onFinish()   // 스플래시 마지막 프레임(토큰 경로)은 자동 종료
             }
         }
+        // 루트로 되돌아오면(다른 화면에서 pop) page가 마지막 프레임에 멈춘 채라 .task가 재실행되지 않는다.
+        // 자동 전환 프레임에 머물러 있으면 라우팅을 다시 태워 화면이 멈추는 걸 막는다.
+        .onAppear {
+            if page == lastIndex, autoAdvanceDuration(for: page) != nil { onFinish() }
+        }
     }
 
     /// nil이면 자동 전환하지 않고 사용자 동작(시작 버튼)을 기다린다.
