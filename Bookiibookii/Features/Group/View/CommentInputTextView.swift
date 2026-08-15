@@ -50,6 +50,20 @@ struct CommentInputTextView: UIViewRepresentable {
         }
     }
 
+    // 스크롤이 꺼진 UITextView는 intrinsicContentSize가 "한 줄에 다 담는 너비"라
+    // 크기 제안이 없으면 입력창이 가로로 늘어난다. 제안 너비를 강제해 줄바꿈시킨다.
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView tv: UITextView, context: Context) -> CGSize? {
+        // width == 0(최소 크기 질의)도 그대로 수용해야 HStack이 이 뷰를 가로로 유연하게 본다
+        guard let width = proposal.width, width.isFinite else { return nil }
+        let lineHeight = tv.font?.lineHeight ?? 20
+        let insets = tv.textContainerInset.top + tv.textContainerInset.bottom
+        let maxHeight = lineHeight * CGFloat(maxLines) + insets
+        let fitting = width > 0
+            ? tv.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height
+            : lineHeight + insets
+        return CGSize(width: width, height: min(fitting, maxHeight))
+    }
+
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     final class Coordinator: NSObject, UITextViewDelegate {

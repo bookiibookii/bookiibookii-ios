@@ -710,8 +710,20 @@ struct OnboardingView: View {
     // MARK: - 뒤로가기
     private func handleBack() {
         if !viewModel.goBack() {
-            container.navigationRouter.pop()
+            Task { await logoutToLogin() }
         }
+    }
+
+    // 1단계에서 뒤로가기 = 다른 계정으로 로그인. 로그인 직후라 토큰만 있고 온보딩은 미완료 상태이므로,
+    // 그냥 pop하면 갈 곳이 없어 다시 온보딩으로 돌아온다. 설정의 로그아웃과 동일한 시퀀스를 태운다.
+    private func logoutToLogin() async {
+        await PushNotificationManager.shared.deactivateOnLogout()
+
+        if let token = TokenManager.shared.accessToken {
+            await container.api.auth.logout(accessToken: token)
+        }
+        TokenManager.shared.clear()
+        container.navigationRouter.hardReset(to: .login)
     }
 
     // MARK: - 날짜 포맷

@@ -90,7 +90,7 @@ struct GroupApplicantView: View {
                         Text(item.name ?? "")
                             .pretendardText(size: 15, weight: .medium)
                             .foregroundColor(Color("grey900"))
-                        Text(String((item.createdAt ?? "").prefix(10)).replacingOccurrences(of: "-", with: "."))
+                        Text(DateUtils.formatKstDate(item.createdAt))
                             .pretendardText(size: 14)
                             .foregroundColor(Color("grey400"))
                     }

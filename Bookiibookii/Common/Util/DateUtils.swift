@@ -4,7 +4,26 @@ import Foundation
 enum DateUtils {
     private static let kst = TimeZone(identifier: "Asia/Seoul") ?? .current
 
-    // 오프셋(+09:00)·UTC(Z) 모두 파싱
+    // 타임존 표기가 없는 LocalDateTime(서버 기본 출력)은 UTC로 해석한다.
+    // 신청 목록처럼 "2026. 06. 26." 형태의 한국식 날짜 문자열을 내려주는 응답도 있다.
+    private static let localFormatters: [DateFormatter] = [
+        "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSS",
+        "yyyy-MM-dd'T'HH:mm:ss.SSSSSS",
+        "yyyy-MM-dd'T'HH:mm:ss.SSS",
+        "yyyy-MM-dd'T'HH:mm:ss",
+        "yyyy-MM-dd HH:mm:ss",
+        "yyyy. M. d.",
+        "yyyy. M. d",
+        "yyyy-MM-dd",
+    ].map { pattern in
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(identifier: "UTC")
+        f.dateFormat = pattern
+        return f
+    }
+
+    // 오프셋(+09:00)·UTC(Z)·타임존 없는 LocalDateTime 모두 파싱
     private static func parseDate(_ iso: String?) -> Date? {
         guard let iso, !iso.isEmpty else { return nil }
         let withFrac = ISO8601DateFormatter()
@@ -12,7 +31,11 @@ enum DateUtils {
         if let d = withFrac.date(from: iso) { return d }
         let plain = ISO8601DateFormatter()
         plain.formatOptions = [.withInternetDateTime]
-        return plain.date(from: iso)
+        if let d = plain.date(from: iso) { return d }
+        for f in localFormatters {
+            if let d = f.date(from: iso) { return d }
+        }
+        return nil
     }
 
     // KST 선택값 → +09:00 오프셋 ISO (예: 2026-05-20T14:30:00+09:00)
@@ -28,6 +51,22 @@ enum DateUtils {
         f.locale = Locale(identifier: "ko_KR")
         f.timeZone = kst
         f.dateFormat = "yyyy. MM. dd. HH:mm"
+        return f.string(from: date)
+    }
+
+    // 서버 시각 → KST "yyyy.MM.dd" (파싱 실패 시 앞 10자리만 잘라 구분자 치환)
+    static func formatKstDate(_ iso: String?) -> String {
+        guard let iso, !iso.isEmpty else { return "" }
+        guard let date = parseDate(iso) else {
+            #if DEBUG
+            print("[DateUtils] parse failed:", iso)
+            #endif
+            return String(iso.prefix(10)).replacingOccurrences(of: "-", with: ".")
+        }
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ko_KR")
+        f.timeZone = kst
+        f.dateFormat = "yyyy.MM.dd"
         return f.string(from: date)
     }
 
