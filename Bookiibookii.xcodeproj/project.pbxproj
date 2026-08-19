@@ -326,7 +326,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Bookiibookii/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "부키부키";
-				INFOPLIST_KEY_NSCameraUsageDescription = "프로필 사진 촬영을 위해 카메라 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "프로필 사진과 독서카드 이미지 촬영을 위해 카메라 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "프로필 공유 이미지를 사진 보관함에 저장하기 위해 접근이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "독서카드 이미지를 선택하기 위해 사진 접근이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -367,7 +367,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Bookiibookii/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "부키부키";
-				INFOPLIST_KEY_NSCameraUsageDescription = "프로필 사진 촬영을 위해 카메라 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "프로필 사진과 독서카드 이미지 촬영을 위해 카메라 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "프로필 공유 이미지를 사진 보관함에 저장하기 위해 접근이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "독서카드 이미지를 선택하기 위해 사진 접근이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

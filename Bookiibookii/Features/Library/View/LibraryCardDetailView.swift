@@ -330,8 +330,10 @@ struct LibraryCardDetailView: View {
 
                 if detail.cardType == .image {
                     imageLayoutButtons
+                        .frame(maxWidth: .infinity)
                 } else {
                     textThemeButtons
+                        .frame(maxWidth: .infinity)
                 }
 
                 reactionButtons(detail)
@@ -516,28 +518,60 @@ struct LibraryCardDetailView: View {
 
     private var imageLayoutButtons: some View {
         HStack(spacing: 12) {
-            Button {
-                imageLayout = .overlay
-            } label: {
-                Image("ic_overlay")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 32, height: 32)
-                    .opacity(imageLayout == .overlay ? 1 : 0.45)
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                imageLayout = .split
-            } label: {
-                Image("ic_split")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 32, height: 32)
-                    .opacity(imageLayout == .split ? 1 : 0.45)
-            }
-            .buttonStyle(.plain)
+            cardLayoutOptionButton(
+                imageName: "ic_overlay",
+                isSelected: imageLayout == .overlay,
+                action: { imageLayout = .overlay }
+            )
+            cardLayoutOptionButton(
+                imageName: "ic_split",
+                isSelected: imageLayout == .split,
+                action: { imageLayout = .split }
+            )
         }
+        .padding(.vertical, 10)
+    }
+
+    private var textThemeButtons: some View {
+        HStack(spacing: 12) {
+            cardLayoutOptionButton(
+                imageName: "ic_t1",
+                isSelected: textTheme == .t1,
+                action: { textTheme = .t1 }
+            )
+            cardLayoutOptionButton(
+                imageName: "ic_t2",
+                isSelected: textTheme == .t2,
+                action: { textTheme = .t2 }
+            )
+        }
+        .padding(.vertical, 10)
+    }
+
+    /// Figma·안드로이드 `CardVersionDot`과 동일: 32pt 미리보기 + 선택 링(진한/연한 테두리), 46pt 터치 영역.
+    private func cardLayoutOptionButton(
+        imageName: String,
+        isSelected: Bool,
+        action: () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(imageName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 32, height: 32)
+                .overlay {
+                    Circle()
+                        .strokeBorder(
+                            isSelected
+                                ? Color.black.opacity(0.6)
+                                : Color("grey200").opacity(0.4),
+                            lineWidth: 2
+                        )
+                }
+                .frame(width: 46, height: 46)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func textCard(_ detail: LibraryCardDetail) -> some View {
@@ -633,32 +667,6 @@ struct LibraryCardDetailView: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-        }
-    }
-
-    private var textThemeButtons: some View {
-        HStack(spacing: 12) {
-            Button {
-                textTheme = .t1
-            } label: {
-                Image("ic_t1")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 32, height: 32)
-                    .opacity(textTheme == .t1 ? 1 : 0.45)
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                textTheme = .t2
-            } label: {
-                Image("ic_t2")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 32, height: 32)
-                    .opacity(textTheme == .t2 ? 1 : 0.45)
-            }
-            .buttonStyle(.plain)
         }
     }
 

@@ -93,11 +93,8 @@ struct NoticeDetailView: View {
                 }
             }
 
-            Text(detail.content)
-                .pretendardText(size: 14, weight: .regular)
-                .foregroundColor(Color("grey700"))
+            MarkdownText(markdown: detail.content)
                 .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.leading, 20)
         .padding(.trailing, 32)

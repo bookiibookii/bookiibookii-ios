@@ -6,10 +6,11 @@ struct CardAddView: View {
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: CardAddViewModel
 
-    @State private var showAddPicker = false
-    @State private var addPickerItem: PhotosPickerItem?
-    @State private var showReplacePicker = false
-    @State private var replacePickerItem: PhotosPickerItem?
+    @State private var showImageSourceSheet = false
+    @State private var photoPickerItem: PhotosPickerItem?
+    @State private var showCamera = false
+    @State private var isPresentingCamera = false
+    @State private var isReplacingPhoto = false
     @State private var replaceHadSelection = false
     @State private var isPreviewPresented = false
 
@@ -91,37 +92,44 @@ struct CardAddView: View {
                     )
             }
         }
-        .photosPicker(
-            isPresented: $showAddPicker,
-            selection: $addPickerItem,
-            matching: .images
-        )
-        .onChange(of: addPickerItem) { _, newItem in
+        .sheet(isPresented: $showImageSourceSheet, onDismiss: restoreReplaceBackupIfSheetCancelled) {
+            CardImagePickerBottomSheet(
+                photoPickerItem: $photoPickerItem,
+                onTakePhoto: {
+                    isPresentingCamera = true
+                    showImageSourceSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                        presentCamera()
+                        isPresentingCamera = false
+                    }
+                }
+            )
+            .presentationDetents([.height(280)])
+            .presentationDragIndicator(.hidden)
+            .presentationCornerRadius(20)
+        }
+        .onChange(of: photoPickerItem) { _, newItem in
             guard let newItem else { return }
+            if isReplacingPhoto {
+                replaceHadSelection = true
+            }
+            showImageSourceSheet = false
             Task {
-                await consumePickerItem(newItem, isReplace: false)
-                addPickerItem = nil
+                await consumePickerItem(newItem, isReplace: isReplacingPhoto)
+                photoPickerItem = nil
             }
         }
-        .photosPicker(
-            isPresented: $showReplacePicker,
-            selection: $replacePickerItem,
-            matching: .images
-        )
-        .onChange(of: replacePickerItem) { _, newItem in
-            guard let newItem else { return }
-            replaceHadSelection = true
+        .cameraPicker(isPresented: $showCamera, allowsEditing: false) { image in
+            if isReplacingPhoto {
+                replaceHadSelection = true
+            }
             Task {
-                await consumePickerItem(newItem, isReplace: true)
-                replacePickerItem = nil
+                await consumeCapturedImage(image, isReplace: isReplacingPhoto)
             }
         }
-        .onChange(of: showReplacePicker) { oldValue, newValue in
-            guard oldValue && !newValue else { return }
-            if !replaceHadSelection {
-                viewModel.restoreReplaceBackupIfNeeded()
-            }
-            replaceHadSelection = false
+        .onChange(of: showCamera) { wasShowing, isShowing in
+            guard wasShowing && !isShowing else { return }
+            restoreReplaceBackupIfSheetCancelled()
         }
         .onChange(of: viewModel.pageText) { _, value in
             viewModel.sanitizePageText(value)
@@ -223,9 +231,7 @@ struct CardAddView: View {
                         .clipped()
 
                     Button {
-                        viewModel.beginReplacePhotoSession()
-                        replaceHadSelection = false
-                        showReplacePicker = true
+                        presentImageSource(isReplace: true)
                     } label: {
                         Image("ic_pencil")
                             .resizable()
@@ -249,7 +255,7 @@ struct CardAddView: View {
                 }
             } else {
                 Button {
-                    showAddPicker = true
+                    presentImageSource(isReplace: false)
                 } label: {
                     VStack(spacing: 0) {
                         Image("ic_upload")
@@ -559,6 +565,32 @@ struct CardAddView: View {
         }
     }
 
+    private func presentImageSource(isReplace: Bool) {
+        isReplacingPhoto = isReplace
+        replaceHadSelection = false
+        if isReplace {
+            viewModel.beginReplacePhotoSession()
+        }
+        showImageSourceSheet = true
+    }
+
+    private func presentCamera() {
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            viewModel.toastMessage = "카메라를 사용할 수 없습니다."
+            if isReplacingPhoto {
+                viewModel.restoreReplaceBackupIfNeeded()
+            }
+            return
+        }
+        showCamera = true
+    }
+
+    /// 바텀시트나 카메라를 아무 선택 없이 닫으면 교체 세션을 원상 복구한다.
+    private func restoreReplaceBackupIfSheetCancelled() {
+        guard isReplacingPhoto, !replaceHadSelection, !showCamera, !isPresentingCamera else { return }
+        viewModel.restoreReplaceBackupIfNeeded()
+    }
+
     private func consumePickerItem(
         _ item: PhotosPickerItem,
         isReplace: Bool
@@ -569,6 +601,17 @@ struct CardAddView: View {
         } catch {
             viewModel.toastMessage = error.localizedDescription
         }
+    }
+
+    private func consumeCapturedImage(_ image: UIImage, isReplace: Bool) async {
+        guard let jpeg = ImageCompressor.compressedJPEG(from: image) else {
+            viewModel.toastMessage = "사진을 불러오지 못했습니다."
+            if isReplace {
+                viewModel.restoreReplaceBackupIfNeeded()
+            }
+            return
+        }
+        await viewModel.handlePickedJPEG(jpeg, isReplace: isReplace)
     }
 }
 

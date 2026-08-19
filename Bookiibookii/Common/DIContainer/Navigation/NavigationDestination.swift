@@ -15,7 +15,6 @@ enum NavigationDestination: Hashable {
     case notice
     case noticeDetail(noticeId: Int)
     case faq
-    case legalDocument(LegalDocumentType)
     case libraryBookmarkedCards
     case libraryCards(book: LibraryBook)
     case libraryGroupReviews(book: LibraryBook)

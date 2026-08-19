@@ -68,11 +68,6 @@ struct NavigationRoutingView: View {
                 .environmentObject(container)
                 .toolbar(.hidden, for: .navigationBar)
                 .navigationBarBackButtonHidden(true)
-        case .legalDocument(let documentType):
-            LegalDocumentView(documentType: documentType)
-                .environmentObject(container)
-                .toolbar(.hidden, for: .navigationBar)
-                .navigationBarBackButtonHidden(true)
         case .libraryBookmarkedCards:
             LibraryBookmarkedCardsView(libraryService: container.api.library)
                 .environmentObject(container)

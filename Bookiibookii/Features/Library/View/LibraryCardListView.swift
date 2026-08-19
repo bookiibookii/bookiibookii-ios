@@ -174,7 +174,7 @@ struct LibraryCardListView: View {
                     .foregroundColor(Color("grey900"))
                     .lineLimit(1)
 
-                    LibraryCardBookRating(rating: viewModel.refreshedBookRating ?? book.rating ?? 0)
+                    BookStarRatingView(rating: viewModel.refreshedBookRating ?? book.rating ?? 0, starSize: 20)
                 }
 
                 Spacer()
@@ -516,21 +516,6 @@ private struct LibraryCardEmptyMessage: View {
             .padding(.vertical, 24)
             .background(Color("white"))
             .clipShape(RoundedRectangle(cornerRadius: 24))
-    }
-}
-
-private struct LibraryCardBookRating: View {
-    let rating: Double
-
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(1...5, id: \.self) { index in
-                Image(rating >= Double(index) - 0.5 ? "ic_star_fill" : "ic_star")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
-            }
-        }
     }
 }
 

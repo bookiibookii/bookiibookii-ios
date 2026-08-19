@@ -11,7 +11,7 @@ final class LibraryCardListViewModel: ObservableObject {
     @Published private(set) var cards: [LibraryCard] = []
     @Published private(set) var isLoading = false
     @Published var sortType: SortType = .latest
-    @Published var showOnlyMine = true
+    @Published var showOnlyMine = false
     @Published private(set) var isRepresentative: Bool?
     @Published private(set) var isRepresentativeMutating = false
 
