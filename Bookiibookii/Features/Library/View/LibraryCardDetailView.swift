@@ -103,13 +103,14 @@ struct LibraryCardDetailView: View {
             if isCoachMarkPresented {
                 CoachMarkOverlay(
                     kind: .libraryCardDetail,
-                    targetFrames: coachMarkTargetFrames
-                ) {
-                    hasCompletedCoachMark = true
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        isCoachMarkPresented = false
+                    targetFrames: coachMarkTargetFrames,
+                    onCompleted: {
+                        hasCompletedCoachMark = true
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            isCoachMarkPresented = false
+                        }
                     }
-                }
+                )
                 .transition(.opacity)
                 .zIndex(10)
             }
@@ -552,7 +553,7 @@ struct LibraryCardDetailView: View {
     private func cardLayoutOptionButton(
         imageName: String,
         isSelected: Bool,
-        action: () -> Void
+        action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             Image(imageName)

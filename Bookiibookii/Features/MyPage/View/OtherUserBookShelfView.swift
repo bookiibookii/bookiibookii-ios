@@ -28,6 +28,7 @@ struct OtherUserBookShelfView: View {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 0) {
                             representativeSection
+                            Color.clear.frame(height: 8)
                             favoriteSection
 
                             if viewModel.completedBooks.isEmpty {
@@ -122,7 +123,6 @@ struct OtherUserBookShelfView: View {
                             )
                         }
                     }
-                    .padding(.top, 16)
                 }
             }
         }
@@ -162,15 +162,17 @@ struct OtherUserBookShelfView: View {
         VStack(alignment: .leading, spacing: 8) {
             bookCover(imageURL: book.image, height: 170)
 
-            Text(book.title)
-                .pretendardText(size: 14, weight: .semibold)
-                .foregroundColor(Color("grey900"))
-                .lineLimit(1)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(book.title)
+                    .pretendardText(size: 14, weight: .semibold)
+                    .foregroundColor(Color("grey900"))
+                    .lineLimit(1)
 
-            Text(book.authorWithCategory)
-                .pretendardText(size: 14, weight: .regular)
-                .foregroundColor(Color("grey700"))
-                .lineLimit(1)
+                Text(book.authorWithCategory)
+                    .pretendardText(size: 14, weight: .regular)
+                    .foregroundColor(Color("grey700"))
+                    .lineLimit(1)
+            }
         }
         .frame(width: 119, alignment: .leading)
     }
@@ -229,8 +231,8 @@ struct OtherUserBookShelfView: View {
             sortOptions
         }
         .padding(.horizontal, 16)
-        .padding(.top, 24)
-        .padding(.bottom, 8)
+        .padding(.top, 16)
+        .padding(.bottom, 16)
     }
 
     private var sortOptions: some View {
@@ -272,7 +274,7 @@ struct OtherUserBookShelfView: View {
             GridItem(.flexible(), spacing: 12)
         ]
 
-        return LazyVGrid(columns: columns, spacing: 12) {
+        return LazyVGrid(columns: columns, spacing: 16) {
             ForEach(viewModel.sortedCompletedBooks) { book in
                 completedGridCard(book)
             }
@@ -291,25 +293,27 @@ struct OtherUserBookShelfView: View {
                 }
             }
 
-            if let date = book.formattedCompletedDate {
-                Text(date)
-                    .pretendardText(size: 12, weight: .regular)
+            VStack(alignment: .leading, spacing: 4) {
+                if let date = book.formattedCompletedDate {
+                    Text(date)
+                        .pretendardText(size: 12, weight: .regular)
+                        .foregroundColor(Color("grey700"))
+                        .lineLimit(1)
+                }
+
+                Text(book.title)
+                    .pretendardText(size: 14, weight: .semibold)
+                    .foregroundColor(Color("grey900"))
+                    .lineLimit(1)
+
+                Text(book.authorWithCategory)
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey700"))
                     .lineLimit(1)
-            }
 
-            Text(book.title)
-                .pretendardText(size: 14, weight: .semibold)
-                .foregroundColor(Color("grey900"))
-                .lineLimit(1)
-
-            Text(book.authorWithCategory)
-                .pretendardText(size: 14, weight: .regular)
-                .foregroundColor(Color("grey700"))
-                .lineLimit(1)
-
-            if let rating = book.rating {
-                OtherUserBookshelfStarRating(rating: rating)
+                if let rating = book.rating {
+                    OtherUserBookshelfStarRating(rating: rating)
+                }
             }
         }
     }

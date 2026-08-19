@@ -1,10 +1,9 @@
 import SwiftUI
-import PhotosUI
 
 /// 프로필 사진 변경 바텀시트 (Figma ONB-01-02 / 프로필 사진 바텀 시트).
 struct ProfilePhotoBottomSheet: View {
-    @Binding var photoPickerItem: PhotosPickerItem?
     let onTakePhoto: () -> Void
+    let onSelectAlbum: () -> Void
     let onSelectDefault: () -> Void
     let onCancel: () -> Void
 
@@ -28,15 +27,7 @@ struct ProfilePhotoBottomSheet: View {
                 }
 
             optionRow(icon: "ic_camera", title: "사진 촬영", showsDivider: true, action: onTakePhoto)
-
-            PhotosPicker(selection: $photoPickerItem, matching: .images) {
-                optionRowContent(icon: "ic_image", title: "앨범에서 선택")
-            }
-            .buttonStyle(.plain)
-            .overlay(alignment: .bottom) {
-                Rectangle().fill(Color("grey100")).frame(height: 1)
-            }
-
+            optionRow(icon: "ic_image", title: "앨범에서 선택", showsDivider: true, action: onSelectAlbum)
             optionRow(icon: "ic_person2", title: "기본 이미지 선택", showsDivider: false, action: onSelectDefault)
                 .padding(.bottom, 8)
         }

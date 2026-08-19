@@ -127,8 +127,7 @@ struct CoachMarkOverlay: View {
         case 1:
             libraryCallout(
                 target: .libraryBookmark,
-                icon: {
-                Image("ic_bookmark_fill")
+                icon: Image("ic_bookmark_fill")
                     .renderingMode(.template)
                     .resizable()
                     .scaledToFit()
@@ -136,8 +135,7 @@ struct CoachMarkOverlay: View {
                     .frame(width: 24, height: 24)
                     .frame(width: 32, height: 32)
                     .background(Color.white)
-                    .clipShape(Circle())
-                },
+                    .clipShape(Circle()),
                 message: coachMessage(
                     "모아서 보고 싶은\n독서카드를 ",
                     emphasis: "북마크",
@@ -149,15 +147,13 @@ struct CoachMarkOverlay: View {
         case 2:
             libraryCallout(
                 target: .libraryShare,
-                icon: {
-                Image("ic_share")
+                icon: Image("ic_share")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 32, height: 32)
                     .padding(4)
                     .background(Color.white)
-                    .clipShape(Circle())
-                },
+                    .clipShape(Circle()),
                 message: coachMessage(
                     "마음에 든 독서카드는\n",
                     emphasis: "공유",
@@ -186,13 +182,13 @@ struct CoachMarkOverlay: View {
 
     private func libraryCallout<Icon: View, Message: View>(
         target: CoachMarkTarget,
-        @ViewBuilder icon: @escaping () -> Icon,
+        icon: Icon,
         message: Message
     ) -> some View {
         GeometryReader { proxy in
             if let frame = targetFrames[target] {
                 VStack(alignment: .trailing, spacing: 8) {
-                    icon()
+                    icon
                     message
                 }
                 .frame(maxWidth: .infinity, alignment: .topTrailing)

@@ -79,7 +79,7 @@ struct RepresentativeBooksEditSheet: View {
 
             HStack(alignment: .center, spacing: 8) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(book.title)
+                    Text(book.title.stripBookSubtitle())
                         .pretendardText(size: 14, weight: .semibold)
                         .foregroundColor(Color("grey900"))
                         .lineLimit(1)
@@ -94,7 +94,7 @@ struct RepresentativeBooksEditSheet: View {
                             }
 
                             if let category = metadata.category, !category.isEmpty {
-                                Text("(\(category))")
+                                Text("(\(GroupTagMapper.koreanLabel(category)))")
                                     .pretendardText(size: 14, weight: .regular)
                                     .foregroundColor(Color("grey900"))
                                     .lineLimit(1)

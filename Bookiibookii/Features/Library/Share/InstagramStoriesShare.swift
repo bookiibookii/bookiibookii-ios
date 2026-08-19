@@ -27,7 +27,7 @@ enum InstagramStoriesShareError: LocalizedError {
 /// - 참고: https://developers.facebook.com/docs/instagram/sharing-to-stories/ios
 @MainActor
 enum InstagramStoriesShare {
-    private static let urlScheme = "instagram-stories://share"
+    nonisolated private static let urlScheme = "instagram-stories://share"
     /// 만료 시간 5분. Instagram 권장값.
     private static let pasteboardExpiration: TimeInterval = 60 * 5
 
