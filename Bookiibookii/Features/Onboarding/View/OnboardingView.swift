@@ -57,7 +57,12 @@ struct OnboardingView: View {
             if showBookSearch {
                 bookSearchDialog
             }
+
+            if showPhotoSheet {
+                photoSheetOverlay
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: showPhotoSheet)
         .toolbar(.hidden, for: .navigationBar)
         .dismissKeyboardOnTap()
         .onChange(of: photoPickerItem) { _, item in
@@ -71,12 +76,6 @@ struct OnboardingView: View {
             PushNotificationManager.shared.registerAfterLogin()
             container.navigationRouter.hardReset(to: .mainTab)
             PushNotificationManager.shared.handlePendingRedirectIfNeeded()
-        }
-        .sheet(isPresented: $showPhotoSheet) {
-            photoBottomSheet
-                .presentationDetents([.height(252)])
-                .presentationDragIndicator(.hidden)
-                .presentationCornerRadius(20)
         }
         .sheet(isPresented: $showDateSheet) {
             birthDateSheet
@@ -522,59 +521,30 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - 프로필 사진 바텀시트 (안드로이드 ProfilePhotoBottomSheet 대응)
-    private var photoBottomSheet: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color("grey200")).frame(width: 44, height: 4)
-                .frame(maxWidth: .infinity)
+    // MARK: - 프로필 사진 액션시트
+    private var photoSheetOverlay: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .onTapGesture { showPhotoSheet = false }
 
-            Spacer().frame(height: 20)
-
-            Text("프로필 사진 변경")
-                .pretendardText(size: 20, weight: .semibold)
-                .foregroundColor(Color("grey900"))
-
-            Spacer().frame(height: 16)
-
-            // 카메라로 촬영하기
-            Button(action: {
-                showPhotoSheet = false
-                // 바텀시트 닫힘과 카메라 표시 충돌 방지
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { showCamera = true }
-            }) {
-                HStack(spacing: 8) {
-                    Image("ic_camera").renderingMode(.template).resizable().scaledToFit()
-                        .frame(width: 20, height: 20).foregroundColor(Color("white"))
-                    Text("카메라로 촬영하기").pretendardText(size: 16, weight: .medium).foregroundColor(Color("white"))
-                }
-                .frame(maxWidth: .infinity).frame(height: 56)
-                .background(Color("grey900"))
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            }
-
-            Spacer().frame(height: 8)
-
-            // 앨범에서 선택하기
-            PhotosPicker(selection: $photoPickerItem, matching: .images) {
-                HStack(spacing: 8) {
-                    Image("ic_album").renderingMode(.template).resizable().scaledToFit()
-                        .frame(width: 20, height: 20).foregroundColor(Color("grey900"))
-                    Text("앨범에서 선택하기").pretendardText(size: 16, weight: .medium).foregroundColor(Color("grey900"))
-                }
-                .frame(maxWidth: .infinity).frame(height: 56)
-                .background(Color("white"))
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .strokeBorder(Color("grey200"), lineWidth: 1)
-                )
-            }
+            ProfilePhotoBottomSheet(
+                photoPickerItem: $photoPickerItem,
+                onTakePhoto: {
+                    showPhotoSheet = false
+                    // 시트 닫힘과 카메라 표시 충돌 방지
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { showCamera = true }
+                },
+                onSelectDefault: {
+                    viewModel.selectDefaultImage()
+                    showPhotoSheet = false
+                },
+                onCancel: { showPhotoSheet = false }
+            )
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 24)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .background(Color("white"))
     }
 
     // MARK: - 생년월일 바텀시트
