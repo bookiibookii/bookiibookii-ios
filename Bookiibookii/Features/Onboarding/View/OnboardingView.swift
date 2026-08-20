@@ -27,9 +27,10 @@ struct OnboardingView: View {
             VStack(spacing: 0) {
                 header
 
+                // 아래 여백을 인디케이터가 소유해야 스크롤 중에도 잘림이 인디케이터에 붙지 않는다
                 progressBar
                     .padding(.horizontal, 16)
-                    .padding(.top, 16)
+                    .padding(.vertical, 16)
 
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: viewModel.currentStep == 3 ? 8 : 20) {
@@ -37,7 +38,6 @@ struct OnboardingView: View {
                         stepContent
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 16)
                     .padding(.bottom, 20)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
