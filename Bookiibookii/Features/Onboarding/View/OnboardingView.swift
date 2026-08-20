@@ -298,22 +298,22 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 8) {
             requiredLabel("성별")
             HStack(spacing: 12) {
-                genderButton(.female, width: 120)
-                genderButton(.male, width: 120)
-                genderButton(.unspecified, width: nil)
+                genderButton(.female)
+                genderButton(.male)
+                genderButton(.unspecified)
             }
             .frame(height: 48)
         }
     }
 
-    private func genderButton(_ item: Gender, width: CGFloat?) -> some View {
+    // 세 버튼이 가로 영역을 1:1:1로 균등 분할한다.
+    private func genderButton(_ item: Gender) -> some View {
         let isSelected = viewModel.gender == item
         return Button(action: { viewModel.gender = item }) {
             Text(item.displayName)
                 .pretendardText(size: 15)
                 .foregroundColor(isSelected ? Color("main200") : Color("grey500"))
-                .frame(maxWidth: width == nil ? .infinity : nil)
-                .frame(width: width)
+                .frame(maxWidth: .infinity)
                 .frame(maxHeight: .infinity)
                 .background(isSelected ? Color("main100") : Color("white"))
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
