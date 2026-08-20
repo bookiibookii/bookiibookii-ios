@@ -38,7 +38,6 @@ struct ProfilePhotoBottomSheet: View {
             }
 
             optionRow(icon: "ic_person2", title: "기본 이미지 선택", showsDivider: false, action: onSelectDefault)
-                .padding(.bottom, 8)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
