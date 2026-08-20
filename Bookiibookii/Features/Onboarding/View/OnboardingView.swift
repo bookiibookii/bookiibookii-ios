@@ -574,7 +574,7 @@ struct OnboardingView: View {
                         ZStack {
                             Circle().fill(Color("grey100")).frame(width: 32, height: 32)
                             Image("ic_x").renderingMode(.template).resizable().scaledToFit()
-                                .frame(width: 16, height: 16).foregroundColor(Color("grey700"))
+                                .frame(width: 24, height: 24).foregroundColor(Color("grey900"))
                         }
                     }
                 }
@@ -637,7 +637,7 @@ struct OnboardingView: View {
             if !viewModel.searchQuery.isEmpty {
                 Button(action: { viewModel.searchQuery = ""; viewModel.onSearchQueryChanged() }) {
                     Image("ic_x").renderingMode(.template).resizable().scaledToFit()
-                        .frame(width: 16, height: 16).foregroundColor(Color("grey500"))
+                        .frame(width: 16, height: 16).foregroundColor(Color("grey900"))
                 }
             }
         }
