@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingView: View {
     @EnvironmentObject private var container: DIContainer
+    @Environment(\.openURL) private var openURL
 
     @State private var isPushNotificationEnabled = PushNotificationManager.shared.isPushEnabled
     @State private var showPushPermissionAlert = false
@@ -188,14 +189,14 @@ struct SettingView: View {
             sectionTitle("이용 약관")
 
             Button {
-                container.navigationRouter.push(to: .legalDocument(.termsOfService))
+                openURL(ExternalLink.termsOfService)
             } label: {
                 chevronRow("서비스 이용 약관")
             }
             .buttonStyle(.plain)
 
             Button {
-                container.navigationRouter.push(to: .legalDocument(.privacyPolicy))
+                openURL(ExternalLink.privacyPolicy)
             } label: {
                 chevronRow("개인정보 처리 방침")
             }

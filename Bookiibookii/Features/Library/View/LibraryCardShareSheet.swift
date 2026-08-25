@@ -233,17 +233,14 @@ struct LibraryCardShareSheet: View {
         isBusy = true
         defer { isBusy = false }
 
-        guard let image = renderShareImage() else {
+        guard let cardImage = await renderShareImage() else {
             alertMessage = InstagramStoriesShareError.renderFailed.errorDescription
             return
         }
 
         do {
-            try await InstagramStoriesShare.share(
-                stickerImage: image,
-                backgroundTopColor: .white,
-                backgroundBottomColor: .white
-            )
+            let storyImage = SharePreviewImageRenderer.compositeOnWhiteStoryCanvas(cardImage)
+            try await InstagramStoriesShare.shareBackground(storyImage)
             onClose()
         } catch let error as InstagramStoriesShareError {
             alertMessage = error.errorDescription
@@ -281,7 +278,7 @@ struct LibraryCardShareSheet: View {
         isBusy = true
         defer { isBusy = false }
 
-        guard let image = renderShareImage() else {
+        guard let image = await renderShareImage() else {
             alertMessage = "저장 중 오류가 발생했어요."
             return
         }
@@ -307,10 +304,21 @@ struct LibraryCardShareSheet: View {
         }
     }
 
-    private func renderShareImage() -> UIImage? {
-        let preview = LibraryCardSharePreview(detail: detail, style: previewStyle)
-            .frame(width: 360)
-            .background(Color("white"))
+    private func renderShareImage() async -> UIImage? {
+        let loadedImage: UIImage?
+        if detail.cardType == .image {
+            loadedImage = await SharePreviewImageRenderer.downloadImage(from: detail.imageURL)
+            guard loadedImage != nil else { return nil }
+        } else {
+            loadedImage = nil
+        }
+
+        let preview = LibraryCardSharePreview(
+            detail: detail,
+            style: previewStyle,
+            loadedImage: loadedImage
+        )
+        .background(Color.white)
         return SharePreviewImageRenderer.render(preview, width: 360, scale: 3)
     }
 }

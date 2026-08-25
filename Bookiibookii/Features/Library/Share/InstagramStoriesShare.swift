@@ -27,7 +27,7 @@ enum InstagramStoriesShareError: LocalizedError {
 /// - 참고: https://developers.facebook.com/docs/instagram/sharing-to-stories/ios
 @MainActor
 enum InstagramStoriesShare {
-    private static let urlScheme = "instagram-stories://share"
+    nonisolated private static let urlScheme = "instagram-stories://share"
     /// 만료 시간 5분. Instagram 권장값.
     private static let pasteboardExpiration: TimeInterval = 60 * 5
 
@@ -38,7 +38,45 @@ enum InstagramStoriesShare {
         backgroundBottomColor: UIColor = .white,
         sourceApplication: String? = sourceApplicationFromInfoPlist()
     ) async throws {
-        debugLog("▶︎ share() invoked. stickerImage size=\(stickerImage.size), scale=\(stickerImage.scale)")
+        guard let pngData = stickerImage.pngData() else {
+            debugLog("✗ stickerImage.pngData() == nil")
+            throw InstagramStoriesShareError.renderFailed
+        }
+        try await share(
+            pasteboardItems: [
+                "com.instagram.sharedSticker.stickerImage": pngData,
+                "com.instagram.sharedSticker.backgroundTopColor": backgroundTopColor.hexRGBString,
+                "com.instagram.sharedSticker.backgroundBottomColor": backgroundBottomColor.hexRGBString
+            ],
+            sourceApplication: sourceApplication,
+            debugDetail: "sticker size=\(stickerImage.size) scale=\(stickerImage.scale) png=\(pngData.count)B"
+        )
+    }
+
+    /// 스토리 배경 이미지 공유. 안드로이드 독서카드 공유와 같이 카드가 스토리를 채운다.
+    static func shareBackground(
+        _ backgroundImage: UIImage,
+        sourceApplication: String? = sourceApplicationFromInfoPlist()
+    ) async throws {
+        guard let pngData = backgroundImage.pngData() else {
+            debugLog("✗ backgroundImage.pngData() == nil")
+            throw InstagramStoriesShareError.renderFailed
+        }
+        try await share(
+            pasteboardItems: [
+                "com.instagram.sharedSticker.backgroundImage": pngData
+            ],
+            sourceApplication: sourceApplication,
+            debugDetail: "background size=\(backgroundImage.size) scale=\(backgroundImage.scale) png=\(pngData.count)B"
+        )
+    }
+
+    private static func share(
+        pasteboardItems: [String: Any],
+        sourceApplication: String?,
+        debugDetail: String
+    ) async throws {
+        debugLog("▶︎ share() invoked. \(debugDetail)")
         debugLog("• Info.plist FacebookAppID(=sourceApplication) = \(sourceApplication ?? "<nil>")")
 
         // 2020년 후반 이후 Instagram Stories 공유는 source_application(=Facebook App ID)이 필수.
@@ -63,23 +101,11 @@ enum InstagramStoriesShare {
             throw InstagramStoriesShareError.notInstalled
         }
 
-        guard let pngData = stickerImage.pngData() else {
-            debugLog("✗ stickerImage.pngData() == nil")
-            throw InstagramStoriesShareError.renderFailed
-        }
-        debugLog("• stickerImage PNG size = \(pngData.count) bytes")
-
-        let pasteboardItems: [String: Any] = [
-            "com.instagram.sharedSticker.stickerImage": pngData,
-            "com.instagram.sharedSticker.backgroundTopColor": backgroundTopColor.hexRGBString,
-            "com.instagram.sharedSticker.backgroundBottomColor": backgroundBottomColor.hexRGBString
-        ]
         let pasteboardOptions: [UIPasteboard.OptionsKey: Any] = [
             .expirationDate: Date().addingTimeInterval(pasteboardExpiration)
         ]
         UIPasteboard.general.setItems([pasteboardItems], options: pasteboardOptions)
         debugLog("• Pasteboard items set. keys=\(Array(pasteboardItems.keys))")
-        debugLog("• backgroundTop=\(backgroundTopColor.hexRGBString) bottom=\(backgroundBottomColor.hexRGBString)")
 
         let opened = await UIApplication.shared.open(url)
         debugLog(opened ? "✓ UIApplication.open succeeded" : "✗ UIApplication.open returned false")

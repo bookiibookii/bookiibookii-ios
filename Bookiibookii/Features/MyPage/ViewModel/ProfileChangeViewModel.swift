@@ -38,6 +38,7 @@ final class ProfileChangeViewModel: ObservableObject {
     @Published var birthDate: Date?
     @Published var isSaving = false
     @Published var saveMessage: String?
+    @Published var didSaveSuccessfully = false
     @Published var nicknameValidationState: NicknameValidationState = .idle
 
     private let userService: UserService
@@ -55,11 +56,13 @@ final class ProfileChangeViewModel: ObservableObject {
             || (isUsingDefaultImage && hadProfileImage)
     }
 
+    var isNicknameCheckEnabled: Bool {
+        let trimmed = nickname.trimmed
+        return !trimmed.isEmpty && trimmed != originalNickname.trimmed
+    }
+
     var canSubmit: Bool {
-        !nickname.trimmed.isEmpty &&
-        isNicknameValidForSubmit &&
-        gender != nil &&
-        birthDate != nil
+        !nickname.trimmed.isEmpty && isNicknameValidForSubmit
     }
 
     func load() async {
@@ -88,6 +91,7 @@ final class ProfileChangeViewModel: ObservableObject {
         if nickname.trimmed != originalNickname.trimmed {
             await checkNicknameDuplicatedAsync()
             guard nicknameValidationState.isAvailable else {
+                didSaveSuccessfully = false
                 saveMessage = nicknameValidationState.message.isEmpty
                     ? "닉네임 중복 확인이 필요합니다."
                     : nicknameValidationState.message
@@ -97,12 +101,10 @@ final class ProfileChangeViewModel: ObservableObject {
 
         do {
             let s3Key = try await uploadProfileImageIfNeeded()
-            guard let birth = birthDate else { return }
-
             let payload = MypageUpdateRequest(
                 nickname: nickname.trimmed,
                 gender: gender?.serverValue,
-                birth: Self.birthFormatter.string(from: birth),
+                birth: birthDate.map { Self.birthFormatter.string(from: $0) },
                 s3Key: s3Key
             )
             try await userService.updateMypage(payload)
@@ -112,12 +114,15 @@ final class ProfileChangeViewModel: ObservableObject {
             hadProfileImage = profileImageURL != nil
 
             saveMessage = "수정사항이 저장되었어요."
+            didSaveSuccessfully = true
             originalSnapshot = currentSnapshot
             originalNickname = nickname.trimmed
             selectedImage = nil
             isUsingDefaultImage = false
         } catch {
-            saveMessage = "저장에 실패했어요. 잠시 후 다시 시도해 주세요."
+            didSaveSuccessfully = false
+            saveMessage = (error as? LocalizedError)?.errorDescription
+                ?? "저장에 실패했어요. 잠시 후 다시 시도해 주세요."
         }
     }
 
@@ -138,7 +143,7 @@ final class ProfileChangeViewModel: ObservableObject {
         photoImportError = nil
     }
 
-    private func loadProfilePhoto(from item: PhotosPickerItem) async {
+    func loadProfilePhoto(from item: PhotosPickerItem) async {
         do {
             let image = try await PhotosPickerImageLoader.uiImage(from: item)
             setCapturedImage(image)
@@ -163,7 +168,8 @@ final class ProfileChangeViewModel: ObservableObject {
     func clearSaveMessage() { saveMessage = nil }
 
     func onNicknameChanged(_ newValue: String) {
-        nickname = String(newValue.prefix(10))
+        let sanitized = String(newValue.filter { !$0.isWhitespace }.prefix(10))
+        nickname = sanitized
         if nickname.trimmed == originalNickname.trimmed {
             nicknameValidationState = .available
         } else {

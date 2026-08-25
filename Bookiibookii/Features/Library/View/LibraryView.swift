@@ -349,7 +349,7 @@ private struct LibraryAlbumBookItem: View {
                         .lineLimit(1)
 
                     if book.status == .completed {
-                        LibraryRatingView(rating: book.rating ?? 0, starSize: 16)
+                        BookStarRatingView(rating: book.rating ?? 0, starSize: 16)
                     } else {
                         LibraryProgressView(progress: book.progressRate, barHeight: 6)
                     }
@@ -381,7 +381,7 @@ private struct LibraryListBookItem: View {
                 }
 
                 if book.status == .completed {
-                    LibraryRatingView(rating: book.rating ?? 0, starSize: 28)
+                    BookStarRatingView(rating: book.rating ?? 0, starSize: 28)
                 } else {
                     LibraryProgressView(progress: book.progressRate, barHeight: 8)
                 }
@@ -420,22 +420,6 @@ private struct LibraryProgressView: View {
                 .foregroundColor(Color("grey800"))
         }
         .padding(.top, 4)
-    }
-}
-
-private struct LibraryRatingView: View {
-    let rating: Double
-    let starSize: CGFloat
-
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(1...5, id: \.self) { index in
-                Image(rating >= Double(index) - 0.5 ? "ic_star_fill" : "ic_star")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: starSize, height: starSize)
-            }
-        }
     }
 }
 

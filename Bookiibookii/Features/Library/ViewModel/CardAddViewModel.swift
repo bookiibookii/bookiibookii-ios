@@ -195,7 +195,7 @@ final class CardAddViewModel: ObservableObject {
         replaceBackup = nil
     }
 
-    /// 사진은 View에서 `PhotosPickerItem` → JPEG `Data` 변환 후 전달 (View만 `PhotosUI` import).
+    /// 사진은 View에서 앨범(`PhotosPickerItem`) 또는 카메라(`UIImage`)를 JPEG로 만든 뒤 전달한다.
     func handlePickedJPEG(_ jpegData: Data, isReplace: Bool) async {
         do {
             try await uploadPhoto(jpegData, isReplace: isReplace)

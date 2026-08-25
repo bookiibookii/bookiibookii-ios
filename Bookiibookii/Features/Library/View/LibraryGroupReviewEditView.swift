@@ -3,7 +3,7 @@ import Combine
 
 private enum ReviewEditStarState { case empty, subPale, sub }
 
-enum ReviewEditPartnerRating {
+enum ReviewEditPartnerRating: Equatable {
     case none, good, bad
 
     var reaction: String? {
@@ -98,7 +98,6 @@ struct LibraryGroupReviewEditView: View {
 
             FooterButton(
                 text: "수정",
-                style: .grey,
                 enabled: viewModel.canSubmit,
                 isLoading: viewModel.isSubmitting,
                 action: {
@@ -362,10 +361,9 @@ final class LibraryGroupReviewEditViewModel: ObservableObject {
     }
 
     var canSubmit: Bool {
-        guard hasLoadedBaseline, !bookReviews.isEmpty else { return false }
+        guard hasLoadedBaseline, !bookReviews.isEmpty, !isSubmitting else { return false }
         let hasBookRatings = bookReviews.allSatisfy { $0.ratingScore > 0 }
-        let hasPartnerComment = !partnerComment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        guard hasBookRatings, hasPartnerComment, !isSubmitting else { return false }
+        guard hasBookRatings else { return false }
         return hasChangesFromBaseline
     }
 
@@ -474,7 +472,7 @@ final class LibraryGroupReviewEditViewModel: ObservableObject {
             },
             memberReview: MyGroupMemberReviewUpdateItem(
                 reaction: partnerRating.reaction,
-                comment: trimmedPartnerComment
+                comment: trimmedPartnerComment.isEmpty ? nil : trimmedPartnerComment
             )
         )
 

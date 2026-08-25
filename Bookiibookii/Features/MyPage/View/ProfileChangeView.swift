@@ -7,6 +7,7 @@ struct ProfileChangeView: View {
     @StateObject private var viewModel: ProfileChangeViewModel
     @State private var photoPickerItem: PhotosPickerItem?
     @State private var showPhotoSheet = false
+    @State private var showPhotoPicker = false
     @State private var showCamera = false
     @State private var showDateSheet = false
 
@@ -47,11 +48,13 @@ struct ProfileChangeView: View {
         .toolbar(.hidden, for: .navigationBar)
         .navigationBarBackButtonHidden(true)
         .task { await viewModel.load() }
+        .photosPicker(isPresented: $showPhotoPicker, selection: $photoPickerItem, matching: .images)
         .onChange(of: photoPickerItem) { _, item in
-            guard item != nil else { return }
-            viewModel.consumePhotosPickerItem(item)
-            photoPickerItem = nil
-            showPhotoSheet = false
+            guard let item else { return }
+            Task {
+                await viewModel.loadProfilePhoto(from: item)
+                photoPickerItem = nil
+            }
         }
         .sheet(isPresented: $showDateSheet) {
             BirthDatePickerSheet(
@@ -72,7 +75,13 @@ struct ProfileChangeView: View {
             get: { viewModel.saveMessage != nil },
             set: { if !$0 { viewModel.clearSaveMessage() } }
         )) {
-            Button("확인") { viewModel.clearSaveMessage() }
+            Button("확인") {
+                let shouldPop = viewModel.didSaveSuccessfully
+                viewModel.clearSaveMessage()
+                if shouldPop {
+                    container.navigationRouter.pop()
+                }
+            }
         } message: {
             Text(viewModel.saveMessage ?? "")
         }
@@ -151,11 +160,12 @@ struct ProfileChangeView: View {
             Image(uiImage: selected)
                 .resizable()
                 .scaledToFill()
-        } else if let url = viewModel.profileImageURL {
+                } else if let url = viewModel.profileImageURL {
             KFImage(url)
                 .placeholder { profilePlaceholder }
                 .resizable()
                 .scaledToFill()
+                .id(url.absoluteString)
         } else {
             profilePlaceholder
         }
@@ -168,11 +178,16 @@ struct ProfileChangeView: View {
                 .onTapGesture { showPhotoSheet = false }
 
             ProfilePhotoBottomSheet(
-                photoPickerItem: $photoPickerItem,
                 onTakePhoto: {
                     showPhotoSheet = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                         showCamera = true
+                    }
+                },
+                onSelectAlbum: {
+                    showPhotoSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        showPhotoPicker = true
                     }
                 },
                 onSelectDefault: {
@@ -199,13 +214,20 @@ struct ProfileChangeView: View {
         VStack(alignment: .leading, spacing: 8) {
             fieldLabel("닉네임")
 
-            TextField("", text: Binding(
-                get: { viewModel.nickname },
-                set: { viewModel.onNicknameChanged($0) }
-            ))
-            .pretendardText(size: 15, weight: .medium)
-            .foregroundColor(Color("grey800"))
-            .padding(16)
+            HStack(spacing: 8) {
+                TextField("닉네임을 입력해주세요", text: Binding(
+                    get: { viewModel.nickname },
+                    set: { viewModel.onNicknameChanged($0) }
+                ))
+                .pretendardText(size: 15, weight: .medium)
+                .foregroundColor(Color("grey800"))
+                .tint(Color("main200"))
+
+                nicknameCheckButton
+            }
+            .padding(.leading, 16)
+            .padding(.trailing, 8)
+            .frame(height: 54)
             .frame(maxWidth: .infinity)
             .background(Color("white"))
             .overlay(
@@ -217,9 +239,37 @@ struct ProfileChangeView: View {
             if !viewModel.nicknameValidationState.message.isEmpty {
                 Text(viewModel.nicknameValidationState.message)
                     .pretendardText(size: 12, weight: .regular)
-                    .foregroundColor(viewModel.nicknameValidationState.isAvailable ? Color.green : Color.red)
+                    .foregroundColor(
+                        viewModel.nicknameValidationState.isAvailable
+                            ? Color("pointGreen200")
+                            : Color("pointRed")
+                    )
             }
         }
+    }
+
+    private var nicknameCheckButton: some View {
+        let isLoading = viewModel.nicknameValidationState == .loading
+        let enabled = viewModel.isNicknameCheckEnabled && !isLoading
+        return Button {
+            viewModel.checkNicknameDuplicated()
+        } label: {
+            Group {
+                if isLoading {
+                    ProgressView().tint(Color("grey100"))
+                } else {
+                    Text("중복 확인")
+                        .pretendardText(size: 14, weight: .medium)
+                        .foregroundColor(enabled ? Color("white") : Color("grey100"))
+                }
+            }
+            .frame(height: 40)
+            .padding(.horizontal, 16)
+            .background(enabled ? Color("grey900") : Color("grey400"))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
     }
 
     private var genderSection: some View {

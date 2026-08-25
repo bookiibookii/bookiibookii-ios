@@ -26,6 +26,7 @@ struct MyBookShelfView: View {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 0) {
                             representativeSection
+                            Color.clear.frame(height: 8)
                             favoriteSection
 
                             if viewModel.completedBooks.isEmpty {
@@ -151,12 +152,11 @@ struct MyBookShelfView: View {
                     HStack(alignment: .bottom, spacing: 8) {
                         ForEach(Array(viewModel.representativeBooks.enumerated()), id: \.element.id) { index, book in
                             BookshelfRepresentativeSpine(
-                                title: book.title,
+                                title: book.title.stripBookSubtitle(),
                                 colorIndex: index
                             )
                         }
                     }
-                    .padding(.top, 16)
                 }
             }
         }
@@ -218,15 +218,17 @@ struct MyBookShelfView: View {
                 .disabled(viewModel.isFavoriteMutating)
             }
 
-            Text(book.title)
-                .pretendardText(size: 14, weight: .semibold)
-                .foregroundColor(Color("grey900"))
-                .lineLimit(1)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(book.title.stripBookSubtitle())
+                    .pretendardText(size: 14, weight: .semibold)
+                    .foregroundColor(Color("grey900"))
+                    .lineLimit(1)
 
-            Text(book.authorWithCategory)
-                .pretendardText(size: 14, weight: .regular)
-                .foregroundColor(Color("grey700"))
-                .lineLimit(1)
+                Text(book.authorWithCategory)
+                    .pretendardText(size: 14, weight: .regular)
+                    .foregroundColor(Color("grey700"))
+                    .lineLimit(1)
+            }
         }
         .frame(width: 119, alignment: .leading)
     }
@@ -314,8 +316,8 @@ struct MyBookShelfView: View {
             sortOptions
         }
         .padding(.horizontal, 16)
-        .padding(.top, 24)
-        .padding(.bottom, 8)
+        .padding(.top, 16)
+        .padding(.bottom, 16)
     }
 
     private var sortOptions: some View {
@@ -357,7 +359,7 @@ struct MyBookShelfView: View {
             GridItem(.flexible(), spacing: 12)
         ]
 
-        return LazyVGrid(columns: columns, spacing: 12) {
+        return LazyVGrid(columns: columns, spacing: 16) {
             ForEach(viewModel.sortedCompletedBooks) { book in
                 completedGridCard(book)
             }
@@ -376,25 +378,27 @@ struct MyBookShelfView: View {
                 }
             }
 
-            if let date = book.formattedCompletedDate {
-                Text(date)
-                    .pretendardText(size: 12, weight: .regular)
+            VStack(alignment: .leading, spacing: 4) {
+                if let date = book.formattedCompletedDate {
+                    Text(date)
+                        .pretendardText(size: 12, weight: .regular)
+                        .foregroundColor(Color("grey700"))
+                        .lineLimit(1)
+                }
+
+                Text(book.title.stripBookSubtitle())
+                    .pretendardText(size: 14, weight: .semibold)
+                    .foregroundColor(Color("grey900"))
+                    .lineLimit(1)
+
+                Text(book.authorWithCategory)
+                    .pretendardText(size: 14, weight: .regular)
                     .foregroundColor(Color("grey700"))
                     .lineLimit(1)
-            }
 
-            Text(book.title)
-                .pretendardText(size: 14, weight: .semibold)
-                .foregroundColor(Color("grey900"))
-                .lineLimit(1)
-
-            Text(book.authorWithCategory)
-                .pretendardText(size: 14, weight: .regular)
-                .foregroundColor(Color("grey700"))
-                .lineLimit(1)
-
-            if let rating = book.rating {
-                BookshelfStarRating(rating: rating)
+                if let rating = book.rating {
+                    BookshelfStarRating(rating: rating)
+                }
             }
         }
     }
@@ -416,7 +420,7 @@ struct MyBookShelfView: View {
                         representativeBadge
                     }
 
-                    Text(book.title)
+                    Text(book.title.stripBookSubtitle())
                         .pretendardText(size: 14, weight: .semibold)
                         .foregroundColor(Color("grey900"))
                         .lineLimit(1)

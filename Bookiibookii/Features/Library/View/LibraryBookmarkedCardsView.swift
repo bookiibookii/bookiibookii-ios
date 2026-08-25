@@ -141,10 +141,15 @@ struct LibraryBookmarkedCardsView: View {
                         Task { await viewModel.toggleBookmark(cardId: card.id) }
                     },
                     onTap: {
+                        let cards = viewModel.sortedCards
+                        guard let index = cards.firstIndex(where: { $0.id == card.id }) else { return }
+                        let sortLabel = viewModel.sortType == .latest ? "최신순" : "과거순"
                         container.navigationRouter.push(
-                            to: .libraryBookmarkedCardDetail(
-                                cardId: card.id,
-                                userBookId: card.isMine ? card.memberBookId : nil
+                            to: .libraryCardDetail(
+                                cards: cards,
+                                initialIndex: index,
+                                sortLabel: sortLabel,
+                                showsMoreActions: false
                             )
                         )
                     }

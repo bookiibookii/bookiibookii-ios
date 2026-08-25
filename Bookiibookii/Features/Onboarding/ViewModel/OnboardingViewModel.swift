@@ -67,6 +67,8 @@ final class OnboardingViewModel: ObservableObject {
     @Published var nickname: String = ""
     @Published var nicknameState: NicknameValidationState = .idle
     @Published var selectedImage: UIImage?
+    /// 기본 프로필 이미지 선택 시 서버에 `s3Key: "DEFAULT"` 전달.
+    private var isUsingDefaultImage = false
     @Published var photoImportError: String?
     @Published var gender: Gender? = nil
     @Published var birthDate: Date? = nil
@@ -158,13 +160,13 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - Step 1: 프로필 사진 (카메라 촬영 결과)
     func setCapturedImage(_ image: UIImage) {
         selectedImage = image
+        isUsingDefaultImage = false
         photoImportError = nil
     }
 
-    // MARK: - Step 1: 프로필 사진 (기본 이미지)
-    /// 선택한 사진을 비워 기본 프로필 이미지로 되돌린다. 제출 시 s3Key가 nil로 나간다.
     func selectDefaultImage() {
         selectedImage = nil
+        isUsingDefaultImage = true
         photoImportError = nil
     }
 
@@ -175,6 +177,7 @@ final class OnboardingViewModel: ObservableObject {
             do {
                 let image = try await PhotosPickerImageLoader.uiImage(from: item)
                 selectedImage = image
+                isUsingDefaultImage = false
                 photoImportError = nil
             } catch {
                 photoImportError = error.localizedDescription
@@ -318,6 +321,9 @@ final class OnboardingViewModel: ObservableObject {
     }
 
     private func uploadImageIfNeeded() async throws -> String? {
+        if isUsingDefaultImage {
+            return "DEFAULT"
+        }
         guard let image = selectedImage,
               let imageData = ImageCompressor.compressedJPEG(from: image) else {
             return nil

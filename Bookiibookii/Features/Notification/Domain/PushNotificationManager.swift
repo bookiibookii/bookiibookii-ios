@@ -19,7 +19,7 @@ final class PushNotificationManager: NSObject {
 
     private var notificationService: NotificationService?
     private var isRegistering = false
-    private var pendingUserInfo: [AnyHashable: Any]?
+    private var pendingUserInfo: [String: String]?
     private weak var navigationRouter: NavigationRouter?
 
     private override init() {
@@ -196,7 +196,7 @@ final class PushNotificationManager: NSObject {
         }
     }
 
-    private func handleNotificationTap(userInfo: [AnyHashable: Any]) {
+    private func handleNotificationTap(userInfo: [String: String]) {
         guard let router = navigationRouter else {
             pendingUserInfo = userInfo
             return
@@ -208,6 +208,27 @@ final class PushNotificationManager: NSObject {
         if let redirect = NotificationRedirectRouter.fromUserInfo(userInfo) {
             NotificationRedirectDispatcher.dispatch(redirect, router: router)
         }
+    }
+
+    /// FCM/APNs userInfo는 `[AnyHashable: Any]`라 Task/@Sendable 경계로 넘길 수 없다.
+    /// 라우팅에 쓰는 값은 모두 문자열 기반이므로 Sendable한 `[String: String]`으로 정규화한다.
+    private nonisolated static func stringKeyedUserInfo(
+        _ userInfo: [AnyHashable: Any]
+    ) -> [String: String] {
+        var result: [String: String] = [:]
+        result.reserveCapacity(userInfo.count)
+        for (key, value) in userInfo {
+            guard let key = key as? String else { continue }
+            switch value {
+            case let string as String:
+                result[key] = string
+            case let number as NSNumber:
+                result[key] = number.stringValue
+            default:
+                continue
+            }
+        }
+        return result
     }
 }
 
@@ -225,7 +246,7 @@ extension PushNotificationManager: UNUserNotificationCenterDelegate {
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        let userInfo = response.notification.request.content.userInfo
+        let userInfo = Self.stringKeyedUserInfo(response.notification.request.content.userInfo)
         Task { @MainActor in
             handleNotificationTap(userInfo: userInfo)
             completionHandler()

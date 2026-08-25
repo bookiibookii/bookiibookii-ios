@@ -9,6 +9,7 @@ struct OnboardingView: View {
 
     @State private var photoPickerItem: PhotosPickerItem?
     @State private var showPhotoSheet = false
+    @State private var showPhotoPicker = false
     @State private var showCamera = false
     @State private var showDateSheet = false
     @State private var showBookSearch = false
@@ -65,11 +66,11 @@ struct OnboardingView: View {
         .animation(.easeInOut(duration: 0.25), value: showPhotoSheet)
         .toolbar(.hidden, for: .navigationBar)
         .dismissKeyboardOnTap()
+        .photosPicker(isPresented: $showPhotoPicker, selection: $photoPickerItem, matching: .images)
         .onChange(of: photoPickerItem) { _, item in
             guard item != nil else { return }
             viewModel.consumePhotosPickerItem(item)
             photoPickerItem = nil
-            showPhotoSheet = false
         }
         .onChange(of: viewModel.isCompleted) { _, completed in
             guard completed else { return }
@@ -529,11 +530,17 @@ struct OnboardingView: View {
                 .onTapGesture { showPhotoSheet = false }
 
             ProfilePhotoBottomSheet(
-                photoPickerItem: $photoPickerItem,
                 onTakePhoto: {
                     showPhotoSheet = false
-                    // 시트 닫힘과 카메라 표시 충돌 방지
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { showCamera = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        showCamera = true
+                    }
+                },
+                onSelectAlbum: {
+                    showPhotoSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        showPhotoPicker = true
+                    }
                 },
                 onSelectDefault: {
                     viewModel.selectDefaultImage()

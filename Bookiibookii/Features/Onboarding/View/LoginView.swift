@@ -126,9 +126,6 @@ struct LoginView: View {
 
     // MARK: - 약관 안내 (tv_terms_notice 대응)
     // "서비스 약관"/"개인정보 처리방침"만 클릭 가능(흰색 밑줄) → 외부 브라우저로 열림
-    private static let termsURL = URL(string: "https://www.bookiibookii.com/terms")!
-    private static let privacyURL = URL(string: "https://www.bookiibookii.com/privacy")!
-
     private var termsAttributed: AttributedString {
         func link(_ text: String, _ url: URL) -> AttributedString {
             var part = AttributedString(text)
@@ -138,9 +135,9 @@ struct LoginView: View {
             return part
         }
         var result = AttributedString("로그인하면 부키부키의 ")
-        result += link("서비스 약관", Self.termsURL)
+        result += link("서비스 약관", ExternalLink.termsOfService)
         result += AttributedString(" 및 ")
-        result += link("개인정보 처리방침", Self.privacyURL)
+        result += link("개인정보 처리방침", ExternalLink.privacyPolicy)
         result += AttributedString("에 동의하게 됩니다.")
         return result
     }

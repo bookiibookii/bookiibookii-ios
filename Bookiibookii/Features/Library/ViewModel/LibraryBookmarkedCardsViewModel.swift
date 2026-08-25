@@ -33,9 +33,15 @@ final class LibraryBookmarkedCardsViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         do {
-            cards = try await libraryService.fetchBookmarkedLibraryCards()
+            let fetched = try await libraryService.fetchBookmarkedLibraryCards()
+            guard !Task.isCancelled else { return }
+            cards = fetched
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
-            cards = []
+            // 새로고침 실패/취소 시 기존 목록 유지
         }
     }
 
