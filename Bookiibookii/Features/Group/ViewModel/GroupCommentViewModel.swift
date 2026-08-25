@@ -86,9 +86,7 @@ final class GroupCommentViewModel: ObservableObject {
         }
         if content.isEmpty || state.submitting { return }
 
-        // secret은 대댓글일 때만. 일반 댓글이면 false 강제
-        let isReply = state.replyTargetId != nil
-        let secret = isReply && state.draftSecret
+        let secret = state.draftSecret
         let parentId = state.replyTargetId
 
         state.submitting = true

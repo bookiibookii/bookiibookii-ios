@@ -28,9 +28,10 @@ struct OnboardingView: View {
             VStack(spacing: 0) {
                 header
 
+                // 아래 여백을 인디케이터가 소유해야 스크롤 중에도 잘림이 인디케이터에 붙지 않는다
                 progressBar
                     .padding(.horizontal, 16)
-                    .padding(.top, 16)
+                    .padding(.vertical, 16)
 
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: viewModel.currentStep == 3 ? 8 : 20) {
@@ -38,7 +39,6 @@ struct OnboardingView: View {
                         stepContent
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 16)
                     .padding(.bottom, 20)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -299,22 +299,22 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 8) {
             requiredLabel("성별")
             HStack(spacing: 12) {
-                genderButton(.female, width: 120)
-                genderButton(.male, width: 120)
-                genderButton(.unspecified, width: nil)
+                genderButton(.female)
+                genderButton(.male)
+                genderButton(.unspecified)
             }
             .frame(height: 48)
         }
     }
 
-    private func genderButton(_ item: Gender, width: CGFloat?) -> some View {
+    // 세 버튼이 가로 영역을 1:1:1로 균등 분할한다.
+    private func genderButton(_ item: Gender) -> some View {
         let isSelected = viewModel.gender == item
         return Button(action: { viewModel.gender = item }) {
             Text(item.displayName)
                 .pretendardText(size: 15)
                 .foregroundColor(isSelected ? Color("main200") : Color("grey500"))
-                .frame(maxWidth: width == nil ? .infinity : nil)
-                .frame(width: width)
+                .frame(maxWidth: .infinity)
                 .frame(maxHeight: .infinity)
                 .background(isSelected ? Color("main100") : Color("white"))
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -522,7 +522,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - 프로필 사진 바텀시트 (안드로이드 ProfilePhotoBottomSheet 대응)
+    // MARK: - 프로필 사진 액션시트
     private var photoSheetOverlay: some View {
         ZStack(alignment: .bottom) {
             Color.black.opacity(0.45)
@@ -530,17 +530,11 @@ struct OnboardingView: View {
                 .onTapGesture { showPhotoSheet = false }
 
             ProfilePhotoBottomSheet(
+                photoPickerItem: $photoPickerItem,
                 onTakePhoto: {
                     showPhotoSheet = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                        showCamera = true
-                    }
-                },
-                onSelectAlbum: {
-                    showPhotoSheet = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                        showPhotoPicker = true
-                    }
+                    // 시트 닫힘과 카메라 표시 충돌 방지
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { showCamera = true }
                 },
                 onSelectDefault: {
                     viewModel.selectDefaultImage()
@@ -581,7 +575,7 @@ struct OnboardingView: View {
                         ZStack {
                             Circle().fill(Color("grey100")).frame(width: 32, height: 32)
                             Image("ic_x").renderingMode(.template).resizable().scaledToFit()
-                                .frame(width: 16, height: 16).foregroundColor(Color("grey700"))
+                                .frame(width: 24, height: 24).foregroundColor(Color("grey900"))
                         }
                     }
                 }
@@ -644,7 +638,7 @@ struct OnboardingView: View {
             if !viewModel.searchQuery.isEmpty {
                 Button(action: { viewModel.searchQuery = ""; viewModel.onSearchQueryChanged() }) {
                     Image("ic_x").renderingMode(.template).resizable().scaledToFit()
-                        .frame(width: 16, height: 16).foregroundColor(Color("grey500"))
+                        .frame(width: 16, height: 16).foregroundColor(Color("grey900"))
                 }
             }
         }

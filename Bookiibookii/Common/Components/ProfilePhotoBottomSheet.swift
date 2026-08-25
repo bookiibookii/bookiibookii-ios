@@ -29,7 +29,6 @@ struct ProfilePhotoBottomSheet: View {
             optionRow(icon: "ic_camera", title: "사진 촬영", showsDivider: true, action: onTakePhoto)
             optionRow(icon: "ic_image", title: "앨범에서 선택", showsDivider: true, action: onSelectAlbum)
             optionRow(icon: "ic_person2", title: "기본 이미지 선택", showsDivider: false, action: onSelectDefault)
-                .padding(.bottom, 8)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
