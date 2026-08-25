@@ -170,13 +170,6 @@ final class OnboardingViewModel: ObservableObject {
         photoImportError = nil
     }
 
-    // MARK: - Step 1: 프로필 사진 (기본 이미지)
-    /// 선택한 사진을 비워 기본 프로필 이미지로 되돌린다. 제출 시 s3Key가 nil로 나간다.
-    func selectDefaultImage() {
-        selectedImage = nil
-        photoImportError = nil
-    }
-
     // MARK: - Step 1: 프로필 사진 (PhotosPicker)
     func consumePhotosPickerItem(_ item: PhotosPickerItem?) {
         guard let item else { return }

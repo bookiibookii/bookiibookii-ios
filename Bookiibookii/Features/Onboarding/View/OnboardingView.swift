@@ -530,11 +530,17 @@ struct OnboardingView: View {
                 .onTapGesture { showPhotoSheet = false }
 
             ProfilePhotoBottomSheet(
-                photoPickerItem: $photoPickerItem,
                 onTakePhoto: {
                     showPhotoSheet = false
-                    // 시트 닫힘과 카메라 표시 충돌 방지
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { showCamera = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        showCamera = true
+                    }
+                },
+                onSelectAlbum: {
+                    showPhotoSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        showPhotoPicker = true
+                    }
                 },
                 onSelectDefault: {
                     viewModel.selectDefaultImage()
