@@ -1,8 +1,34 @@
 import SwiftUI
 
-enum CoachMarkTarget: Hashable {
+/// PreferenceKey 등 nonisolated 컨텍스트에서 딕셔너리 키로 쓰인다.
+/// `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` 환경에서도 Hashable이
+/// main-actor isolated로 추론되지 않도록 ==/hash를 nonisolated로 둔다.
+enum CoachMarkTarget: Sendable {
     case libraryBookmark
     case libraryShare
+}
+
+extension CoachMarkTarget: Equatable {
+    nonisolated static func == (lhs: CoachMarkTarget, rhs: CoachMarkTarget) -> Bool {
+        switch (lhs, rhs) {
+        case (.libraryBookmark, .libraryBookmark),
+             (.libraryShare, .libraryShare):
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+extension CoachMarkTarget: Hashable {
+    nonisolated func hash(into hasher: inout Hasher) {
+        switch self {
+        case .libraryBookmark:
+            hasher.combine(0)
+        case .libraryShare:
+            hasher.combine(1)
+        }
+    }
 }
 
 enum CoachMarkCoordinateSpace {

@@ -33,6 +33,14 @@ enum NotificationRedirectRouter {
             guard let key = entry.key as? String else { return }
             result[key] = entry.value
         }
+        return fromStringMap(map)
+    }
+
+    static func fromUserInfo(_ userInfo: [String: String]) -> NotificationRedirect? {
+        fromStringMap(userInfo)
+    }
+
+    private static func fromStringMap(_ map: [String: Any]) -> NotificationRedirect? {
         guard let redirectType = stringValue(map[keyRedirectType]), !redirectType.isEmpty else {
             return nil
         }
