@@ -164,7 +164,7 @@ struct LibraryCardList: Equatable {
     let cards: [LibraryCard]
 }
 
-struct LibraryCard: Equatable, Identifiable {
+struct LibraryCard: Equatable, Identifiable, Hashable {
     let id: Int
     let isBookmarkable: Bool
     let memberBookId: Int?
@@ -182,6 +182,87 @@ struct LibraryCard: Equatable, Identifiable {
     let reactionCounts: [LibraryCardReaction: Int]
     let createdAt: String?
     let messageCount: Int
+}
+
+extension LibraryCard {
+    var asDetail: LibraryCardDetail {
+        LibraryCardDetail(
+            cardId: id,
+            memberBookId: memberBookId,
+            cardType: cardType,
+            page: page,
+            memo: memo,
+            quotation: quotation,
+            imageURL: imageURL,
+            imageS3Key: nil,
+            creatorName: creatorName,
+            creatorProfileImageURL: creatorProfileImageURL,
+            bookTitle: bookTitle,
+            totalPages: nil,
+            genre: nil,
+            completedAt: nil,
+            isMine: isMine,
+            isBookmarked: isBookmarked,
+            activeReactions: activeReactions,
+            createdAt: createdAt
+        )
+    }
+
+    func updatingBookmark(_ isBookmarked: Bool) -> LibraryCard {
+        LibraryCard(
+            id: id,
+            isBookmarkable: isBookmarkable,
+            memberBookId: memberBookId,
+            cardType: cardType,
+            bookTitle: bookTitle,
+            page: page,
+            memo: memo,
+            quotation: quotation,
+            imageURL: imageURL,
+            creatorName: creatorName,
+            creatorProfileImageURL: creatorProfileImageURL,
+            isMine: isMine,
+            isBookmarked: isBookmarked,
+            activeReactions: activeReactions,
+            reactionCounts: reactionCounts,
+            createdAt: createdAt,
+            messageCount: messageCount
+        )
+    }
+
+    func updatingReaction(_ reaction: LibraryCardReaction, active: Bool) -> LibraryCard {
+        var reactions = activeReactions
+        var counts = reactionCounts
+        let wasActive = reactions.contains(reaction)
+        if active {
+            reactions.insert(reaction)
+        } else {
+            reactions.remove(reaction)
+        }
+        if wasActive != active {
+            let current = counts[reaction] ?? 0
+            counts[reaction] = active ? current + 1 : max(0, current - 1)
+        }
+        return LibraryCard(
+            id: id,
+            isBookmarkable: isBookmarkable,
+            memberBookId: memberBookId,
+            cardType: cardType,
+            bookTitle: bookTitle,
+            page: page,
+            memo: memo,
+            quotation: quotation,
+            imageURL: imageURL,
+            creatorName: creatorName,
+            creatorProfileImageURL: creatorProfileImageURL,
+            isMine: isMine,
+            isBookmarked: isBookmarked,
+            activeReactions: reactions,
+            reactionCounts: counts,
+            createdAt: createdAt,
+            messageCount: messageCount
+        )
+    }
 }
 
 extension LibraryCard {

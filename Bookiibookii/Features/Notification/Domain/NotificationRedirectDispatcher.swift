@@ -39,7 +39,7 @@ enum NotificationRedirectDispatcher {
             guard let cardId = redirect.cardId else { return }
             router.selectedTab = .library
             router.popToRoot()
-            router.push(to: .libraryCardDetail(cardId: cardId, userBookId: nil))
+            router.push(to: .libraryCardDetailById(cardId: cardId))
 
         case "NOTICE_DETAIL":
             // 안드로이드도 미구현. 공지 목록으로 안내.

@@ -66,8 +66,10 @@ struct CardAddView: View {
                             .padding(.top, 16)
                             .padding(.bottom, 104)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
             footer
 
@@ -218,16 +220,21 @@ struct CardAddView: View {
         }
     }
 
+    /// Figma LIB-04-01 이미지 영역 380×442
+    private static let photoPreviewAspectRatio: CGFloat = 380.0 / 442.0
+
     private var photoSection: some View {
         Group {
             if let data = viewModel.previewImageData,
                let image = UIImage(data: data) {
                 ZStack(alignment: .topTrailing) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 442)
+                    // scaledToFill이 레이아웃 크기를 키우지 않도록 컨테이너만 크기를 잡고 overlay로 채움
+                    Color("grey200")
+                        .overlay {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                        }
                         .clipped()
 
                     Button {
@@ -248,6 +255,8 @@ struct CardAddView: View {
                     .buttonStyle(.plain)
                     .padding(16)
                 }
+                .aspectRatio(Self.photoPreviewAspectRatio, contentMode: .fit)
+                .frame(maxWidth: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
                 .overlay {
                     RoundedRectangle(cornerRadius: 20)
@@ -468,9 +477,12 @@ struct CardAddView: View {
                 if viewModel.cardType == .image,
                    let data = viewModel.previewImageData,
                    let image = UIImage(data: data) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
+                    Color("grey200")
+                        .overlay {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                        }
                         .frame(width: 320, height: 372)
                         .clipped()
                 } else {

@@ -27,12 +27,36 @@ struct LibraryCardDetailView: View {
     @State private var isActionMenuPresented = false
     @State private var showsDeleteConfirm = false
     @State private var isShareSheetPresented = false
+    @State private var scrolledCardID: Int?
     @AppStorage("coach_mark.library_card_detail.v1.completed")
     private var hasCompletedCoachMark = false
     @State private var isCoachMarkPresented = false
     @State private var coachMarkTargetFrames: [CoachMarkTarget: CGRect] = [:]
 
     private let showsMoreActions: Bool
+
+    /// Figma LIB-03: 카드 348×464, 좌측 16·우측 peek로 다음 카드 노출.
+    /// 안드로이드 HorizontalPager contentPadding(32)과 동일하게 양옆 32.
+    private static let carouselHorizontalInset: CGFloat = 32
+    private static let carouselSpacing: CGFloat = 16
+    private static let cardDesignWidth: CGFloat = 348
+    private static let cardDesignHeight: CGFloat = 464
+    private static let cardAspectRatio: CGFloat = cardDesignWidth / cardDesignHeight
+    private static let splitTopRatio: CGFloat = 336 / 464
+    private static let splitBottomRatio: CGFloat = 128 / 464
+
+    @State private var carouselViewportWidth: CGFloat = 0
+
+    private var cardWidth: CGFloat {
+        let width = carouselViewportWidth > 0
+            ? carouselViewportWidth
+            : UIScreen.main.bounds.width
+        return max(0, width - Self.carouselHorizontalInset * 2)
+    }
+
+    private var cardHeight: CGFloat {
+        cardWidth / Self.cardAspectRatio
+    }
 
     /// 안드로이드와 동일: PHOTO overlay→OVERLAY / split→SPLIT, TEXT t1→SPLIT / t2→OVERLAY
     private var currentShareLayout: String {
@@ -46,14 +70,34 @@ struct LibraryCardDetailView: View {
     }
 
     init(
-        cardId: Int,
-        userBookId: Int?,
+        cards: [LibraryCard],
+        initialIndex: Int,
+        sortLabel: String,
         showsMoreActions: Bool = true,
         libraryService: LibraryService
     ) {
         self.showsMoreActions = showsMoreActions
         _viewModel = StateObject(
-            wrappedValue: LibraryCardDetailViewModel(cardId: cardId, libraryService: libraryService)
+            wrappedValue: LibraryCardDetailViewModel(
+                cards: cards,
+                initialIndex: initialIndex,
+                sortLabel: sortLabel,
+                libraryService: libraryService
+            )
+        )
+        let safeIndex = cards.isEmpty
+            ? nil
+            : cards[min(max(0, initialIndex), cards.count - 1)].id
+        _scrolledCardID = State(initialValue: safeIndex)
+    }
+
+    init(cardId: Int, libraryService: LibraryService) {
+        self.showsMoreActions = true
+        _viewModel = StateObject(
+            wrappedValue: LibraryCardDetailViewModel(
+                cardId: cardId,
+                libraryService: libraryService
+            )
         )
     }
 
@@ -64,11 +108,11 @@ struct LibraryCardDetailView: View {
             VStack(spacing: 0) {
                 header
 
-                if viewModel.isLoading {
+                if viewModel.isLoading && viewModel.cards.isEmpty {
                     ProgressView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if let detail = viewModel.detail {
-                    detailContent(detail)
+                } else if let card = viewModel.currentCard {
+                    detailContent(card)
                 } else {
                     Text("독서카드를 불러오지 못했어요.")
                         .pretendardText(size: 16)
@@ -121,12 +165,25 @@ struct LibraryCardDetailView: View {
         }
         .task {
             await viewModel.load()
-            guard !hasCompletedCoachMark, viewModel.detail != nil else { return }
+            if scrolledCardID == nil {
+                scrolledCardID = viewModel.currentCard?.id
+            }
+            guard !hasCompletedCoachMark, viewModel.currentCard != nil else { return }
 
             // 데이터가 렌더된 뒤에 표시해야 첫 페이지가 카드 액션 위치를 안내한다.
             try? await Task.sleep(for: .milliseconds(250))
             guard !Task.isCancelled else { return }
             isCoachMarkPresented = true
+        }
+        .onChange(of: scrolledCardID) { _, newID in
+            guard let newID,
+                  let index = viewModel.cards.firstIndex(where: { $0.id == newID }) else { return }
+            guard index != viewModel.currentIndex else { return }
+            viewModel.selectIndex(index)
+            flyingReactions = []
+            imageLayout = .overlay
+            textTheme = .t1
+            isActionMenuPresented = false
         }
         .onReceive(NotificationCenter.default.publisher(for: .libraryCardMutationFinished)) { _ in
             Task { await viewModel.load() }
@@ -322,57 +379,112 @@ struct LibraryCardDetailView: View {
         )
     }
 
-    private func detailContent(_ detail: LibraryCardDetail) -> some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 16) {
-                metadataSection(detail)
+    private func detailContent(_ card: LibraryCard) -> some View {
+        VStack(spacing: 0) {
+            metadataSection(card)
 
-                cardWithReactionAnimation(detail)
+            cardCarousel
+                .padding(.top, 16)
 
-                if detail.cardType == .image {
-                    imageLayoutButtons
-                        .frame(maxWidth: .infinity)
-                } else {
-                    textThemeButtons
-                        .frame(maxWidth: .infinity)
-                }
-
-                reactionButtons(detail)
+            if card.cardType == .image {
+                imageLayoutButtons
+                    .frame(maxWidth: .infinity)
+            } else {
+                textThemeButtons
+                    .frame(maxWidth: .infinity)
             }
-            .padding(.bottom, 48)
+
+            Spacer(minLength: 0)
+
+            reactionButtons(card)
+                .padding(.bottom, 20)
         }
     }
 
-    private func metadataSection(_ detail: LibraryCardDetail) -> some View {
+    private var cardCarousel: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: Self.carouselSpacing) {
+                ForEach(viewModel.cards) { card in
+                    cardPage(card)
+                        .frame(width: cardWidth, height: cardHeight)
+                        .id(card.id)
+                }
+            }
+            .scrollTargetLayout()
+        }
+        .scrollTargetBehavior(.viewAligned)
+        .contentMargins(.horizontal, Self.carouselHorizontalInset, for: .scrollContent)
+        .scrollPosition(id: $scrolledCardID)
+        .frame(height: cardHeight)
+        .background(
+            GeometryReader { geo in
+                Color.clear
+                    .preference(key: CardCarouselWidthKey.self, value: geo.size.width)
+            }
+        )
+        .onPreferenceChange(CardCarouselWidthKey.self) { width in
+            guard width > 0, abs(width - carouselViewportWidth) > 0.5 else { return }
+            carouselViewportWidth = width
+        }
+    }
+
+    private func cardPage(_ card: LibraryCard) -> some View {
+        ZStack {
+            if card.cardType == .image {
+                imageCard(card.asDetail)
+            } else {
+                textCard(card.asDetail)
+            }
+
+            if card.id == viewModel.currentCard?.id {
+                GeometryReader { proxy in
+                    ForEach(flyingReactions) { item in
+                        Image(item.reaction.iconName)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                            .position(
+                                x: proxy.size.width - 52 + item.xOffset,
+                                y: proxy.size.height - 32
+                            )
+                            .offset(y: item.yOffset)
+                            .opacity(item.opacity)
+                    }
+                }
+                .allowsHitTesting(false)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func metadataSection(_ card: LibraryCard) -> some View {
         VStack(spacing: 16) {
             HStack(spacing: 12) {
                 GeometryReader { proxy in
-                    let ratio = min(
-                        max(CGFloat(detail.page) / CGFloat(max(detail.totalPages ?? detail.page, 1)), 0),
-                        1
-                    )
-
                     ZStack(alignment: .leading) {
                         Capsule()
                             .fill(Color("grey200"))
                             .frame(height: 10)
                         Capsule()
                             .fill(Color("main200"))
-                            .frame(width: max(10, proxy.size.width * ratio), height: 10)
+                            .frame(
+                                width: max(10, proxy.size.width * viewModel.progress),
+                                height: 10
+                            )
                     }
                 }
                 .frame(height: 10)
 
-                Text(detail.cardType == .text ? "| 최신순" : "| 페이지순")
+                Text("| \(viewModel.sortLabel)")
                     .pretendardText(size: 14)
                     .foregroundColor(Color("grey700"))
             }
 
             VStack(spacing: 10) {
                 HStack(spacing: 8) {
-                    CardCreatorProfileImage(urlString: detail.creatorProfileImageURL)
+                    CardCreatorProfileImage(urlString: card.creatorProfileImageURL)
 
-                    Text(detail.creatorName)
+                    Text(card.creatorName)
                         .pretendardText(size: 16, weight: .medium)
                         .foregroundColor(Color("grey800"))
 
@@ -386,23 +498,24 @@ struct LibraryCardDetailView: View {
                             .resizable()
                             .scaledToFit()
                             .foregroundColor(
-                                detail.isBookmarked ? Color("main200") : Color("grey300")
+                                card.isBookmarked ? Color("main200") : Color("grey300")
                             )
                             .frame(width: 24, height: 24)
                             .frame(width: 32, height: 32)
                             .background(
-                                detail.isBookmarked ? Color("main100") : Color("grey100")
+                                card.isBookmarked ? Color("main100") : Color("grey100")
                             )
                             .clipShape(Circle())
                             .overlay {
                                 Circle()
                                     .stroke(
-                                        detail.isBookmarked ? Color("main200") : Color("grey200"),
+                                        card.isBookmarked ? Color("main200") : Color("grey200"),
                                         lineWidth: 0.5
                                     )
                             }
                     }
                     .buttonStyle(.plain)
+                    .disabled(!card.isBookmarkable)
                     .coachMarkTargetFrame(
                         .libraryBookmark,
                         in: CoachMarkCoordinateSpace.libraryCardDetail
@@ -410,18 +523,18 @@ struct LibraryCardDetailView: View {
                 }
 
                 HStack(spacing: 8) {
-                    Text(detail.bookTitle ?? "-")
+                    Text(card.bookTitle ?? "-")
                         .pretendardText(size: 16, weight: .semibold)
                         .foregroundColor(Color("grey800"))
                         .lineLimit(1)
 
-                    Text("p.\(detail.page)")
+                    Text("p.\(card.page)")
                         .pretendardText(size: 16)
                         .foregroundColor(Color("grey700"))
 
                     Spacer(minLength: 8)
 
-                    Text(formatDate(detail.createdAt))
+                    Text(formatDate(card.createdAt))
                         .pretendardText(size: 14)
                         .foregroundColor(Color("grey500"))
                 }
@@ -429,34 +542,6 @@ struct LibraryCardDetailView: View {
         }
         .padding(16)
         .background(Color("white"))
-    }
-
-    private func cardWithReactionAnimation(_ detail: LibraryCardDetail) -> some View {
-        ZStack {
-            if detail.cardType == .image {
-                imageCard(detail)
-            } else {
-                textCard(detail)
-            }
-
-            GeometryReader { proxy in
-                ForEach(flyingReactions) { item in
-                    Image(item.reaction.iconName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 40)
-                        .position(
-                            x: proxy.size.width - 68 + item.xOffset,
-                            y: proxy.size.height - 32
-                        )
-                        .offset(y: item.yOffset)
-                        .opacity(item.opacity)
-                }
-            }
-            .allowsHitTesting(false)
-            .padding(.horizontal, 16)
-        }
-        .frame(height: 464)
     }
 
     @ViewBuilder
@@ -492,28 +577,29 @@ struct LibraryCardDetailView: View {
                     .lineLimit(5)
                     .padding(20)
             }
-            .frame(height: 464)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .shadow(color: Color.black.opacity(0.1), radius: 10)
-            .padding(.horizontal, 16)
 
         case .split:
-            VStack(spacing: 0) {
-                CardDetailRemoteImage(urlString: detail.imageURL)
-                    .frame(height: 336)
+            GeometryReader { geo in
+                VStack(spacing: 0) {
+                    CardDetailRemoteImage(urlString: detail.imageURL)
+                        .frame(height: geo.size.height * Self.splitTopRatio)
 
-                Text(detail.memo)
-                    .pretendardText(size: 16)
-                    .foregroundColor(Color("grey800"))
-                    .lineLimit(5)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                    .padding(20)
-                    .background(Color("white"))
+                    Text(detail.memo)
+                        .pretendardText(size: 16)
+                        .foregroundColor(Color("grey800"))
+                        .lineLimit(5)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .padding(20)
+                        .background(Color("white"))
+                        .frame(height: geo.size.height * Self.splitBottomRatio)
+                }
             }
-            .frame(height: 464)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: 20))
             .shadow(color: Color.black.opacity(0.1), radius: 10)
-            .padding(.horizontal, 16)
         }
     }
 
@@ -576,44 +662,49 @@ struct LibraryCardDetailView: View {
     }
 
     private func textCard(_ detail: LibraryCardDetail) -> some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                textGradient
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                ZStack(alignment: .topLeading) {
+                    textGradient
 
-                VStack(alignment: .leading, spacing: 8) {
-                    textBookTitleChip(title: detail.bookTitle ?? "")
+                    VStack(alignment: .leading, spacing: 8) {
+                        textBookTitleChip(title: detail.bookTitle ?? "")
 
-                    Image("ic_quote")
-                        .renderingMode(.template)
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundColor(textTheme == .t1 ? Color("main100") : .white.opacity(0.85))
-                        .frame(width: 28, height: 28)
-                        .padding(.top, 4)
+                        Image("ic_quote")
+                            .renderingMode(.template)
+                            .resizable()
+                            .scaledToFit()
+                            .foregroundColor(textTheme == .t1 ? Color("main100") : .white.opacity(0.85))
+                            .frame(width: 28, height: 28)
+                            .padding(.top, 4)
 
-                    Text(displayQuotation(detail.quotation ?? detail.memo))
-                        .font(.custom("MaruBuri-Bold", size: 20))
-                        .foregroundColor(textTheme == .t1 ? Color("main200") : .white)
-                        .lineSpacing(8)
-                        .lineLimit(8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(displayQuotation(detail.quotation ?? detail.memo))
+                            .font(.custom("MaruBuri-Bold", size: 20))
+                            .foregroundColor(textTheme == .t1 ? Color("main200") : .white)
+                            .lineSpacing(8)
+                            .lineLimit(8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(20)
                 }
-                .padding(20)
-            }
-            .frame(height: 336)
+                .frame(height: geo.size.height * Self.splitTopRatio)
 
-            Text(detail.memo)
-                .pretendardText(size: 16)
-                .foregroundColor(Color("grey800"))
-                .lineLimit(5)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .padding(20)
-                .background(Color("white"))
+                ZStack(alignment: .topLeading) {
+                    Color("white")
+
+                    Text(detail.memo)
+                        .pretendardText(size: 16)
+                        .foregroundColor(Color("grey800"))
+                        .lineLimit(5)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .padding(20)
+                }
+                .frame(height: geo.size.height * Self.splitBottomRatio)
+            }
         }
-        .frame(height: 464)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .shadow(color: Color.black.opacity(0.1), radius: 10)
-        .padding(.horizontal, 16)
     }
 
     private func textBookTitleChip(title: String) -> some View {
@@ -671,12 +762,12 @@ struct LibraryCardDetailView: View {
         }
     }
 
-    private func reactionButtons(_ detail: LibraryCardDetail) -> some View {
+    private func reactionButtons(_ card: LibraryCard) -> some View {
         HStack(spacing: 16) {
             ForEach(LibraryCardReaction.allCases) { reaction in
                 reactionButton(
                     reaction,
-                    active: detail.activeReactions.contains(reaction)
+                    active: card.activeReactions.contains(reaction)
                 )
             }
         }
@@ -766,6 +857,13 @@ struct LibraryCardDetailView: View {
     }
 }
 
+private struct CardCarouselWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
 private struct CardCreatorProfileImage: View {
     let urlString: String?
 
@@ -778,16 +876,20 @@ private struct CardDetailRemoteImage: View {
     let urlString: String?
 
     var body: some View {
-        AsyncImage(url: URL(string: urlString ?? "")) { phase in
-            switch phase {
-            case .success(let image):
-                image.resizable().scaledToFill()
-            default:
-                Color("grey200")
+        // scaledToFill이 부모(348×464 카드) 밖으로 레이아웃을 밀어내지 않도록 컨테이너 고정
+        Color("grey200")
+            .overlay {
+                AsyncImage(url: URL(string: urlString ?? "")) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    default:
+                        EmptyView()
+                    }
+                }
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
     }
 }
 

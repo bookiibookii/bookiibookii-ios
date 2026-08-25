@@ -261,10 +261,15 @@ struct LibraryCardListView: View {
                         }
                     },
                     onTap: {
+                        let cards = viewModel.sortedCards
+                        guard let index = cards.firstIndex(where: { $0.id == card.id }) else { return }
+                        let sortLabel = viewModel.sortType == .latest ? "최신순" : "페이지순"
                         container.navigationRouter.push(
                             to: .libraryCardDetail(
-                                cardId: card.id,
-                                userBookId: card.isMine ? card.memberBookId : nil
+                                cards: cards,
+                                initialIndex: index,
+                                sortLabel: sortLabel,
+                                showsMoreActions: true
                             )
                         )
                     }
