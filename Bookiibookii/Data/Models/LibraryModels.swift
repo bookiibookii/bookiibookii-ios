@@ -250,6 +250,23 @@ struct LibraryGroupMemberReviewDTO: Decodable, Identifiable {
 
     var id: Int { reviewId ?? hashValue }
 
+    enum CodingKeys: String, CodingKey {
+        case reviewId, writerId, writerNickname, writerProfileImageUrl
+        case reaction, content, comment, createdAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        reviewId = try container.decodeIfPresent(Int.self, forKey: .reviewId)
+        writerId = try container.decodeIfPresent(Int.self, forKey: .writerId)
+        writerNickname = try container.decodeIfPresent(String.self, forKey: .writerNickname)
+        writerProfileImageUrl = try container.decodeIfPresent(String.self, forKey: .writerProfileImageUrl)
+        reaction = try container.decodeIfPresent(String.self, forKey: .reaction)
+        content = try container.decodeIfPresent(String.self, forKey: .content)
+            ?? container.decodeIfPresent(String.self, forKey: .comment)
+        createdAt = try container.decodeIfPresent(String.self, forKey: .createdAt)
+    }
+
     private var hashValue: Int {
         var hasher = Hasher()
         hasher.combine(writerId)

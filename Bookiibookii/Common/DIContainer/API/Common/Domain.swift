@@ -2,8 +2,8 @@ import Foundation
 
 /// Vinny 스타일처럼 서버 주소/도메인별 path를 한곳에서 관리합니다.
 enum API {
-    // Debug 빌드는 개발 서버, Release(TestFlight·앱스토어) 빌드는 운영 서버를 바라본다.
-    #if DEBUG
+    // Debug·Release-Dev(TestFlight) 빌드는 개발 서버, Release(앱스토어) 빌드는 운영 서버를 바라본다.
+    #if DEBUG || DEV_SERVER
     static let baseURL = "https://bookii.gyeonseo.com"
     #else
     static let baseURL = "https://bookiibookii.gyeonseo.com"

@@ -174,7 +174,7 @@ struct LibraryCardListView: View {
                     .foregroundColor(Color("grey900"))
                     .lineLimit(1)
 
-                    LibraryCardBookRating(rating: viewModel.refreshedBookRating ?? book.rating ?? 0)
+                    BookStarRatingView(rating: viewModel.refreshedBookRating ?? book.rating ?? 0, starSize: 20)
                 }
 
                 Spacer()
@@ -261,10 +261,15 @@ struct LibraryCardListView: View {
                         }
                     },
                     onTap: {
+                        let cards = viewModel.sortedCards
+                        guard let index = cards.firstIndex(where: { $0.id == card.id }) else { return }
+                        let sortLabel = viewModel.sortType == .latest ? "최신순" : "페이지순"
                         container.navigationRouter.push(
                             to: .libraryCardDetail(
-                                cardId: card.id,
-                                userBookId: card.isMine ? card.memberBookId : nil
+                                cards: cards,
+                                initialIndex: index,
+                                sortLabel: sortLabel,
+                                showsMoreActions: true
                             )
                         )
                     }
@@ -516,21 +521,6 @@ private struct LibraryCardEmptyMessage: View {
             .padding(.vertical, 24)
             .background(Color("white"))
             .clipShape(RoundedRectangle(cornerRadius: 24))
-    }
-}
-
-private struct LibraryCardBookRating: View {
-    let rating: Double
-
-    var body: some View {
-        HStack(spacing: 0) {
-            ForEach(1...5, id: \.self) { index in
-                Image(rating >= Double(index) - 0.5 ? "ic_star_fill" : "ic_star")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
-            }
-        }
     }
 }
 

@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+
+# 같은 PR에 커밋을 연달아 올리면 이전 실행을 취소한다.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # 팀 표준 Xcode 버전 고정
+      - name: Xcode 버전 고정
+        run: |
+          if [ -d /Applications/Xcode_26.6.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.6.app
+          else
+            echo "::error::Xcode 26.6이 러너에 없습니다. 사용 가능한 버전:"
+            ls /Applications | grep -i '^Xcode'
+            exit 1
+          fi
+          xcodebuild -version
+
+      - name: 시크릿 파일 생성
+        env:
+          CONFIG_XCCONFIG: ${{ secrets.CONFIG_XCCONFIG_B64 }}
+          GOOGLE_PLIST_DEV: ${{ secrets.GOOGLE_SERVICE_INFO_DEV_B64 }}
+          GOOGLE_PLIST_PROD: ${{ secrets.GOOGLE_SERVICE_INFO_PROD_B64 }}
+        run: |
+          printf '%s' "$CONFIG_XCCONFIG" | base64 -d > Bookiibookii/Config.xcconfig
+          printf '%s' "$GOOGLE_PLIST_DEV" | base64 -d > Bookiibookii/GoogleService-Info-Dev.plist
+          printf '%s' "$GOOGLE_PLIST_PROD" | base64 -d > Bookiibookii/GoogleService-Info-Prod.plist
+
+      # Firebase SDK가 커서 매번 받으면 오래 걸린다. Package.resolved 기준으로 캐시.
+      - name: SPM 캐시
+        uses: actions/cache@v4
+        with:
+          path: .spm
+          key: spm-${{ runner.os }}-${{ hashFiles('Bookiibookii.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      # 테스트 타깃이 없으므로 빌드 성공 여부만 검증한다.
+      - name: 빌드
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project Bookiibookii.xcodeproj \
+            -scheme Bookiibookii \
+            -destination 'generic/platform=iOS Simulator' \
+            -clonedSourcePackagesDirPath .spm \
+            CODE_SIGNING_ALLOWED=NO

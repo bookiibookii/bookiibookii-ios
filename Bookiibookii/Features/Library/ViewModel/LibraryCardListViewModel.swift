@@ -11,7 +11,7 @@ final class LibraryCardListViewModel: ObservableObject {
     @Published private(set) var cards: [LibraryCard] = []
     @Published private(set) var isLoading = false
     @Published var sortType: SortType = .latest
-    @Published var showOnlyMine = true
+    @Published var showOnlyMine = false
     @Published private(set) var isRepresentative: Bool?
     @Published private(set) var isRepresentativeMutating = false
 
@@ -28,6 +28,9 @@ final class LibraryCardListViewModel: ObservableObject {
     private let libraryService: LibraryService
     private let userService: UserService
     private var representativeUserBookId: Int?
+    /// `.task` / `.refreshable` / 알림이 동시에 `load()`를 호출할 때,
+    /// 취소된 요청이 나중에 도착해도 성공 결과를 덮어쓰지 않도록 세대 번호를 둡니다.
+    private var loadGeneration = 0
 
     init(
         book: LibraryBook,
@@ -56,16 +59,35 @@ final class LibraryCardListViewModel: ObservableObject {
     }
 
     func load() async {
+        loadGeneration += 1
+        let generation = loadGeneration
         isLoading = true
-        defer { isLoading = false }
-
-        do {
-            try await reloadCardsOnly()
-        } catch {
-            cards = []
+        defer {
+            if generation == loadGeneration {
+                isLoading = false
+            }
         }
 
+        do {
+            try await reloadCardsOnly(generation: generation)
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
+        } catch {
+            // 새로고침 실패 시 기존 목록을 유지합니다. (취소/레이스로 빈 리스트가 보이던 문제 방지)
+            guard generation == loadGeneration else { return }
+            if cards.isEmpty {
+                toastMessage = (error as? LocalizedError)?.errorDescription
+                    ?? "독서카드를 불러오지 못했습니다."
+            }
+            return
+        }
+
+        guard generation == loadGeneration, !Task.isCancelled else { return }
+
         await refreshBookRatingFromLibrary()
+        guard generation == loadGeneration, !Task.isCancelled else { return }
         await refreshRepresentativeStatus(showError: false)
     }
 
@@ -134,8 +156,11 @@ final class LibraryCardListViewModel: ObservableObject {
         }
     }
 
-    private func reloadCardsOnly() async throws {
+    private func reloadCardsOnly(generation: Int) async throws {
         let result = try await libraryService.fetchLibraryCards(groupId: groupId)
+        guard generation == loadGeneration, !Task.isCancelled else {
+            throw CancellationError()
+        }
         cards = result.cards
     }
 

@@ -209,6 +209,24 @@ enum GroupTagMapper {
         case "SELF_DEV": return "#자기계발"
         case "POL_SOC": return "#정치/사회"
         case "ESC": return "#기타"
+        // 책장 카테고리 (백엔드 enum)
+        case "ALL": return "#전체"
+        case "LITERATURE_ALL": return "#문학"
+        case "NON_LITERATURE_ALL": return "#비문학"
+        case "KOREAN_NOVEL": return "#한국소설"
+        case "WORLD_NOVEL": return "#세계소설"
+        case "GENRE_NOVEL": return "#장르소설"
+        case "ROMANCE": return "#로맨스"
+        case "HISTORICAL_NOVEL": return "#역사소설"
+        case "POETRY_ESSAY": return "#시/에세이"
+        case "PLAY_LITERATURE": return "#희곡/문학"
+        case "LITERATURE_ETC": return "#기타"
+        case "ECONOMY_BUSINESS": return "#경제/경영"
+        case "SCIENCE_IT": return "#과학/IT"
+        case "HUMANITIES_HISTORY": return "#인문/역사"
+        case "SELF_DEVELOPMENT": return "#자기계발"
+        case "POLITICS_SOCIETY": return "#정치/사회"
+        case "NON_LITERATURE_ETC": return "#기타"
         // REVIEW
         case "KINDNESS": return "#친절매너"
         case "GOOD_HANDWRITING": return "#예쁜글씨"
@@ -220,6 +238,12 @@ enum GroupTagMapper {
         default:
             return raw.hasPrefix("#") ? raw : "#\(raw)"
         }
+    }
+
+    /// 괄호 안 장르 표시용. `#한국소설` → `한국소설`
+    static func koreanLabel(_ raw: String) -> String {
+        let tagged = koreanTag(raw)
+        return tagged.hasPrefix("#") ? String(tagged.dropFirst()) : tagged
     }
 }
 

@@ -45,7 +45,9 @@ struct MyPageView: View {
                 .zIndex(1)
             }
         }
-        .task { await viewModel.loadProfile() }
+        .onAppear {
+            Task { await viewModel.loadProfile() }
+        }
         .alert("안내", isPresented: Binding(
             get: { viewModel.introductionErrorMessage != nil },
             set: { if !$0 { viewModel.introductionErrorMessage = nil } }
@@ -335,7 +337,7 @@ struct MyPageView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .bottom, spacing: 8) {
                         ForEach(Array(viewModel.userBooks.enumerated()), id: \.element.id) { index, book in
-                            MypageBookSpine(title: book.title, colorIndex: index)
+                            MypageBookSpine(title: book.title.stripBookSubtitle(), colorIndex: index)
                         }
                     }
                     .padding(.top, 16)
@@ -356,9 +358,11 @@ struct MyPageView: View {
             summaryCard {
                 HStack(spacing: 8) {
                     Image("ic_book")
+                        .renderingMode(.template)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 24, height: 24)
+                        .foregroundColor(Color("main200"))
 
                     HStack(spacing: 0) {
                         Text("\(viewModel.bookReviewCount)")

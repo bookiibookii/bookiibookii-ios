@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// 공유 미리보기에서 선택할 수 있는 두 가지 스타일.
 /// - 이미지 카드: `divide`(SPLIT) / `card`(OVERLAY)
@@ -12,6 +13,8 @@ enum LibraryCardShareStyle: Equatable {
 struct LibraryCardSharePreview: View {
     let detail: LibraryCardDetail
     let style: LibraryCardShareStyle
+    /// `ImageRenderer`는 `AsyncImage` 로드를 기다리지 않으므로, 공유 전에 미리 받아 둔 이미지를 사용한다.
+    var loadedImage: UIImage?
 
     var body: some View {
         Group {
@@ -74,12 +77,11 @@ struct LibraryCardSharePreview: View {
             .padding(20)
             .frame(maxWidth: .infinity)
             .frame(height: 148)
-            .background(Color("white"))
+            .background(Color.white)
         }
         .frame(maxWidth: .infinity)
-        .background(Color("white"))
+        .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: Color.black.opacity(0.1), radius: 5)
     }
 
     /// 글귀 그대로 보여주되, 따옴표가 없으면 Figma/안드처럼 감싼다.
@@ -183,12 +185,8 @@ struct LibraryCardSharePreview: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 18)
         }
-        .background(Color("white"))
+        .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color("grey200"), lineWidth: 1)
-        )
     }
 
     // MARK: - Image card (OVERLAY)
@@ -238,18 +236,13 @@ struct LibraryCardSharePreview: View {
 
     @ViewBuilder
     private var cardImageView: some View {
-        Color("grey200")
-            .overlay(
-                AsyncImage(url: URL(string: detail.imageURL ?? "")) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().scaledToFill()
-                    case .empty, .failure:
-                        EmptyView()
-                    @unknown default:
-                        EmptyView()
-                    }
+        Color.white
+            .overlay {
+                if let loadedImage {
+                    Image(uiImage: loadedImage)
+                        .resizable()
+                        .scaledToFill()
                 }
-            )
+            }
     }
 }

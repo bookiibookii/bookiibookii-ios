@@ -1,8 +1,34 @@
 import SwiftUI
 
-enum CoachMarkTarget: Hashable {
+/// PreferenceKey 등 nonisolated 컨텍스트에서 딕셔너리 키로 쓰인다.
+/// `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` 환경에서도 Hashable이
+/// main-actor isolated로 추론되지 않도록 ==/hash를 nonisolated로 둔다.
+enum CoachMarkTarget: Sendable {
     case libraryBookmark
     case libraryShare
+}
+
+extension CoachMarkTarget: Equatable {
+    nonisolated static func == (lhs: CoachMarkTarget, rhs: CoachMarkTarget) -> Bool {
+        switch (lhs, rhs) {
+        case (.libraryBookmark, .libraryBookmark),
+             (.libraryShare, .libraryShare):
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+extension CoachMarkTarget: Hashable {
+    nonisolated func hash(into hasher: inout Hasher) {
+        switch self {
+        case .libraryBookmark:
+            hasher.combine(0)
+        case .libraryShare:
+            hasher.combine(1)
+        }
+    }
 }
 
 enum CoachMarkCoordinateSpace {
@@ -127,8 +153,7 @@ struct CoachMarkOverlay: View {
         case 1:
             libraryCallout(
                 target: .libraryBookmark,
-                icon: {
-                Image("ic_bookmark_fill")
+                icon: Image("ic_bookmark_fill")
                     .renderingMode(.template)
                     .resizable()
                     .scaledToFit()
@@ -136,8 +161,7 @@ struct CoachMarkOverlay: View {
                     .frame(width: 24, height: 24)
                     .frame(width: 32, height: 32)
                     .background(Color.white)
-                    .clipShape(Circle())
-                },
+                    .clipShape(Circle()),
                 message: coachMessage(
                     "모아서 보고 싶은\n독서카드를 ",
                     emphasis: "북마크",
@@ -149,15 +173,13 @@ struct CoachMarkOverlay: View {
         case 2:
             libraryCallout(
                 target: .libraryShare,
-                icon: {
-                Image("ic_share")
+                icon: Image("ic_share")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 32, height: 32)
                     .padding(4)
                     .background(Color.white)
-                    .clipShape(Circle())
-                },
+                    .clipShape(Circle()),
                 message: coachMessage(
                     "마음에 든 독서카드는\n",
                     emphasis: "공유",
@@ -186,13 +208,13 @@ struct CoachMarkOverlay: View {
 
     private func libraryCallout<Icon: View, Message: View>(
         target: CoachMarkTarget,
-        @ViewBuilder icon: @escaping () -> Icon,
+        icon: Icon,
         message: Message
     ) -> some View {
         GeometryReader { proxy in
             if let frame = targetFrames[target] {
                 VStack(alignment: .trailing, spacing: 8) {
-                    icon()
+                    icon
                     message
                 }
                 .frame(maxWidth: .infinity, alignment: .topTrailing)
