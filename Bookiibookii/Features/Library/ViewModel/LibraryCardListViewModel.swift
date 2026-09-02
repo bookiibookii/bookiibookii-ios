@@ -157,7 +157,10 @@ final class LibraryCardListViewModel: ObservableObject {
     }
 
     private func reloadCardsOnly(generation: Int) async throws {
-        let result = try await libraryService.fetchLibraryCards(groupId: groupId)
+        guard let memberBookId else {
+            throw LibraryServiceError.server("서재 정보를 찾지 못했습니다.")
+        }
+        let result = try await libraryService.fetchLibraryCards(memberBookId: memberBookId)
         guard generation == loadGeneration, !Task.isCancelled else {
             throw CancellationError()
         }

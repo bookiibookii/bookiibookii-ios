@@ -3,7 +3,7 @@ import Foundation
 enum LibraryAPITarget: APITargetType {
     case fetchBooks
     case searchBooks(keyword: String)
-    case fetchCards(groupId: Int)
+    case fetchCards(memberBookId: Int)
     case fetchGroupReviews(groupId: Int)
     case fetchBookmarkedCards
     case toggleCardBookmark(cardId: Int)
@@ -24,8 +24,8 @@ enum LibraryAPITarget: APITargetType {
             return API.Path.library + "/memberbooks"
         case .searchBooks:
             return API.Path.library + "/memberbooks/search"
-        case .fetchCards(let groupId):
-            return "/api/member-books/group/\(groupId)/cards"
+        case .fetchCards(let memberBookId):
+            return "/api/member-books/\(memberBookId)/cards"
         case .fetchGroupReviews(let groupId):
             return API.Path.groupReviews(groupId: groupId)
         case .fetchBookmarkedCards:
