@@ -181,8 +181,6 @@ struct LibraryCardDetailView: View {
             guard index != viewModel.currentIndex else { return }
             viewModel.selectIndex(index)
             flyingReactions = []
-            imageLayout = .overlay
-            textTheme = .t1
             isActionMenuPresented = false
         }
         .onReceive(NotificationCenter.default.publisher(for: .libraryCardMutationFinished)) { _ in
@@ -877,19 +875,7 @@ private struct CardDetailRemoteImage: View {
 
     var body: some View {
         // scaledToFill이 부모(348×464 카드) 밖으로 레이아웃을 밀어내지 않도록 컨테이너 고정
-        Color("grey200")
-            .overlay {
-                AsyncImage(url: URL(string: urlString ?? "")) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().scaledToFill()
-                    default:
-                        EmptyView()
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
+        PresignedRemoteImage(urlString: urlString)
     }
 }
 

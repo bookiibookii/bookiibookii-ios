@@ -56,6 +56,8 @@ final class TokenManager: @unchecked Sendable {
         Key.allCases
             .filter { $0 != .onboardingDone }
             .forEach { delete($0) }
+        // 계정이 바뀌어도 이전 사용자의 이미지가 기기에 남지 않도록 함께 비운다.
+        ImageCacheCleaner.clearAll()
     }
 
     // MARK: - Keychain helpers
