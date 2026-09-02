@@ -34,8 +34,8 @@ final class LibraryService {
         return (response.result ?? []).map { $0.toLibraryCard() }
     }
 
-    func fetchLibraryCards(groupId: Int) async throws -> LibraryCardList {
-        let request = LibraryAPITarget.fetchCards(groupId: groupId).asURLRequest()
+    func fetchLibraryCards(memberBookId: Int) async throws -> LibraryCardList {
+        let request = LibraryAPITarget.fetchCards(memberBookId: memberBookId).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             throw LibraryServiceError.http(http.statusCode)
@@ -49,7 +49,7 @@ final class LibraryService {
         }
 
         return (response.result ?? CardListResponseDTO(
-            groupId: groupId,
+            groupId: nil,
             currentBookOwner: nil,
             myComment: nil,
             partnerComment: nil,

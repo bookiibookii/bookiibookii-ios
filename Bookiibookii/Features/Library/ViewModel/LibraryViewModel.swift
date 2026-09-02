@@ -100,22 +100,22 @@ final class LibraryViewModel: ObservableObject {
 
     private func mergingCardProgress(into books: [LibraryBook]) async -> [LibraryBook] {
         var maxCardPageByMemberBookId: [Int: Int] = [:]
-        let groupIds = Set(
+        let memberBookIds = Set(
             books
                 .filter { $0.status != .completed }
-                .map(\.groupId)
+                .compactMap(\.userBookId)
                 .filter { $0 > 0 }
         )
 
-        for groupId in groupIds {
-            guard let cardList = try? await libraryService.fetchLibraryCards(groupId: groupId) else {
+        for memberBookId in memberBookIds {
+            guard let cardList = try? await libraryService.fetchLibraryCards(memberBookId: memberBookId) else {
                 continue
             }
 
             for card in cardList.cards {
-                guard let memberBookId = card.memberBookId, card.page > 0 else { continue }
-                maxCardPageByMemberBookId[memberBookId] = max(
-                    maxCardPageByMemberBookId[memberBookId] ?? 0,
+                guard let cardMemberBookId = card.memberBookId, card.page > 0 else { continue }
+                maxCardPageByMemberBookId[cardMemberBookId] = max(
+                    maxCardPageByMemberBookId[cardMemberBookId] ?? 0,
                     card.page
                 )
             }
