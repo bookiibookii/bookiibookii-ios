@@ -582,20 +582,20 @@ struct LibraryCardDetailView: View {
             .shadow(color: Color.black.opacity(0.1), radius: 10)
 
         case .split:
-            GeometryReader { geo in
-                VStack(spacing: 0) {
-                    CardDetailRemoteImage(urlString: detail.imageURL)
-                        .frame(height: geo.size.height * Self.splitTopRatio)
+            // 카드 높이는 cardPage에서 이미 확정되므로 GeometryReader 없이 비율을 계산한다.
+            // (측정 전 한 프레임이 잘못된 비율로 그려지는 것을 막는다.)
+            VStack(spacing: 0) {
+                CardDetailRemoteImage(urlString: detail.imageURL)
+                    .frame(height: cardHeight * Self.splitTopRatio)
 
-                    Text(detail.memo)
-                        .pretendardText(size: 16)
-                        .foregroundColor(Color("grey800"))
-                        .lineLimit(5)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        .padding(20)
-                        .background(Color("white"))
-                        .frame(height: geo.size.height * Self.splitBottomRatio)
-                }
+                Text(detail.memo)
+                    .pretendardText(size: 16)
+                    .foregroundColor(Color("grey800"))
+                    .lineLimit(5)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding(20)
+                    .background(Color("white"))
+                    .frame(height: cardHeight * Self.splitBottomRatio)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: 20))
