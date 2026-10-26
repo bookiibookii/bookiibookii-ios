@@ -71,6 +71,20 @@ struct ShareTokenResponseDTO: Decodable {
     let shareLayout: String?
 }
 
+/// GET `/api/public/reading-cards/{shareToken}`
+struct PublicReadingCardResponseDTO: Decodable {
+    let shareLayout: String?
+    let cardType: String?
+    let bookTitle: String?
+    let bookAuthor: String?
+    let bookImage: String?
+    let creatorNickname: String?
+    let page: Int?
+    let memo: String?
+    let quotation: String?
+    let imageUrl: String?
+}
+
 struct CardReactionToggleResponseDTO: Decodable {
     let reaction: LibraryCardReaction
     let active: Bool
@@ -444,6 +458,32 @@ extension GroupCardResponseDTO {
                 (myReactions ?? []).compactMap(LibraryCardReaction.init(rawValue:))
             ),
             createdAt: createdAt
+        )
+    }
+}
+
+extension PublicReadingCardResponseDTO {
+    /// 공유 미리보기(`LibraryCardSharePreview`) 렌더링용. 공개 조회에는 카드 식별자·반응 정보가 없다.
+    func toLibraryCardDetail() -> LibraryCardDetail {
+        LibraryCardDetail(
+            cardId: 0,
+            memberBookId: nil,
+            cardType: cardType?.uppercased() == "IMAGE" ? .image : .text,
+            page: page ?? 0,
+            memo: memo ?? "",
+            quotation: quotation,
+            imageURL: imageUrl,
+            imageS3Key: nil,
+            creatorName: creatorNickname ?? "",
+            creatorProfileImageURL: nil,
+            bookTitle: (bookTitle ?? "").isEmpty ? nil : bookTitle,
+            totalPages: nil,
+            genre: nil,
+            completedAt: nil,
+            isMine: false,
+            isBookmarked: false,
+            activeReactions: [],
+            createdAt: nil
         )
     }
 }
