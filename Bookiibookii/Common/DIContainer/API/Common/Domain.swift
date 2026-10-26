@@ -74,5 +74,8 @@ enum API {
         static func profileReviewsWritten(nickname: String) -> String { profiles + "/\(nickname)/reviews/written" }
         static func profileReviewsReceived(nickname: String) -> String { profiles + "/\(nickname)/reviews/received" }
         static func profileBookshelf(nickname: String) -> String { profiles + "/\(nickname)/bookshelf" }
+
+        // 공유 링크 공개 조회 (로그인 불필요)
+        static func publicReadingCard(shareToken: String) -> String { "/api/public/reading-cards/\(shareToken)" }
     }
 }

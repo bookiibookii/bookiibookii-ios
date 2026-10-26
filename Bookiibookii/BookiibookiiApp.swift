@@ -57,13 +57,34 @@ struct BookiibookiiApp: App {
                     container.navigationRouter.hardReset(to: .login)
                 }
             }
+            .fullScreenCover(item: $container.navigationRouter.presentedPublicCard) { link in
+                PublicCardViewerView(
+                    shareToken: link.shareToken,
+                    libraryService: container.api.library,
+                    onGoMain: openMainFromPublicCard
+                )
+            }
             .onOpenURL { url in
                 if AuthApi.isKakaoTalkLoginUrl(url) {
                     _ = AuthController.handleOpenUrl(url: url)
+                } else if let link = PublicCardShareLink(url: url) {
+                    container.navigationRouter.presentedPublicCard = link
                 } else {
                     GIDSignIn.sharedInstance.handle(url)
                 }
             }
+        }
+    }
+
+    // 공개 카드 뷰어의 "메인으로": 로그인 전이면 로그인, 온보딩 전이면 온보딩, 그 외에는 메인 탭으로 보낸다.
+    private func openMainFromPublicCard() {
+        container.navigationRouter.presentedPublicCard = nil
+        if !TokenManager.shared.hasAccessToken {
+            container.navigationRouter.hardReset(to: .login)
+        } else if !TokenManager.shared.isOnboardingDone {
+            container.navigationRouter.hardReset(to: .onboarding)
+        } else {
+            container.navigationRouter.hardReset(to: .mainTab)
         }
     }
 
