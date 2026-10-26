@@ -86,6 +86,11 @@ Bookiibookii/Config.xcconfig
 .claude/settings.local.json
 CLAUDE.md
 
+# Codex
+AGENTS.md
+AGENTS.override.md
+.codex/
+
 # Superpowers / Claude 작업 산출물 (레포에 포함하지 않음)
 docs/superpowers/
 .continue-here.md

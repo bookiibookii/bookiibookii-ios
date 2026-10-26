@@ -330,7 +330,7 @@ private extension String {
     }
 }
 
-private enum CardSharePhotoSaver {
+enum CardSharePhotoSaver {
     enum SaveError: LocalizedError {
         case denied
         case failed

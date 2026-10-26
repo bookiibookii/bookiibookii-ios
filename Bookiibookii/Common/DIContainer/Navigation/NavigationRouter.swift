@@ -15,6 +15,8 @@ final class NavigationRouter: NavigationRoutable, ObservableObject {
     @Published var destinations: [NavigationDestination] = []
     /// COM-03 공통 에러 전체 화면 (안드 `ErrorActivity` 대응)
     @Published var presentedComError: BookiiErrorType?
+    /// 공유 링크로 진입한 공개 독서카드 뷰어. 로그인 여부와 무관하게 스택 위에 띄운다.
+    @Published var presentedPublicCard: PublicCardShareLink?
     /// 메인 탭 선택 상태. 다른 화면(예: 트래커 '서재로 이동')에서 탭을 전환할 수 있도록 라우터가 소유.
     @Published var selectedTab: BookiiTabCase = .home
 
