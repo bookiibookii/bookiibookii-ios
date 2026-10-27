@@ -94,21 +94,7 @@ struct LibraryReadingCardItem: View {
     private var cardContent: some View {
         switch card.cardType {
         case .image:
-            Color("grey200")
-                .overlay {
-                    if let urlString = card.imageURL,
-                       let url = URL(string: urlString) {
-                        AsyncImage(url: url) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image.resizable().scaledToFill()
-                            default:
-                                Color.clear
-                            }
-                        }
-                    }
-                }
-                .clipped()
+            PresignedRemoteImage(urlString: card.imageURL)
 
         case .text:
             ZStack(alignment: .topLeading) {

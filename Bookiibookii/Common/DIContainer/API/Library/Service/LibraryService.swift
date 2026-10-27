@@ -34,8 +34,8 @@ final class LibraryService {
         return (response.result ?? []).map { $0.toLibraryCard() }
     }
 
-    func fetchLibraryCards(groupId: Int) async throws -> LibraryCardList {
-        let request = LibraryAPITarget.fetchCards(groupId: groupId).asURLRequest()
+    func fetchLibraryCards(memberBookId: Int) async throws -> LibraryCardList {
+        let request = LibraryAPITarget.fetchCards(memberBookId: memberBookId).asURLRequest()
         let (data, http) = try await interceptor.request(request)
         guard (200...299).contains(http.statusCode) else {
             throw LibraryServiceError.http(http.statusCode)
@@ -49,7 +49,7 @@ final class LibraryService {
         }
 
         return (response.result ?? CardListResponseDTO(
-            groupId: groupId,
+            groupId: nil,
             currentBookOwner: nil,
             myComment: nil,
             partnerComment: nil,
@@ -157,6 +157,24 @@ final class LibraryService {
         }
         guard response.isSuccess, let result = response.result else {
             throw LibraryServiceError.server(response.message)
+        }
+        return result
+    }
+
+    /// GET `/api/public/reading-cards/{shareToken}`
+    /// 로그인 없이 여는 공유 링크용이라 인터셉터(토큰 첨부·401 로그아웃·공통 에러 화면)를 거치지 않는다.
+    func fetchPublicReadingCard(shareToken: String) async throws -> PublicReadingCardResponseDTO {
+        let request = LibraryAPITarget.fetchPublicReadingCard(shareToken: shareToken).asURLRequest()
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw LibraryServiceError.http((response as? HTTPURLResponse)?.statusCode ?? -1)
+        }
+
+        guard let decoded = try? JSONDecoder().decode(ApiResponseDTO<PublicReadingCardResponseDTO>.self, from: data) else {
+            throw LibraryServiceError.invalidResponse
+        }
+        guard decoded.isSuccess, let result = decoded.result else {
+            throw LibraryServiceError.server(decoded.message)
         }
         return result
     }

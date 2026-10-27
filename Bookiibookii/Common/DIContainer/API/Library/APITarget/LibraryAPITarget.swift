@@ -3,7 +3,7 @@ import Foundation
 enum LibraryAPITarget: APITargetType {
     case fetchBooks
     case searchBooks(keyword: String)
-    case fetchCards(groupId: Int)
+    case fetchCards(memberBookId: Int)
     case fetchGroupReviews(groupId: Int)
     case fetchBookmarkedCards
     case toggleCardBookmark(cardId: Int)
@@ -17,6 +17,7 @@ enum LibraryAPITarget: APITargetType {
     case deleteCard(cardId: Int)
     case deleteMemberBook(memberBookId: Int)
     case createShareToken(cardId: Int, body: CreateShareTokenRequestBody)
+    case fetchPublicReadingCard(shareToken: String)
 
     var path: String {
         switch self {
@@ -24,8 +25,8 @@ enum LibraryAPITarget: APITargetType {
             return API.Path.library + "/memberbooks"
         case .searchBooks:
             return API.Path.library + "/memberbooks/search"
-        case .fetchCards(let groupId):
-            return "/api/member-books/group/\(groupId)/cards"
+        case .fetchCards(let memberBookId):
+            return "/api/member-books/\(memberBookId)/cards"
         case .fetchGroupReviews(let groupId):
             return API.Path.groupReviews(groupId: groupId)
         case .fetchBookmarkedCards:
@@ -50,13 +51,15 @@ enum LibraryAPITarget: APITargetType {
             return API.Path.library + "/memberbooks/\(memberBookId)"
         case .createShareToken(let cardId, _):
             return "/api/member-books/cards/\(cardId)/share-token"
+        case .fetchPublicReadingCard(let shareToken):
+            return API.Path.publicReadingCard(shareToken: shareToken)
         }
     }
 
     var method: HTTPMethod {
         switch self {
         case .fetchBooks, .searchBooks, .fetchCards, .fetchGroupReviews,
-             .fetchBookmarkedCards, .fetchCardDetail, .fetchCardComments:
+             .fetchBookmarkedCards, .fetchCardDetail, .fetchCardComments, .fetchPublicReadingCard:
             return .get
         case .toggleCardBookmark, .toggleCardReaction, .updateCard:
             return .patch
