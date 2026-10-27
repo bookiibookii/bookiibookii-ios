@@ -23,13 +23,24 @@
 <br>
 
 ## 🌿 Branch Strategy
-- `main` : 배포용(CI/CD) 브랜치
-- `develop` : 개발 통합 브랜치 (default)
-- `feature` : 이슈 단위 기능 개발 브랜치
+GitHub Flow — `main` 단일 브랜치
+- `main` : 기본 브랜치. 항상 릴리즈 가능한 상태, 직접 커밋 금지
+- 작업 브랜치 : `main`에서 분기 → `main`으로 PR, 병합 후 삭제
 
 **{type}/#Issue Number-{작업 내용}** => 공백은 - 로 연결
 > feat/#1-kakao-login<br>
 > mod/#15-mypage-dto
+
+<br>
+
+## 🚀 Release
+- 릴리즈
+  - `main`에서 버전(MARKETING_VERSION / CURRENT_PROJECT_VERSION)을 올리는 PR 병합
+  - 병합 커밋에 `v<버전>` 태그 + GitHub Release 생성
+  - 스토어 제출 빌드는 태그 시점에서 아카이브
+- Hotfix (출시 버전 긴급 수정)
+  - 출시 태그에서 `release/<버전>` 분기 → 수정 후 패치 버전 태그 + Release
+  - 같은 수정을 `main`에도 PR로 반영
 
 <br>
 
