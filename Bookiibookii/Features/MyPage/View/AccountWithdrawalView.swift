@@ -36,8 +36,8 @@ struct AccountWithdrawalView: View {
                     isLoading: false,
                     action: { showConfirmPopup = true }
                 )
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                .padding(16)
+                .background(Color("grey100").ignoresSafeArea(edges: .bottom))
             }
 
             if viewModel.isLoadingProfile || viewModel.isSubmitting {
