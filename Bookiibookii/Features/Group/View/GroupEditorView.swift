@@ -106,8 +106,7 @@ struct GroupEditorView: View {
                     }
                 )
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            .padding(16)
         }
         .onAppear { viewModel.reloadPlaces() }
         .background(Color("white"))

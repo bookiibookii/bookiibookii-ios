@@ -34,7 +34,7 @@ struct RegionSearchView: View {
                     }
                     .padding(.horizontal, 24)
                     .padding(.top, 12)
-                    .padding(.bottom, 100)
+                    .padding(.bottom, 116)
                 }
             }
 
@@ -52,8 +52,8 @@ struct RegionSearchView: View {
                     .background(Color("grey900"))
                     .clipShape(RoundedRectangle(cornerRadius: 20))
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            .padding(16)
+            .background(Color("white").ignoresSafeArea(edges: .bottom))
         }
     }
 

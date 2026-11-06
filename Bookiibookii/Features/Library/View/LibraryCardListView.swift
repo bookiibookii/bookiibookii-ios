@@ -212,7 +212,9 @@ struct LibraryCardListView: View {
 
                         if viewModel.showOnlyMine {
                             Image("ic_check")
+                                .renderingMode(.template)
                                 .resizable()
+                                .foregroundColor(Color("white"))
                                 .frame(width: 16, height: 16)
                         }
                     }

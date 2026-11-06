@@ -358,7 +358,7 @@ struct AddressManagementView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 20))
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        .padding(16)
+        .background(Color("grey100").ignoresSafeArea(edges: .bottom))
     }
 }

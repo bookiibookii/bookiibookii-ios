@@ -98,6 +98,7 @@ private struct HomeGroupCarouselSection: View {
             .contentMargins(.horizontal, horizontalInset, for: .scrollContent)
             .scrollTargetBehavior(.viewAligned)
             .scrollPosition(id: $scrolledIndex, anchor: .leading)
+            .scrollClipDisabled()
             .frame(height: 200)
 
             if cards.count > 1 {
@@ -186,7 +187,7 @@ private struct HomeRecommendGroupCard: View {
             }
             .padding(16)
             .background(RoundedRectangle(cornerRadius: 20).fill(Color("white")))
-            .shadow(color: Color.black.opacity(0.08), radius: 5)
+            .shadow(color: Color.black.opacity(0.06), radius: 5)
         }
         .buttonStyle(.plain)
     }

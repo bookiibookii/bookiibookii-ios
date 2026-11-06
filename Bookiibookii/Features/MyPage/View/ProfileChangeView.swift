@@ -360,8 +360,8 @@ struct ProfileChangeView: View {
         .buttonStyle(.plain)
         .disabled(!viewModel.canSubmit || !viewModel.hasChanges || viewModel.isSaving)
         .opacity(viewModel.canSubmit && viewModel.hasChanges && !viewModel.isSaving ? 1 : 0.45)
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        .padding(16)
+        .background(Color("grey100").ignoresSafeArea(edges: .bottom))
     }
 
     private static let displayFormatter: DateFormatter = {

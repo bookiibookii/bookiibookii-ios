@@ -41,8 +41,7 @@ struct ErrorScreen: View {
             VStack(spacing: 12) {
                 Spacer()
                 footerButtons
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
+                    .padding(16)
             }
         }
     }
@@ -54,13 +53,15 @@ struct ErrorScreen: View {
             .accessibilityHidden(true)
     }
 
-    @ViewBuilder
     private var footerButtons: some View {
-        if type.showsMainOnlyCTA {
-            FooterButton(text: "메인으로 이동", style: .dark, action: onGoMain)
-        } else {
-            FooterButton(text: "다시 시도", style: .grey, action: onRetry)
-            FooterButton(text: "이전", style: .dark, action: onBack)
+        // 버튼 묶음 둘레에만 여백을 주도록 하나의 VStack으로 감싼다.
+        VStack(spacing: 12) {
+            if type.showsMainOnlyCTA {
+                FooterButton(text: "메인으로 이동", style: .dark, action: onGoMain)
+            } else {
+                FooterButton(text: "다시 시도", style: .grey, action: onRetry)
+                FooterButton(text: "이전", style: .dark, action: onBack)
+            }
         }
     }
 }
