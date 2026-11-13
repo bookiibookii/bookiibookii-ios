@@ -23,6 +23,10 @@ final class PublicCardViewerViewModel: ObservableObject {
     }
 
     func load() async {
+        guard !shareToken.isEmpty else {
+            state = .error
+            return
+        }
         state = .loading
         do {
             let dto = try await libraryService.fetchPublicReadingCard(shareToken: shareToken)

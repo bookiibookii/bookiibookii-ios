@@ -77,5 +77,6 @@ enum API {
 
         // 공유 링크 공개 조회 (로그인 불필요)
         static func publicReadingCard(shareToken: String) -> String { "/api/public/reading-cards/\(shareToken)" }
+        static func publicProfile(shareToken: String) -> String { "/api/public/profiles/\(shareToken)" }
     }
 }

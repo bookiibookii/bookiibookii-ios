@@ -101,6 +101,18 @@ final class UserService {
         return result
     }
 
+    /// GET `/api/public/profiles/{shareToken}`
+    /// 로그인 없이 여는 공유 링크용이라 인터셉터(토큰 첨부·401 로그아웃·공통 에러 화면)를 거치지 않는다.
+    func fetchPublicProfile(shareToken: String) async throws -> PublicProfileResponseDTO {
+        let request = UserAPITarget.fetchPublicProfile(shareToken: shareToken).asURLRequest()
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<PublicProfileResponseDTO>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.profileFailed
+        }
+        return result
+    }
+
     // PATCH /api/mypage
     func updateMypage(_ body: MypageUpdateRequest) async throws {
         let target = UserAPITarget.updateMypage(body)
