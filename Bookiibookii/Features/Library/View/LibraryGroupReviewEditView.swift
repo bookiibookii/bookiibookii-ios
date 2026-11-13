@@ -40,8 +40,15 @@ private func reviewEditNextScore(score: Int, index: Int) -> Int {
 }
 
 struct LibraryGroupReviewEditView: View {
+    /// 키보드 위로 스크롤할 입력칸 구분값. 책 후기는 리뷰 id, 파트너 후기는 하나뿐이다.
+    private enum ReviewField: Hashable {
+        case book(Int)
+        case partner
+    }
+
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: LibraryGroupReviewEditViewModel
+    @FocusState private var focusedField: ReviewField?
 
     init(
         book: LibraryBook,
@@ -80,20 +87,23 @@ struct LibraryGroupReviewEditView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(24)
             } else {
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: 16) {
-                        groupInfoCard
+                ScrollViewReader { proxy in
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 16) {
+                            groupInfoCard
 
-                        ForEach($viewModel.bookReviews) { $review in
-                            bookReviewCard(review: $review)
+                            ForEach($viewModel.bookReviews) { $review in
+                                bookReviewCard(review: $review)
+                            }
+
+                            partnerReviewCard
                         }
-
-                        partnerReviewCard
+                        .padding(16)
+                        .padding(.bottom, 16)
                     }
-                    .padding(16)
-                    .padding(.bottom, 16)
+                    .scrollDismissesKeyboard(.interactively)
+                    .scrollToFocusedField(focusedField, proxy: proxy)
                 }
-                .scrollDismissesKeyboard(.interactively)
             }
 
             FooterButton(
@@ -175,7 +185,8 @@ struct LibraryGroupReviewEditView: View {
             reviewTextEditor(
                 text: review.comment,
                 placeholder: "감상평을 자유롭게 남겨주세요.",
-                maxLength: 500
+                maxLength: 500,
+                field: .book(review.wrappedValue.id)
             )
         }
         .frame(maxWidth: .infinity)
@@ -213,7 +224,8 @@ struct LibraryGroupReviewEditView: View {
             reviewTextEditor(
                 text: $viewModel.partnerComment,
                 placeholder: "부키메이트에 대한 솔직한 후기를 남겨주세요",
-                maxLength: 20
+                maxLength: 20,
+                field: .partner
             )
         }
         .frame(maxWidth: .infinity)
@@ -259,7 +271,8 @@ struct LibraryGroupReviewEditView: View {
     private func reviewTextEditor(
         text: Binding<String>,
         placeholder: String,
-        maxLength: Int
+        maxLength: Int,
+        field: ReviewField
     ) -> some View {
         ZStack(alignment: .topLeading) {
             if text.wrappedValue.isEmpty {
@@ -275,6 +288,7 @@ struct LibraryGroupReviewEditView: View {
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
                 .tint(Color("main200"))
+                .focused($focusedField, equals: field)
                 .onChange(of: text.wrappedValue) { _, value in
                     if value.count > maxLength {
                         text.wrappedValue = String(value.prefix(maxLength))
@@ -285,6 +299,7 @@ struct LibraryGroupReviewEditView: View {
         .padding(20)
         .background(Color("grey100"))
         .clipShape(RoundedRectangle(cornerRadius: 20))
+        .id(field)
     }
 }
 
