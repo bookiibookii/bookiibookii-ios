@@ -273,6 +273,7 @@ struct TrackerDetailRoute: View {
     @EnvironmentObject private var container: DIContainer
     @Environment(\.openURL) private var openURL
     @StateObject private var viewModel: TrackerDetailViewModel
+    @State private var readingCardRequest: TrackerReadingCardRequest?
     private let groupId: Int
 
     init(groupId: Int, trackerService: TrackerService, locationService: LocationService) {
@@ -321,6 +322,11 @@ struct TrackerDetailRoute: View {
             },
             onNavigateComment: { _ in goToComment() }
         )
+        .trackerReadingCardTypeSheet(
+            request: $readingCardRequest,
+            libraryService: container.api.library,
+            router: container.navigationRouter
+        )
     }
 
     // 상단바 메시지 아이콘 / 카드 액션 / 다이얼로그가 모두 같은 댓글 화면으로 진입
@@ -336,12 +342,7 @@ struct TrackerDetailRoute: View {
                 onNavigatePartnerReview: { gid in container.navigationRouter.push(to: .trackerPartnerReview(groupId: gid)) },
                 onNavigateComment: { _ in goToComment() },
                 onWriteReadingCard: { gid in
-                    let title = viewModel.state.myProfile.bookTitle
-                    Task {
-                        if let book = await resolveTrackerLibraryBook(libraryService: container.api.library, groupId: gid, bookTitle: title) {
-                            container.navigationRouter.push(to: .libraryCards(book: book))
-                        }
-                    }
+                    readingCardRequest = TrackerReadingCardRequest(groupId: gid, bookTitle: viewModel.state.myProfile.bookTitle)
                 }
             )
         )

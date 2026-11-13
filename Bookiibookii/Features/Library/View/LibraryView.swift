@@ -129,15 +129,17 @@ struct LibraryView: View {
         } else {
             ScrollView(showsIndicators: false) {
                 LazyVStack(alignment: .leading, spacing: 24) {
-                    librarySection(
-                        title: "읽는 중",
-                        books: viewModel.inProgressBooks,
-                        emptyMessage: "아직 진행 중인 그룹이 없어요.\n독서 메이트 매칭 현황을 확인해보세요.",
-                        emptyButtonTitle: "매칭 현황 확인하기",
-                        emptyAction: {
-                            container.navigationRouter.push(to: .group)
-                        }
-                    )
+                    if viewModel.showsInProgressSection {
+                        librarySection(
+                            title: "읽는 중",
+                            books: viewModel.inProgressBooks,
+                            emptyMessage: "아직 진행 중인 그룹이 없어요.\n독서 메이트 매칭 현황을 확인해보세요.",
+                            emptyButtonTitle: "매칭 현황 확인하기",
+                            emptyAction: {
+                                container.navigationRouter.push(to: .group)
+                            }
+                        )
+                    }
 
                     librarySection(
                         title: "다 읽었어요",
