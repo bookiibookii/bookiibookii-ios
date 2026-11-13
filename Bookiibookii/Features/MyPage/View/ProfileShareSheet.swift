@@ -355,8 +355,10 @@ struct ProfileShareCardContent: View {
 
         VStack(spacing: 0) {
             Image("ic_bookii_text")
+                .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
+                .foregroundColor(Color("main200"))
                 .frame(width: 113, height: 12)
                 .padding(.horizontal, 24)
 
@@ -366,7 +368,7 @@ struct ProfileShareCardContent: View {
                     .clipShape(ProfileSquircle())
 
                 Text(nickname.isEmpty ? "-" : nickname)
-                    .pretendardText(size: 20, weight: .semibold)
+                    .pretendardText(size: 20, weight: .heavy)
                     .foregroundColor(textColor)
             }
             .padding(.top, 16)
@@ -381,7 +383,8 @@ struct ProfileShareCardContent: View {
                 Text(introduction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                      ? "한 줄 소개를 입력해주세요"
                      : introduction)
-                    .pretendardText(size: 15, weight: .medium)
+                    .font(.maruburi(size: 15, weight: .semibold))
+                    .pretendardMetrics(size: 15)
                     .foregroundColor(mottoText)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
@@ -396,10 +399,11 @@ struct ProfileShareCardContent: View {
                     .stroke(mottoBorder, lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .frame(maxWidth: 292)
             .padding(.top, 16)
             .padding(.horizontal, 24)
 
-            Image("ic_repressentative_book")
+            Image(isDark ? "ic_repressentative_book_dark" : "ic_repressentative_book")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 167, height: 24)
@@ -449,7 +453,7 @@ struct ProfileShareCardContent: View {
 
     private func bookCoverRow(books: [MypageUserBook], maxRowCount: Int) -> some View {
         GeometryReader { proxy in
-            let gap: CGFloat = 4
+            let gap: CGFloat = 8
             let columns = CGFloat(max(maxRowCount, 1))
             let bookWidth = (proxy.size.width - gap * (columns - 1)) / columns
             let bookHeight = bookWidth * (104.0 / 72.0)
@@ -464,8 +468,8 @@ struct ProfileShareCardContent: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .aspectRatio(CGFloat(max(maxRowCount, 1)) * 72.0 / 104.0, contentMode: .fit)
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
+        .padding(.horizontal, 14)
+        .padding(.top, 16)
         .background(cardBg)
     }
 
@@ -485,7 +489,7 @@ struct ProfileShareCardContent: View {
 
 // MARK: - Card Content (renderable with preloaded UIImages)
 
-private struct ProfileShareCardRenderContent: View {
+struct ProfileShareCardRenderContent: View {
     let nickname: String
     let introduction: String
     let profileImage: UIImage?
@@ -518,8 +522,10 @@ private struct ProfileShareCardRenderContent: View {
 
         VStack(spacing: 0) {
             Image("ic_bookii_text")
+                .renderingMode(.template)
                 .resizable()
                 .scaledToFit()
+                .foregroundColor(Color("main200"))
                 .frame(width: 113, height: 12)
                 .padding(.horizontal, 24)
 
@@ -539,7 +545,7 @@ private struct ProfileShareCardRenderContent: View {
                 .clipShape(ProfileSquircle())
 
                 Text(nickname.isEmpty ? "-" : nickname)
-                    .pretendardText(size: 20, weight: .semibold)
+                    .pretendardText(size: 20, weight: .heavy)
                     .foregroundColor(textColor)
             }
             .padding(.top, 16)
@@ -554,7 +560,8 @@ private struct ProfileShareCardRenderContent: View {
                 Text(introduction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                      ? "한 줄 소개를 입력해주세요"
                      : introduction)
-                    .pretendardText(size: 15, weight: .medium)
+                    .font(.maruburi(size: 15, weight: .semibold))
+                    .pretendardMetrics(size: 15)
                     .foregroundColor(mottoText)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
@@ -569,10 +576,11 @@ private struct ProfileShareCardRenderContent: View {
                     .stroke(mottoBorder, lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .frame(maxWidth: 292)
             .padding(.top, 16)
             .padding(.horizontal, 24)
 
-            Image("ic_repressentative_book")
+            Image(isDark ? "ic_repressentative_book_dark" : "ic_repressentative_book")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 167, height: 24)
@@ -603,7 +611,7 @@ private struct ProfileShareCardRenderContent: View {
 
     private func renderBookRow(images: [UIImage?], maxRowCount: Int) -> some View {
         GeometryReader { proxy in
-            let gap: CGFloat = 4
+            let gap: CGFloat = 8
             let columns = CGFloat(max(maxRowCount, 1))
             let bookWidth = (proxy.size.width - gap * (columns - 1)) / columns
             let bookHeight = bookWidth * (104.0 / 72.0)
@@ -626,8 +634,8 @@ private struct ProfileShareCardRenderContent: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .aspectRatio(CGFloat(max(maxRowCount, 1)) * 72.0 / 104.0, contentMode: .fit)
-        .padding(.horizontal, 16)
-        .padding(.top, 12)
+        .padding(.horizontal, 14)
+        .padding(.top, 16)
         .background(cardBg)
     }
 }
