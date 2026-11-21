@@ -18,6 +18,22 @@ struct MyBookShelfView: View {
             VStack(spacing: 0) {
                 header
 
+                if viewModel.needsBookshelfRefresh {
+                    VStack(spacing: 8) {
+                        Text(viewModel.bookshelfRefreshMessage ?? "저장한 도서를 책장에 반영하고 있어요.")
+                            .pretendardText(size: 14)
+                            .foregroundColor(Color("grey700"))
+                        if viewModel.isLoading {
+                            ProgressView()
+                        } else {
+                            Button("목록 다시 불러오기") { Task { await viewModel.load() } }
+                                .pretendardText(size: 14)
+                                .foregroundColor(Color("main200"))
+                        }
+                    }
+                    .padding(16)
+                }
+
                 if viewModel.isLoading && viewModel.representativeBooks.isEmpty {
                     Spacer()
                     ProgressView()
@@ -47,6 +63,7 @@ struct MyBookShelfView: View {
                     searchResults: viewModel.favoriteSearchResults,
                     isSearching: viewModel.isFavoriteSearching,
                     isSubmitting: viewModel.isFavoriteMutating,
+                    searchError: viewModel.favoriteSearchError,
                     onSearch: { viewModel.onFavoriteSearchQueryChanged() },
                     onSelect: { book in
                         Task { await viewModel.selectFavoriteBook(book) }
@@ -215,7 +232,7 @@ struct MyBookShelfView: View {
                     favoriteActionIcon(showDelete: showDelete)
                 }
                 .buttonStyle(.plain)
-                .disabled(viewModel.isFavoriteMutating)
+                .disabled(viewModel.isFavoriteMutating || viewModel.needsBookshelfRefresh)
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -251,7 +268,7 @@ struct MyBookShelfView: View {
         .buttonStyle(.plain)
         .disabled(
             viewModel.favoriteBooks.count >= MyBookShelfViewModel.maxFavoriteCount ||
-            viewModel.isFavoriteMutating
+            viewModel.isFavoriteMutating || viewModel.needsBookshelfRefresh
         )
         .opacity(viewModel.favoriteBooks.count >= MyBookShelfViewModel.maxFavoriteCount ? 0.4 : 1)
     }

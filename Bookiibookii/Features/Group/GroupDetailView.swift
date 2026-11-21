@@ -277,6 +277,8 @@ struct GroupDetailView: View {
                         set: { viewModel.onApplyMsgChange($0) }
                     ),
                     loading: viewModel.bookSearchLoading,
+                    submitting: viewModel.submitting,
+                    searchError: viewModel.bookSearchError,
                     canSubmit: viewModel.canSubmit,
                     onSearch: { viewModel.searchBooks() },
                     onClear: { viewModel.clearBookSearch() },

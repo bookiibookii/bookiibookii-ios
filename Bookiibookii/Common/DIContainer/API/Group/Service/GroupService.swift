@@ -74,7 +74,8 @@ final class GroupService {
     func searchBooks(keyword: String, page: Int = 1, size: Int = 10) async throws -> [BookItem] {
         let target = GroupAPITarget.searchBooks(keyword: keyword, page: page, size: size)
         let request = target.asURLRequest()
-        let (data, http) = try await interceptor.request(request)
+        let (data, http) = try await interceptor.request(request, handlesBookErrors: true)
+        try BookAPIError.throwIfPresent(in: data, statusCode: http.statusCode)
         guard (200...299).contains(http.statusCode) else {
             throw GroupServiceError.http(http.statusCode)
         }
@@ -89,7 +90,8 @@ final class GroupService {
     func createGroup(_ body: GroupCreateRequest) async throws {
         let target = GroupAPITarget.createGroup(body)
         let request = target.asURLRequest()
-        let (data, http) = try await interceptor.request(request)
+        let (data, http) = try await interceptor.request(request, handlesBookErrors: true)
+        try BookAPIError.throwIfPresent(in: data, statusCode: http.statusCode)
         guard (200...299).contains(http.statusCode) else {
             if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
                 throw GroupServiceError.server(msg)
@@ -116,7 +118,8 @@ final class GroupService {
     /// isbn13: 교환할 책. 그룹 신청 UI 재작업 시 정식 연결 예정(현재 기본값).
     func applyGroup(groupId: Int, isbn13: String = "", applyMsg: String) async throws {
         let request = GroupAPITarget.applyGroup(groupId: groupId, body: GroupApplyRequest(isbn13: isbn13, applyMsg: applyMsg)).asURLRequest()
-        let (data, http) = try await interceptor.request(request)
+        let (data, http) = try await interceptor.request(request, handlesBookErrors: true)
+        try BookAPIError.throwIfPresent(in: data, statusCode: http.statusCode)
         guard (200...299).contains(http.statusCode) else {
             if let msg = (try? JSONDecoder().decode(APIErrorMessage.self, from: data))?.message {
                 throw GroupServiceError.server(msg)

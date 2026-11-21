@@ -591,6 +591,13 @@ struct OnboardingView: View {
                 if viewModel.isSearching {
                     ProgressView().tint(Color("main200"))
                         .frame(maxWidth: .infinity).frame(height: 80)
+                } else if let searchError = viewModel.searchError {
+                    Text(searchError)
+                        .pretendardText(size: 14)
+                        .foregroundColor(Color("pointRed"))
+                    Button("다시 검색") { viewModel.onSearchQueryChanged() }
+                        .pretendardText(size: 14)
+                        .foregroundColor(Color("main200"))
                 } else if !viewModel.searchResults.isEmpty {
                     VStack(spacing: 0) {
                         Rectangle().fill(Color("grey100")).frame(height: 1)

@@ -26,6 +26,7 @@ final class GroupDetailViewModel: ObservableObject {
     @Published var bookSearchQuery: String = ""
     @Published private(set) var bookSearchResults: [BookItem] = []
     @Published var bookSearchLoading = false
+    @Published private(set) var bookSearchError: String?
     @Published private(set) var selectedISBN: String?
     @Published var applyMsg: String = ""
     @Published private(set) var submitting = false
@@ -148,7 +149,7 @@ final class GroupDetailViewModel: ObservableObject {
     // 검색 버튼/키보드 액션 — 즉시 검색
     func searchBooks() {
         let trimmed = bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty, !bookSearchLoading else { return }
         Task { await performSearch(keyword: trimmed) }
     }
 
@@ -156,22 +157,30 @@ final class GroupDetailViewModel: ObservableObject {
         // 이미 책을 고른 뒤 늦게 도착한 검색이 선택을 덮어쓰지 않도록 가드
         guard selectedISBN == nil else { return }
         bookSearchLoading = true
+        bookSearchError = nil
         do {
             let results = try await service.searchBooks(keyword: keyword, page: 1, size: 10)
-            if selectedISBN == nil { bookSearchResults = results }
+            if selectedISBN == nil, bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == keyword {
+                bookSearchResults = results
+            }
         } catch {
-            toastError(error)
+            if selectedISBN == nil, bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == keyword {
+                bookSearchResults = []
+                bookSearchError = error.localizedDescription
+            }
         }
         bookSearchLoading = false
     }
 
     func selectBook(_ book: BookItem) {
+        bookSearchError = nil
         selectedISBN = book.isbn13
         bookSearchQuery = book.title
         bookSearchResults = []
     }
 
     func clearBookSearch() {
+        bookSearchError = nil
         bookSearchQuery = ""
         selectedISBN = nil
         bookSearchResults = []
@@ -200,6 +209,7 @@ final class GroupDetailViewModel: ObservableObject {
     }
 
     func resetApplyDialog() {
+        bookSearchError = nil
         bookSearchQuery = ""
         bookSearchResults = []
         selectedISBN = nil

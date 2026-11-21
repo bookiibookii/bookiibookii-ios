@@ -51,13 +51,15 @@ actor AuthInterceptor {
         return (data, httpResponse)
     }
 
-    private func routeServerErrorIfNeeded(statusCode: Int) async {
+    private func routeServerErrorIfNeeded(statusCode: Int, data: Data, handlesBookErrors: Bool) async {
         guard statusCode >= 500 else { return }
+        if handlesBookErrors, statusCode == 503,
+           BookAPIError.decode(from: data, statusCode: statusCode)?.code == "BOOK503_1" { return }
         await presentComError(.system)
     }
 
     // MARK: - 인증 요청 실행 (외부 진입점)
-    func request(_ urlRequest: URLRequest) async throws -> (Data, HTTPURLResponse) {
+    func request(_ urlRequest: URLRequest, handlesBookErrors: Bool = false) async throws -> (Data, HTTPURLResponse) {
         let sentToken = TokenManager.shared.accessToken
         let authedRequest = attach(token: sentToken, to: urlRequest)
         let (data, httpResponse) = try await dataTask(for: authedRequest)
@@ -70,7 +72,7 @@ actor AuthInterceptor {
                 await forceLogout()
                 throw AuthError.refreshFailed
             }
-            await routeServerErrorIfNeeded(statusCode: httpResponse.statusCode)
+            await routeServerErrorIfNeeded(statusCode: httpResponse.statusCode, data: data, handlesBookErrors: handlesBookErrors)
             return (data, httpResponse)
         }
 
@@ -107,7 +109,7 @@ actor AuthInterceptor {
             throw AuthError.refreshFailed
         }
 
-        await routeServerErrorIfNeeded(statusCode: retryHTTPResponse.statusCode)
+        await routeServerErrorIfNeeded(statusCode: retryHTTPResponse.statusCode, data: retryData, handlesBookErrors: handlesBookErrors)
         return (retryData, retryHTTPResponse)
     }
 

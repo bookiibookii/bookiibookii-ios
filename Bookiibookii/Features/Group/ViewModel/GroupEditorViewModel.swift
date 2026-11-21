@@ -131,7 +131,7 @@ final class GroupEditorViewModel: ObservableObject {
     // ic_search 클릭 또는 키보드 검색 액션 — 즉시 검색
     func searchBooks() {
         let trimmed = bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty, !bookSearchLoading else { return }
         Task { await performSearch(trimmed) }
     }
 
@@ -142,9 +142,14 @@ final class GroupEditorViewModel: ObservableObject {
         bookSearchError = nil
         do {
             let results = try await service.searchBooks(keyword: keyword, page: 1, size: 10)
-            if isbn13 == nil { bookSearchResults = results }
+            if isbn13 == nil, bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == keyword {
+                bookSearchResults = results
+            }
         } catch {
-            bookSearchError = "검색에 실패했어요"
+            if isbn13 == nil, bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == keyword {
+                bookSearchResults = []
+                bookSearchError = error.localizedDescription
+            }
         }
         bookSearchLoading = false
     }
@@ -234,6 +239,7 @@ final class GroupEditorViewModel: ObservableObject {
     private func createGroup() async {
         guard let isbn13, let tradeType, let placeId = selectedPlaceId, ruleStyle != nil, !submitting else { return }
         submitting = true
+        submitError = nil
         defer { submitting = false }
         let isDirect = tradeType == .direct
         let request = GroupCreateRequest(
@@ -249,6 +255,8 @@ final class GroupEditorViewModel: ObservableObject {
         do {
             try await service.createGroup(request)
             createdEvent = true   // View가 관찰해 dismiss 처리 (2-1: 상세 자동이동은 하지 않음)
+        } catch let e as BookAPIError {
+            submitError = e.localizedDescription
         } catch let e as GroupServiceError {
             submitError = e.errorDescription ?? "그룹 생성에 실패했어요"
         } catch {
@@ -259,6 +267,7 @@ final class GroupEditorViewModel: ObservableObject {
     private func updateGroup(_ id: Int) async {
         guard ruleStyle != nil, !submitting else { return }
         submitting = true
+        submitError = nil
         defer { submitting = false }
         let request = GroupModifyRequest(
             readingPeriod: readingPeriod,

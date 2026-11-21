@@ -99,6 +99,9 @@ struct BookSearchSection: View {
                     .pretendardText(size: 14)
                     .foregroundColor(Color("pointRed"))
                     .padding(.top, 8)
+                Button("다시 검색", action: onSearchClick)
+                    .pretendardText(size: 14)
+                    .foregroundColor(Color("main200"))
             }
         }
     }

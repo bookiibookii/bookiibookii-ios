@@ -6,6 +6,7 @@ struct LifeBookSearchDialog: View {
     let searchResults: [BookItem]
     let isSearching: Bool
     let isSubmitting: Bool
+    let searchError: String?
     let onSearch: () -> Void
     let onSelect: (BookItem) -> Void
     let onDismiss: () -> Void
@@ -13,11 +14,12 @@ struct LifeBookSearchDialog: View {
     var body: some View {
         ZStack {
             Color.black.opacity(0.45).ignoresSafeArea()
-                .onTapGesture { onDismiss() }
+                .onTapGesture { if !isSubmitting { onDismiss() } }
 
             VStack(spacing: 16) {
                 header
                 searchField
+                    .disabled(isSubmitting)
                 resultsSection
             }
             .padding(20)
@@ -53,6 +55,7 @@ struct LifeBookSearchDialog: View {
                 }
             }
             .buttonStyle(.plain)
+            .disabled(isSubmitting)
         }
     }
 
@@ -122,6 +125,13 @@ struct LifeBookSearchDialog: View {
             ProgressView()
                 .tint(Color("main200"))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let searchError {
+            Text(searchError)
+                .pretendardText(size: 14)
+                .foregroundColor(Color("pointRed"))
+            Button("다시 검색", action: onSearch)
+                .pretendardText(size: 14)
+                .foregroundColor(Color("main200"))
         } else if !searchResults.isEmpty {
             VStack(spacing: 0) {
                 Rectangle()
