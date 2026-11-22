@@ -32,6 +32,7 @@ struct GroupEditorView: View {
                                 results: viewModel.bookSearchResults,
                                 bookSelected: viewModel.isbn13 != nil,
                                 error: viewModel.bookSearchError,
+                                noResult: viewModel.bookSearchNoResult,
                                 onQueryChange: viewModel.onBookSearchQueryChange,
                                 onSearchClick: viewModel.searchBooks,
                                 onClearClick: viewModel.onClearBookSearch,
@@ -96,6 +97,11 @@ struct GroupEditorView: View {
                     text: viewModel.isEdit ? "그룹 수정" : "그룹 만들기",
                     enabled: viewModel.canSubmit && viewModel.isDirty && !viewModel.submitting,
                     isLoading: viewModel.submitting,
+                    onDisabledTap: {
+                        if let message = viewModel.missingRequirement {
+                            viewModel.toast = .failure(message)
+                        }
+                    },
                     action: {
                         // 20자 그룹명 가드는 View 레이어(안드 Route onSubmit 래핑 대응, canSubmit과 별개)
                         if viewModel.groupName.count > 20 {

@@ -27,6 +27,8 @@ final class GroupDetailViewModel: ObservableObject {
     @Published private(set) var bookSearchResults: [BookItem] = []
     @Published var bookSearchLoading = false
     @Published private(set) var bookSearchError: String?
+    // 마지막 검색이 성공했지만 0건
+    @Published private(set) var bookSearchNoResult = false
     @Published private(set) var selectedISBN: String?
     @Published var applyMsg: String = ""
     @Published private(set) var submitting = false
@@ -142,8 +144,11 @@ final class GroupDetailViewModel: ObservableObject {
     // MARK: - 책 검색
 
     func onBookQueryChange(_ value: String) {
+        // 책이 선택된 동안이나 TextField가 같은 값을 다시 보낼 때는 선택을 유지한다.
+        guard selectedISBN == nil, value != bookSearchQuery else { return }
         bookSearchQuery = value
         selectedISBN = nil
+        bookSearchNoResult = false
     }
 
     // 검색 버튼/키보드 액션 — 즉시 검색
@@ -158,10 +163,12 @@ final class GroupDetailViewModel: ObservableObject {
         guard selectedISBN == nil else { return }
         bookSearchLoading = true
         bookSearchError = nil
+        bookSearchNoResult = false
         do {
             let results = try await service.searchBooks(keyword: keyword, page: 1, size: 10)
             if selectedISBN == nil, bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == keyword {
                 bookSearchResults = results
+                bookSearchNoResult = results.isEmpty
             }
         } catch {
             if selectedISBN == nil, bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == keyword {
@@ -181,6 +188,7 @@ final class GroupDetailViewModel: ObservableObject {
 
     func clearBookSearch() {
         bookSearchError = nil
+        bookSearchNoResult = false
         bookSearchQuery = ""
         selectedISBN = nil
         bookSearchResults = []
@@ -210,6 +218,7 @@ final class GroupDetailViewModel: ObservableObject {
 
     func resetApplyDialog() {
         bookSearchError = nil
+        bookSearchNoResult = false
         bookSearchQuery = ""
         bookSearchResults = []
         selectedISBN = nil

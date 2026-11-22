@@ -17,6 +17,8 @@ final class GroupEditorViewModel: ObservableObject {
     @Published private(set) var bookSearchResults: [BookItem] = []
     @Published private(set) var bookSearchLoading = false
     @Published private(set) var bookSearchError: String?
+    // 마지막 검색이 성공했지만 0건
+    @Published private(set) var bookSearchNoResult = false
 
     @Published var groupName: String = ""
     @Published var tradeType: ExchangeType?
@@ -87,6 +89,25 @@ final class GroupEditorViewModel: ObservableObject {
         return isbn13 != nil && tradeType != nil && selectedPlaceId != nil
     }
 
+    // 비활성 제출 버튼 탭 시 안내할 문구. 비어 있는 항목이 여럿이면 화면 위쪽 항목 하나만 안내한다.
+    var missingRequirement: String? {
+        if !isEdit, isbn13 == nil { return "도서를 선택해주세요" }
+        if groupName.trimmingCharacters(in: .whitespaces).isEmpty { return "그룹명을 입력해주세요" }
+        if !isEdit {
+            guard let tradeType else { return "교환 유형을 선택해주세요" }
+            if selectedPlaceId == nil {
+                let needsRegistration = places.isEmpty && !placesLoading
+                switch tradeType {
+                case .direct: return needsRegistration ? "희망 교환 장소를 등록해주세요" : "희망 교환 장소를 선택해주세요"
+                case .delivery: return needsRegistration ? "배송지를 등록해주세요" : "배송지를 선택해주세요"
+                }
+            }
+        }
+        if ruleStyle == nil { return "독서 스타일을 선택해주세요" }
+        if groupComment.count > 500 { return "그룹 소개는 500자 이하로 작성해주세요" }
+        return nil
+    }
+
     // MARK: - 초기화 + 프리필 (안드 54-101행 대응)
 
     func loadGroupForEdit(_ id: Int) async {
@@ -124,8 +145,11 @@ final class GroupEditorViewModel: ObservableObject {
     // MARK: - 책검색 (안드 112-172행 대응)
 
     func onBookSearchQueryChange(_ value: String) {
+        // 책이 선택된 동안이나 TextField가 같은 값을 다시 보낼 때는 선택을 유지한다.
+        guard isbn13 == nil, value != bookSearchQuery else { return }
         bookSearchQuery = value
         isbn13 = nil
+        bookSearchNoResult = false
     }
 
     // ic_search 클릭 또는 키보드 검색 액션 — 즉시 검색
@@ -140,10 +164,12 @@ final class GroupEditorViewModel: ObservableObject {
         guard isbn13 == nil else { return }
         bookSearchLoading = true
         bookSearchError = nil
+        bookSearchNoResult = false
         do {
             let results = try await service.searchBooks(keyword: keyword, page: 1, size: 10)
             if isbn13 == nil, bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == keyword {
                 bookSearchResults = results
+                bookSearchNoResult = results.isEmpty
             }
         } catch {
             if isbn13 == nil, bookSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == keyword {
@@ -159,6 +185,7 @@ final class GroupEditorViewModel: ObservableObject {
         bookSearchQuery = book.title
         bookSearchResults = []
         bookSearchError = nil
+        submitError = nil
     }
 
     // ic_x 클릭. 텍스트 모두 초기화
@@ -167,6 +194,8 @@ final class GroupEditorViewModel: ObservableObject {
         isbn13 = nil
         bookSearchResults = []
         bookSearchError = nil
+        bookSearchNoResult = false
+        submitError = nil
     }
 
     // MARK: - 교환유형/주소 (안드 174-232행 대응)

@@ -10,6 +10,7 @@ struct GroupApplyDialog: View {
     let loading: Bool
     let submitting: Bool
     let searchError: String?
+    var noResult: Bool = false
     let canSubmit: Bool
     let onSearch: () -> Void
     let onClear: () -> Void
@@ -102,6 +103,11 @@ struct GroupApplyDialog: View {
                 Button("다시 검색", action: onSearch)
                     .pretendardText(size: 14)
                     .foregroundColor(Color("main200"))
+            } else if noResult, results.isEmpty, !bookSelected {
+                Text("검색 결과가 없어요. 제목을 다시 확인해 주세요")
+                    .pretendardText(size: 14)
+                    .foregroundColor(Color("grey600"))
+                    .padding(.top, 8)
             } else if !results.isEmpty {
                 BookSearchResultDropdown(books: results, onSelect: onSelect)
                     .padding(.top, 8)

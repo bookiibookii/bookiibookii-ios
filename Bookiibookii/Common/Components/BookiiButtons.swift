@@ -13,6 +13,8 @@ struct FooterButton: View {
     var style: FooterButtonStyle = .dark
     var enabled: Bool = true
     var isLoading: Bool = false
+    // 비활성 상태에서 탭했을 때 실행할 동작(예: 빠진 필수값 안내). nil이면 비활성 탭을 무시한다.
+    var onDisabledTap: (() -> Void)? = nil
     let action: () -> Void
 
     private var containerColor: Color {
@@ -43,6 +45,13 @@ struct FooterButton: View {
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
         .disabled(!enabled || isLoading)
+        .overlay {
+            if !enabled, !isLoading, let onDisabledTap {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture(perform: onDisabledTap)
+            }
+        }
     }
 }
 

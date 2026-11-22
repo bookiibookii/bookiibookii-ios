@@ -30,6 +30,7 @@ struct BookSearchSection: View {
     let results: [BookItem]
     let bookSelected: Bool
     let error: String?
+    var noResult: Bool = false
     let onQueryChange: (String) -> Void
     let onSearchClick: () -> Void
     let onClearClick: () -> Void
@@ -102,6 +103,11 @@ struct BookSearchSection: View {
                 Button("다시 검색", action: onSearchClick)
                     .pretendardText(size: 14)
                     .foregroundColor(Color("main200"))
+            } else if noResult, results.isEmpty, !bookSelected {
+                Text("검색 결과가 없어요. 제목을 다시 확인해 주세요")
+                    .pretendardText(size: 14)
+                    .foregroundColor(Color("grey600"))
+                    .padding(.top, 8)
             }
         }
     }
