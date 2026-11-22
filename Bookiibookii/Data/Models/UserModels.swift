@@ -294,6 +294,26 @@ struct ProfileShareTokenResult: Decodable {
     let shareUrl: String
 }
 
+// MARK: - 공개 프로필 (GET /api/public/profiles/{shareToken})
+
+struct PublicProfileResponseDTO: Decodable {
+    let nickname: String
+    let profileImageUrl: String?
+    let introduction: String?
+    let representativeBooks: [RepresentativeBook]
+
+    struct RepresentativeBook: Decodable {
+        let title: String
+        let author: String?
+        let image: String?
+    }
+
+    /// 프로필 공유 카드에서 쓰는 책 모델로 변환한다. 서버가 표시 순서대로 내려준다.
+    var books: [MypageUserBook] {
+        representativeBooks.map { MypageUserBook(title: $0.title, auth: $0.author ?? "", image: $0.image) }
+    }
+}
+
 // MARK: - 공통 단순 응답
 
 struct SimpleResponse: Decodable {
