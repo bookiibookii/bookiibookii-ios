@@ -28,6 +28,7 @@ struct TrackerBookReviewView: View {
     // rating: 0~10 (별 5개 × 2단계 — half=1, full=2)
     @State private var rating: Int = 0
     @State private var commentInput: String = ""
+    @FocusState private var isCommentFocused: Bool
 
     init(groupId: Int, isEdit: Bool = false, trackerService: TrackerService) {
         _viewModel = StateObject(
@@ -48,8 +49,11 @@ struct TrackerBookReviewView: View {
         VStack(spacing: 0) {
             CustomNavigationBar(title: "책 리뷰", onBack: { container.navigationRouter.pop() })
 
-            ScrollView {
-                card.padding(16)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    card.padding(16)
+                }
+                .scrollToFocusedField(isCommentFocused ? "comment" : nil, proxy: proxy)
             }
 
             FooterButton(
@@ -114,6 +118,7 @@ struct TrackerBookReviewView: View {
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
                     .tint(Color("main200"))
+                    .focused($isCommentFocused)
                     .onChange(of: commentInput) { value in
                         if value.count > 500 { commentInput = String(value.prefix(500)) }
                     }
@@ -122,6 +127,7 @@ struct TrackerBookReviewView: View {
             .padding(20)
             .background(Color("grey100"))
             .clipShape(RoundedRectangle(cornerRadius: 20))
+            .id("comment")
         }
         .frame(maxWidth: .infinity)
         .padding(16)

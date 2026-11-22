@@ -273,6 +273,7 @@ struct TrackerDetailRoute: View {
     @EnvironmentObject private var container: DIContainer
     @Environment(\.openURL) private var openURL
     @StateObject private var viewModel: TrackerDetailViewModel
+    @State private var readingCardRequest: TrackerReadingCardRequest?
     @State private var isOpeningLibrary = false
     private let groupId: Int
 
@@ -319,6 +320,11 @@ struct TrackerDetailRoute: View {
             },
             onNavigateComment: { _ in goToComment() }
         )
+        .trackerReadingCardTypeSheet(
+            request: $readingCardRequest,
+            libraryService: container.api.library,
+            router: container.navigationRouter
+        )
     }
 
     // "서재로 이동": 이 교환독서의 서재 상세(LIB-02-01)로 이동한다.
@@ -351,12 +357,7 @@ struct TrackerDetailRoute: View {
                 onNavigatePartnerReview: { gid in container.navigationRouter.push(to: .trackerPartnerReview(groupId: gid)) },
                 onNavigateComment: { _ in goToComment() },
                 onWriteReadingCard: { gid in
-                    let title = viewModel.state.myProfile.bookTitle
-                    Task {
-                        if let book = await resolveTrackerLibraryBook(libraryService: container.api.library, groupId: gid, bookTitle: title) {
-                            container.navigationRouter.push(to: .libraryCards(book: book))
-                        }
-                    }
+                    readingCardRequest = TrackerReadingCardRequest(groupId: gid, bookTitle: viewModel.state.myProfile.bookTitle)
                 }
             )
         )

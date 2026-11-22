@@ -54,8 +54,13 @@ final class LibraryViewModel: ObservableObject {
         books.filter { $0.status != .deleted }
     }
 
+    /// 별점순에서는 별점이 없는 진행 중인 책을 빼고 완료한 책만 보여준다.
+    var showsInProgressSection: Bool {
+        sortOption != .rating
+    }
+
     var bookCountText: String {
-        "\(visibleBooks.count) 권"
+        "\(showsInProgressSection ? visibleBooks.count : completedBooks.count) 권"
     }
 
     var searchResultCountText: String {

@@ -69,6 +69,7 @@ struct TrackerMainScreen: View {
 struct TrackerMainRoute: View {
     @EnvironmentObject private var container: DIContainer
     @StateObject private var viewModel: TrackerMainViewModel
+    @State private var readingCardRequest: TrackerReadingCardRequest?
     var onProfileTap: () -> Void
     var onNotificationTap: () -> Void
     var onCreateGroupTap: () -> Void
@@ -103,12 +104,7 @@ struct TrackerMainRoute: View {
             onNavigateComment: { gid in goToComment(groupId: gid) },
             onWriteReadingCard: { gid in
                 guard let card = viewModel.state.cards.first(where: { $0.groupId == gid }) else { return }
-                let title = card.left.bookTitle
-                Task {
-                    if let book = await resolveTrackerLibraryBook(libraryService: container.api.library, groupId: gid, bookTitle: title) {
-                        container.navigationRouter.push(to: .libraryCards(book: book))
-                    }
-                }
+                readingCardRequest = TrackerReadingCardRequest(groupId: gid, bookTitle: card.left.bookTitle)
             }
         )
     }
@@ -145,6 +141,11 @@ struct TrackerMainRoute: View {
             viewModel.coordinator,
             cardFor: { id in viewModel.state.cards.first { $0.groupId == id } },
             onNavigateComment: { gid in goToComment(groupId: gid) }
+        )
+        .trackerReadingCardTypeSheet(
+            request: $readingCardRequest,
+            libraryService: container.api.library,
+            router: container.navigationRouter
         )
     }
 
