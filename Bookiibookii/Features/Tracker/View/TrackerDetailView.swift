@@ -273,6 +273,7 @@ struct TrackerDetailRoute: View {
     @EnvironmentObject private var container: DIContainer
     @Environment(\.openURL) private var openURL
     @StateObject private var viewModel: TrackerDetailViewModel
+    @State private var isOpeningLibrary = false
     private let groupId: Int
 
     init(groupId: Int, trackerService: TrackerService, locationService: LocationService) {
@@ -293,10 +294,7 @@ struct TrackerDetailRoute: View {
                 }
                 viewModel.coordinator.openReadingPeriod(groupId: groupId, originalEndDate: original)
             },
-            onGoToLibrary: {
-                container.navigationRouter.selectedTab = .library
-                container.navigationRouter.popToRoot()
-            },
+            onGoToLibrary: goToLibrary,
             onReport: { openURL(TrackerExternalLink.reportChannel) },
             onPrimaryAction: { dispatch(viewModel.state.primaryAction) },
             onSecondaryAction: { dispatch(viewModel.state.secondaryAction) }
@@ -321,6 +319,23 @@ struct TrackerDetailRoute: View {
             },
             onNavigateComment: { _ in goToComment() }
         )
+    }
+
+    // "서재로 이동": 이 교환독서의 서재 상세(LIB-02-01)로 이동한다.
+    // 서재에서 책을 찾지 못하면 서재 탭으로 보내 버튼이 먹통이 되지 않게 한다.
+    private func goToLibrary() {
+        guard !isOpeningLibrary else { return }
+        isOpeningLibrary = true
+        let title = viewModel.state.myProfile.bookTitle
+        Task {
+            defer { isOpeningLibrary = false }
+            if let book = await resolveTrackerLibraryBook(libraryService: container.api.library, groupId: groupId, bookTitle: title) {
+                container.navigationRouter.push(to: .libraryCards(book: book))
+            } else {
+                container.navigationRouter.selectedTab = .library
+                container.navigationRouter.popToRoot()
+            }
+        }
     }
 
     // 상단바 메시지 아이콘 / 카드 액션 / 다이얼로그가 모두 같은 댓글 화면으로 진입
