@@ -57,18 +57,32 @@ struct BookiibookiiApp: App {
                     container.navigationRouter.hardReset(to: .login)
                 }
             }
-            .fullScreenCover(item: $container.navigationRouter.presentedPublicCard) { link in
-                PublicCardViewerView(
-                    shareToken: link.shareToken,
-                    libraryService: container.api.library,
-                    onGoMain: openMainFromPublicCard
-                )
+            .fullScreenCover(item: $container.navigationRouter.presentedPublicLink) { link in
+                Group {
+                    switch link {
+                    case .card(let card):
+                        PublicCardViewerView(
+                            shareToken: card.shareToken,
+                            libraryService: container.api.library,
+                            onGoMain: openMainFromPublicLink
+                        )
+                    case .profile(let profile):
+                        PublicProfileViewerView(
+                            shareToken: profile.shareToken,
+                            isDark: profile.isDark,
+                            userService: container.api.user,
+                            onGoMain: openMainFromPublicLink
+                        )
+                    }
+                }
+                // 화면이 떠 있는 동안 다른 링크가 들어오면 이전 뷰모델을 재사용하지 않고 새로 불러온다.
+                .id(link.id)
             }
             .onOpenURL { url in
                 if AuthApi.isKakaoTalkLoginUrl(url) {
                     _ = AuthController.handleOpenUrl(url: url)
-                } else if let link = PublicCardShareLink(url: url) {
-                    container.navigationRouter.presentedPublicCard = link
+                } else if let link = PublicShareLink(url: url) {
+                    container.navigationRouter.presentedPublicLink = link
                 } else {
                     GIDSignIn.sharedInstance.handle(url)
                 }
@@ -76,9 +90,9 @@ struct BookiibookiiApp: App {
         }
     }
 
-    // 공개 카드 뷰어의 "메인으로": 로그인 전이면 로그인, 온보딩 전이면 온보딩, 그 외에는 메인 탭으로 보낸다.
-    private func openMainFromPublicCard() {
-        container.navigationRouter.presentedPublicCard = nil
+    // 공개 화면의 "메인으로": 로그인 전이면 로그인, 온보딩 전이면 온보딩, 그 외에는 메인 탭으로 보낸다.
+    private func openMainFromPublicLink() {
+        container.navigationRouter.presentedPublicLink = nil
         if !TokenManager.shared.hasAccessToken {
             container.navigationRouter.hardReset(to: .login)
         } else if !TokenManager.shared.isOnboardingDone {

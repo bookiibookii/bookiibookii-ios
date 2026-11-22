@@ -8,6 +8,9 @@ struct GroupApplyDialog: View {
     let bookSelected: Bool
     @Binding var applyMsg: String
     let loading: Bool
+    let submitting: Bool
+    let searchError: String?
+    var noResult: Bool = false
     let canSubmit: Bool
     let onSearch: () -> Void
     let onClear: () -> Void
@@ -20,8 +23,11 @@ struct GroupApplyDialog: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             header
+                .disabled(submitting)
             bookSearchField
+                .disabled(submitting)
             applyMessageField
+                .disabled(submitting)
             footerButton
         }
         .padding(20)
@@ -88,7 +94,21 @@ struct GroupApplyDialog: View {
             .background(RoundedRectangle(cornerRadius: 20).fill(Color("white")))
             .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color("grey200"), lineWidth: 1))
 
-            if !results.isEmpty {
+            if loading {
+                ProgressView().padding(.top, 8)
+            } else if let searchError {
+                Text(searchError)
+                    .pretendardText(size: 14)
+                    .foregroundColor(Color("pointRed"))
+                Button("다시 검색", action: onSearch)
+                    .pretendardText(size: 14)
+                    .foregroundColor(Color("main200"))
+            } else if noResult, results.isEmpty, !bookSelected {
+                Text("검색 결과가 없어요. 제목을 다시 확인해 주세요")
+                    .pretendardText(size: 14)
+                    .foregroundColor(Color("grey600"))
+                    .padding(.top, 8)
+            } else if !results.isEmpty {
                 BookSearchResultDropdown(books: results, onSelect: onSelect)
                     .padding(.top, 8)
             }
@@ -145,7 +165,7 @@ struct GroupApplyDialog: View {
     private var footerButton: some View {
         Button(action: onSubmit) {
             ZStack {
-                if loading {
+                if submitting {
                     ProgressView().tint(Color("white"))
                 } else {
                     Text("완료")
@@ -155,11 +175,11 @@ struct GroupApplyDialog: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 48)
-            .background(canSubmit ? Color("main200") : Color("grey200"))
+            .background(canSubmit || submitting ? Color("main200") : Color("grey200"))
             .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
-        .disabled(!canSubmit || loading)
+        .disabled(!canSubmit || loading || submitting)
     }
 }
 

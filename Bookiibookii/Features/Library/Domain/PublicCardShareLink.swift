@@ -6,8 +6,14 @@ struct PublicCardShareLink: Identifiable, Equatable {
 
     var id: String { shareToken }
 
-    /// 카카오톡 공유 메시지의 "보러가기"는 `kakao{앱키}://kakaolink?shareToken=…` 으로 앱을 연다.
+    /// - 유니버설 링크: `https://bookiibookii.com/share/reading-card/{token}`
+    /// - 카카오톡 공유 메시지의 "보러가기": `kakao{앱키}://kakaolink?shareToken=…`
     init?(url: URL) {
+        if let token = PublicShareLink.universalLinkToken(from: url, pathSegment: "reading-card") {
+            shareToken = token
+            return
+        }
+
         guard url.scheme?.hasPrefix("kakao") == true,
               url.host == "kakaolink",
               let token = URLComponents(url: url, resolvingAgainstBaseURL: false)?
@@ -17,6 +23,6 @@ struct PublicCardShareLink: Identifiable, Equatable {
               !token.isEmpty else {
             return nil
         }
-        shareToken = token
+        shareToken = PublicShareLink.sanitizedToken(token)
     }
 }

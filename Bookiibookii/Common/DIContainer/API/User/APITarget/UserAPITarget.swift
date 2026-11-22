@@ -23,6 +23,7 @@ enum UserAPITarget: APITargetType {
     case profileReceivedReviews(nickname: String, page: Int, size: Int)
     case profileBookshelf(nickname: String)
     case createProfileShareToken
+    case fetchPublicProfile(shareToken: String)
     case withdraw(WithdrawalRequest)
 
     var path: String {
@@ -67,6 +68,8 @@ enum UserAPITarget: APITargetType {
             return API.Path.profileBookshelf(nickname: nickname)
         case .createProfileShareToken:
             return API.Path.mypage + "/share-token"
+        case .fetchPublicProfile(let shareToken):
+            return API.Path.publicProfile(shareToken: shareToken)
         case .withdraw:
             return API.Path.users + "/me/withdrawal"
         }
@@ -76,7 +79,7 @@ enum UserAPITarget: APITargetType {
         switch self {
         case .mypage, .profileChangeInfo, .getUserProfile, .bookshelf,
              .mypageWrittenReviews, .mypageReceivedReviews,
-             .profileWrittenReviews, .profileReceivedReviews, .profileBookshelf: return .get
+             .profileWrittenReviews, .profileReceivedReviews, .profileBookshelf, .fetchPublicProfile: return .get
         case .updateMypage, .updateIntroduction, .reorderRepresentativeBooks, .replaceFavoriteBook: return .patch
         case .deleteRepresentativeBook, .deleteFavoriteBook: return .delete
         case .updateProfileChangeInfo: return .put

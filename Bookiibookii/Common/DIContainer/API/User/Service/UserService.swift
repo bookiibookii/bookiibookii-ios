@@ -57,7 +57,8 @@ final class UserService {
         let target = UserAPITarget.completeOnboarding(body)
         let request = target.asURLRequest()
 
-        let (data, _) = try await interceptor.request(request)
+        let (data, http) = try await interceptor.request(request, handlesBookErrors: true)
+        try BookAPIError.throwIfPresent(in: data, statusCode: http.statusCode)
         let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
 
         guard response.isSuccess else {
@@ -97,6 +98,18 @@ final class UserService {
         let response = try JSONDecoder().decode(ApiResponseDTO<ProfileShareTokenResult>.self, from: data)
         guard response.isSuccess, let result = response.result else {
             throw UserError.profileShareFailed(response.message)
+        }
+        return result
+    }
+
+    /// GET `/api/public/profiles/{shareToken}`
+    /// 로그인 없이 여는 공유 링크용이라 인터셉터(토큰 첨부·401 로그아웃·공통 에러 화면)를 거치지 않는다.
+    func fetchPublicProfile(shareToken: String) async throws -> PublicProfileResponseDTO {
+        let request = UserAPITarget.fetchPublicProfile(shareToken: shareToken).asURLRequest()
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(ApiResponseDTO<PublicProfileResponseDTO>.self, from: data)
+        guard response.isSuccess, let result = response.result else {
+            throw UserError.profileFailed
         }
         return result
     }
@@ -208,7 +221,8 @@ final class UserService {
         let target = UserAPITarget.addFavoriteBook(FavoriteBookISBNRequest(isbn13: isbn13))
         let request = target.asURLRequest()
 
-        let (data, _) = try await interceptor.request(request)
+        let (data, http) = try await interceptor.request(request, handlesBookErrors: true)
+        try BookAPIError.throwIfPresent(in: data, statusCode: http.statusCode)
         let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
         guard response.isSuccess else {
             throw UserError.bookshelfFailed(response.message)
@@ -223,7 +237,8 @@ final class UserService {
         )
         let request = target.asURLRequest()
 
-        let (data, _) = try await interceptor.request(request)
+        let (data, http) = try await interceptor.request(request, handlesBookErrors: true)
+        try BookAPIError.throwIfPresent(in: data, statusCode: http.statusCode)
         let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
         guard response.isSuccess else {
             throw UserError.bookshelfFailed(response.message)
