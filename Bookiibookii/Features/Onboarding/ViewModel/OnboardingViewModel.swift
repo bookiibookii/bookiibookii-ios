@@ -78,6 +78,7 @@ final class OnboardingViewModel: ObservableObject {
     @Published var searchQuery: String = ""
     @Published var searchResults: [BookItem] = []
     @Published var isSearching: Bool = false
+    @Published private(set) var searchError: String?
 
     // MARK: - Step 3: 기록 방식
     @Published var recordMethods: Set<RecordMethod> = []
@@ -188,6 +189,7 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - Step 2: 인생책 검색/선택
     func onSearchQueryChanged() {
         searchTask?.cancel()
+        searchError = nil
         let keyword = searchQuery.trimmingCharacters(in: .whitespaces)
         guard keyword.count >= 1 else {
             searchResults = []
@@ -203,6 +205,8 @@ final class OnboardingViewModel: ObservableObject {
                 guard !Task.isCancelled else { return }
                 searchResults = books
             } catch {
+                guard !Task.isCancelled else { return }
+                searchError = error.localizedDescription
                 searchResults = []
             }
             isSearching = false
@@ -236,6 +240,7 @@ final class OnboardingViewModel: ObservableObject {
     /// 검색 다이얼로그 열 때 초기화
     func clearBookSearch() {
         searchTask?.cancel()
+        searchError = nil
         searchQuery = ""
         searchResults = []
         isSearching = false
@@ -313,6 +318,7 @@ final class OnboardingViewModel: ObservableObject {
     /// 서버가 내려준 실패 사유(UserError)는 그대로 노출하고,
     /// 네트워크·디코딩 예외는 재시도를 유도하는 안내 문구로 대체한다.
     private static func submitFailureToast(for error: Error) -> String {
+        if let bookError = error as? BookAPIError { return bookError.localizedDescription }
         if let userError = error as? UserError {
             let message = (userError.errorDescription ?? "").trimmingCharacters(in: .whitespaces)
             return message.isEmpty ? "잠시 후 다시 시도해주세요." : message

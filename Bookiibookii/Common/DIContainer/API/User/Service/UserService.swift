@@ -57,7 +57,8 @@ final class UserService {
         let target = UserAPITarget.completeOnboarding(body)
         let request = target.asURLRequest()
 
-        let (data, _) = try await interceptor.request(request)
+        let (data, http) = try await interceptor.request(request, handlesBookErrors: true)
+        try BookAPIError.throwIfPresent(in: data, statusCode: http.statusCode)
         let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
 
         guard response.isSuccess else {
@@ -208,7 +209,8 @@ final class UserService {
         let target = UserAPITarget.addFavoriteBook(FavoriteBookISBNRequest(isbn13: isbn13))
         let request = target.asURLRequest()
 
-        let (data, _) = try await interceptor.request(request)
+        let (data, http) = try await interceptor.request(request, handlesBookErrors: true)
+        try BookAPIError.throwIfPresent(in: data, statusCode: http.statusCode)
         let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
         guard response.isSuccess else {
             throw UserError.bookshelfFailed(response.message)
@@ -223,7 +225,8 @@ final class UserService {
         )
         let request = target.asURLRequest()
 
-        let (data, _) = try await interceptor.request(request)
+        let (data, http) = try await interceptor.request(request, handlesBookErrors: true)
+        try BookAPIError.throwIfPresent(in: data, statusCode: http.statusCode)
         let response = try JSONDecoder().decode(SimpleResponse.self, from: data)
         guard response.isSuccess else {
             throw UserError.bookshelfFailed(response.message)

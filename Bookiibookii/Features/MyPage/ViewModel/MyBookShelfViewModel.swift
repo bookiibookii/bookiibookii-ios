@@ -22,6 +22,9 @@ final class MyBookShelfViewModel: ObservableObject {
     @Published private(set) var favoriteSearchResults: [BookItem] = []
     @Published private(set) var isFavoriteSearching = false
     @Published private(set) var isFavoriteMutating = false
+    @Published private(set) var favoriteSearchError: String?
+    @Published private(set) var needsBookshelfRefresh = false
+    @Published private(set) var bookshelfRefreshMessage: String?
 
     private var favoriteSearchMode: FavoriteBookSearchMode?
     private var favoriteSearchTask: Task<Void, Never>?
@@ -85,12 +88,19 @@ final class MyBookShelfViewModel: ObservableObject {
         do {
             let result = try await userService.getBookshelf()
             applyBookshelfResult(result)
+            needsBookshelfRefresh = false
+            bookshelfRefreshMessage = nil
         } catch {
-            errorMessage = error.localizedDescription
+            if needsBookshelfRefresh {
+                bookshelfRefreshMessage = "도서 저장은 완료됐지만 책장을 새로 불러오지 못했어요. 목록을 다시 불러와주세요."
+            } else {
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
     func openFavoriteAddSearch() {
+        guard !needsBookshelfRefresh, !isFavoriteMutating else { return }
         guard favoriteBooks.count < Self.maxFavoriteCount else { return }
         favoriteSearchMode = .add
         clearFavoriteSearch()
@@ -98,6 +108,7 @@ final class MyBookShelfViewModel: ObservableObject {
     }
 
     func openFavoriteReplaceSearch(userBookId: Int) {
+        guard !needsBookshelfRefresh, !isFavoriteMutating else { return }
         favoriteSearchMode = .replace(userBookId: userBookId)
         clearFavoriteSearch()
         isFavoriteSearchPresented = true
@@ -111,6 +122,7 @@ final class MyBookShelfViewModel: ObservableObject {
 
     func onFavoriteSearchQueryChanged() {
         favoriteSearchTask?.cancel()
+        favoriteSearchError = nil
         let keyword = favoriteSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !keyword.isEmpty else {
             favoriteSearchResults = []
@@ -128,6 +140,8 @@ final class MyBookShelfViewModel: ObservableObject {
                 guard !Task.isCancelled else { return }
                 favoriteSearchResults = books
             } catch {
+                guard !Task.isCancelled else { return }
+                favoriteSearchError = error.localizedDescription
                 favoriteSearchResults = []
             }
             isFavoriteSearching = false
@@ -136,7 +150,7 @@ final class MyBookShelfViewModel: ObservableObject {
 
     func selectFavoriteBook(_ book: BookItem) async {
         guard let mode = favoriteSearchMode else { return }
-        guard !isFavoriteMutating else { return }
+        guard !isFavoriteMutating, !needsBookshelfRefresh else { return }
 
         isFavoriteMutating = true
         defer { isFavoriteMutating = false }
@@ -148,17 +162,19 @@ final class MyBookShelfViewModel: ObservableObject {
             case .replace(let userBookId):
                 try await userService.replaceFavoriteBook(userBookId: userBookId, isbn13: book.isbn13)
             }
-
-            let result = try await userService.getBookshelf()
-            applyBookshelfResult(result)
-            closeFavoriteSearch()
         } catch {
             errorMessage = error.localizedDescription
+            return
         }
+
+        // 저장 성공 이후에는 검색창을 닫고, 실패하더라도 GET만 재시도한다.
+        closeFavoriteSearch()
+        needsBookshelfRefresh = true
+        await load()
     }
 
     func deleteFavoriteBook(userBookId: Int) async {
-        guard !isFavoriteMutating else { return }
+        guard !isFavoriteMutating, !needsBookshelfRefresh else { return }
 
         isFavoriteMutating = true
         defer { isFavoriteMutating = false }
@@ -256,6 +272,7 @@ final class MyBookShelfViewModel: ObservableObject {
 
     private func clearFavoriteSearch() {
         favoriteSearchTask?.cancel()
+        favoriteSearchError = nil
         favoriteSearchQuery = ""
         favoriteSearchResults = []
         isFavoriteSearching = false
